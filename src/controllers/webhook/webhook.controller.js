@@ -3,7 +3,7 @@ import AppErrorCode from '../../constants/AppErrorCodes.js';
 import statusCodes from '../../constants/httpStatusCodes.js';
 import Merchant from '../../models/merchant.model.js';
 import AppError from '../../utils/AppError.js';
-import { DetectPaymentGateway, getNextRoundRobinStaffWithLocking, OrchestratorGatewayParser } from './webhookHelpers.js';
+import { DetectPaymentGateway, OrchestratorGatewayParser } from './webhookHelpers.js';
 import requestIP from "request-ip";
 import Dispute from '../../models/dispute.model.js';
 import { uniqueDisputeId } from '../../utils/generateIds.js';
@@ -26,7 +26,7 @@ const receiveDisputesWebhook = async (req, res) => {
         payloadId: null
     }
 
-    const t = await sequelize.transaction(); // start a transaction
+    // const t = await sequelize.transaction(); // start a transaction
 
     // @desc : Receive Dispute From Payment Gateway and Store It And Notify Merchant or Staff
     try {
@@ -94,7 +94,7 @@ const receiveDisputesWebhook = async (req, res) => {
         if (_.isEmpty(merchant)) {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound('Merchant'));
         }
-        console.log("merchant: ",merchant);
+        // console.log("merchant: ", merchant);
         console.timeEnd('merchantFetch');
         logPayload.merchantId = merchant.id;
         logPayload.gateway = Gateway;
@@ -105,148 +105,207 @@ const receiveDisputesWebhook = async (req, res) => {
             logPayload.log = 'Dispute : Failed to Get the Dispute from Gateway';
             throw new AppError(statusCodes.BAD_REQUEST, 'Failed to Get disputeId');
         }
-        // console.time("payloadCreation");
-        // const payload = await Payload.create({
-        //     merchantId: merchant.id,
-        //     rawPayload: JSON.stringify({
-        //         ipAddress: normalizePayload?.ipAddress,
-        //         Gateway,
-        //         ...req.body
-        //     })
-        // });
-        // console.timeEnd("payloadCreation");
-        // logPayload.payloadId = payload?.id;
-        // console.time('disputeFetch');
-        // let dispute = await Dispute.findOne({ where: { disputeId: normalizePayload?.disputeId, merchantId: merchant.id } });
-        // console.timeEnd('disputeFetch');
+        const mid = merchantId?.split('D')?.[1]?.slice(0, 2);
 
-        // const isExist = !!dispute;
+        console.time('disputeFetch');
+        let [payloadData, dispute, customId] = await Promise.all([
 
-        // // Step 9  : Store or Update Dispute history
-        // if (isExist) {
-        //     // Update the dispute history
-        //     dispute.ipAddress = normalizePayload?.ipAddress;
-        //     dispute.disputeStatus = normalizePayload?.disputeStatus;
-        //     dispute.event = normalizePayload?.event;
-        //     dispute.statusUpdatedAt = normalizePayload?.statusUpdatedAt;
-        //     dispute.dueDate = normalizePayload?.dueDate;
-        //     dispute.type = normalizePayload?.type;
-        //     dispute.status = 'UPDATED';
-        //     dispute = await dispute.save();
-        //     const historyRecord = await dispute.createDisputeHistory({
-        //         merchantId: merchant?.id,
-        //         disputeId: dispute?.id,
-        //         updatedStatus: normalizePayload?.disputeStatus,
-        //         updatedEvent: normalizePayload?.event,
-        //         statusUpdateAt: normalizePayload?.statusUpdatedAt,
-        //         payloadId: payload?.id
-        //     });
-        //     if (_.isEmpty(historyRecord)) {
-        //         logPayload.log = `Dispute : Failed to Update ${dispute.customId} Status`;
-        //         throw new AppError(statusCodes.BAD_REQUEST, 'Failed to Update Dispute History Status');
-        //     }
-        // } else {
-        //     // Create a new Dispute 
-        //     const mid = merchantId?.split('D')?.[1]?.slice(0, 2);
-        //     console.time('customId');
-        //     const customId = await uniqueDisputeId(mid);
-        //     console.timeEnd('customId');
-        //     const disputePayload = {
-        //         merchantId: merchant.id,
-        //         customId,
-        //         ...normalizePayload
-        //     }
-        //     console.time('disputeCreation')
-        //     dispute = await Dispute.create(disputePayload);
-        //     console.timeEnd('disputeCreation')
-        //     if (_.isEmpty(dispute)) {
-        //         logPayload.log = "Dispute : Failed to Add New Received Dispute.";
-        //         throw new AppError(statusCodes.BAD_REQUEST, 'Failed to Add Dispute');
-        //     }
+            // 1 . Create Payload Record
+            Payload.create({
+                merchantId: merchant.id,
+                rawPayload: JSON.stringify({
+                    ipAddress: normalizePayload?.ipAddress,
+                    Gateway,
+                    ...req.body
+                })
+            }),
 
-        //     console.time('createHistory')
-        //     // Add Dispute History record
-        //     const historyRecord = await dispute.createDisputeHistory({
-        //         merchantId: merchant.id,
-        //         disputeId: dispute?.id,
-        //         updatedStatus: dispute?.disputeStatus,
-        //         updatedEvent: dispute?.event,
-        //         statusUpdateAt: dispute?.statusUpdatedAt,
-        //         payloadId: payload?.id
-        //     });
-        //     console.timeEnd('createHistory')
+            // 2 . Fetch the Dispute Exist Or Not
+            Dispute.findOne({
+                where: { disputeId: normalizePayload?.disputeId, merchantId: merchant.id },
+                attributes: ['id', 'customId', 'ipAddress', 'disputeStatus', 'event', 'statusUpdatedAt', 'dueDate', 'type', 'status'],
+            }),
 
-        //     if (_.isEmpty(historyRecord)) {
-        //         logPayload.log = `Dispute : Failed to Update ${dispute.customId} Status`;
-        //         throw new AppError(statusCodes.BAD_REQUEST, 'Failed to Update Dispute History Status');
-        //     }
-        //     // Step 10 : If Merchant Staff Exist , Assign Dispute Using Round Robbin Algorithm For New Dispute
+            // 3 . Generate Unique id for Dispute
+            uniqueDisputeId(mid),
+        ]);
+        console.timeEnd("disputeFetch");
+        logPayload.payloadId = payloadData?.id;
+        const isExist = !!dispute;
 
-        //     console.time('FetchStaff')
-        //     const staffMembers = await Staff.findAll({
-        //         where: { merchantId: dispute?.merchantId, status: 'ACTIVE' },
-        //         attributes: ['id'],
-        //         raw: true,
-        //     });
-        //     console.timeEnd('FetchStaff')
+        // Step 9  : Store or Update Dispute history
+        if (isExist) {
+            console.log("If Exist : ")
+            // Update the dispute history
+            dispute.ipAddress = normalizePayload?.ipAddress;
+            dispute.disputeStatus = normalizePayload?.disputeStatus;
+            dispute.event = normalizePayload?.event;
+            dispute.statusUpdatedAt = normalizePayload?.statusUpdatedAt;
+            dispute.dueDate = normalizePayload?.dueDate;
+            dispute.type = normalizePayload?.type;
+            dispute.status = 'UPDATED';
+            const [disputeData, historyRecord] = await Promise.all([
+                // 1. Save Updated Dispute
+                dispute.save(),
 
-        //     if (!_.isEmpty(staffMembers)) {
-        //         // Assign Dispute to Staff Using Round Robbin Algorithm
+                // 2. Create History record for Dispute
+                dispute.createDisputeHistory({
+                    merchantId: merchant?.id,
+                    disputeId: dispute?.id,
+                    updatedStatus: normalizePayload?.disputeStatus,
+                    updatedEvent: normalizePayload?.event,
+                    statusUpdateAt: normalizePayload?.statusUpdatedAt,
+                    payloadId: payloadData?.id
+                })
+            ])
+            dispute = disputeData;
+            if (_.isEmpty(historyRecord)) {
+                logPayload.log = `Dispute : Failed to Update ${dispute.customId} Status`;
+                throw new AppError(statusCodes.BAD_REQUEST, 'Failed to Update Dispute History Status');
+            }
+        }
+        else {
+            // Create a new Dispute 
+            const disputePayload = {
+                merchantId: merchant.id,
+                customId,
+                ...normalizePayload
+            }
+            console.time('disputeCreation')
+            dispute = await Dispute.create(disputePayload);
+            console.timeEnd('disputeCreation')
+            if (_.isEmpty(dispute)) {
+                logPayload.log = "Dispute : Failed to Add New Received Dispute.";
+                throw new AppError(statusCodes.BAD_REQUEST, 'Failed to Add Dispute');
+            }
 
-        //         // Round Robbin with race condition prevention 
-        //         const ids = staffMembers?.map((staff) => staff?.id);
-        //         if (ids.length > 0) {
-        //             console.time('roundrobbin')
-        //             const nextStaffId = await getNextRoundRobinStaffWithLocking(ids, merchant?.id);
-        //             console.timeEnd('roundrobbin')
-        //             dispute.staffId = nextStaffId;
-        //             console.time('dispute.save');
-        //             await Dispute.update(
-        //                 { staffId: dispute?.staffId },
-        //                 { where: { id: dispute?.id } }
-        //             );
-        //             // await dispute.save({ transaction: t });
-        //             console.timeEnd('dispute.save');
+            const [historyRecord, staffMembers, staffAssignmentState] = await Promise.all([
 
-        //             console.time('state.save');
-        //             await StaffAssignmentState.update(
-        //                 { lastStaffAssigned: nextStaffId },
-        //                 { where: { merchantId: merchant.id } }
-        //             );
-        //             console.timeEnd('state.save');
-        //         }
-        //     }
-        // }
+                // 1. Create Dispute History Record
+                dispute.createDisputeHistory({
+                    merchantId: merchant.id,
+                    disputeId: dispute?.id,
+                    updatedStatus: dispute?.disputeStatus,
+                    updatedEvent: dispute?.event,
+                    statusUpdateAt: dispute?.statusUpdatedAt,
+                    payloadId: payloadData?.id
+                }),
+
+                // 2. Fetch Merchant Staff
+                Staff.findAll({
+                    where: { merchantId: merchant?.id },
+                    attributes: ['id'],
+                    raw: true,
+                }),
+
+                // 3.. Fetch the State of Staff To Get the Next Staff index to Assign Dispute
+                StaffAssignmentState.findOne({
+                    where: { merchantId: merchant?.id },
+                    attributes: ['id', 'lastStaffAssigned'],
+
+                    // lock: t.LOCK.UPDATE,  // use lock WITHIN parent transaction
+                    // transaction: t,
+                    raw: true
+                })
+            ]);
+
+            if (_.isEmpty(historyRecord)) {
+                logPayload.log = `Dispute : Failed to Update ${dispute.customId} Status`;
+                throw new AppError(statusCodes.BAD_REQUEST, 'Failed to Update Dispute History Status');
+            }
+            // Step 10 : If Merchant Staff Exist , Assign Dispute Using Round Robbin Algorithm For New Dispute
 
 
-        // // Step 11 : Notify Merchant or Staff for the status Update
+            if (!_.isEmpty(staffMembers)) {
+                // Assign Dispute to Staff Using Round Robbin Algorithm
+
+                // Round Robbin with race condition prevention 
+                let ids = staffMembers?.map((staff) => staff?.id);
+                ids.sort((a, b) => a - b);
+                if (ids.length > 0) {
+                    const updates = [];
+                    console.time('RoundRobbin')
+                    let state = staffAssignmentState;
+                    let nextStaffId;
+                    let isFirst = false;
+                    if (!state) {
+                        const firstStaffId = ids[0];
+                        updates.push(
+                            StaffAssignmentState.create({
+                                merchantId,
+                                lastStaffAssigned: firstStaffId
+                            })
+                        )
+                        isFirst = true;
+                        nextStaffId = firstStaffId;
+                    } else {
+                        const lastAssignedId = state.lastStaffAssigned;
+                        const lastIndex = ids.indexOf(lastAssignedId);
+                        const nextIndex = (lastIndex + 1) % ids.length;
+                        nextStaffId = ids[nextIndex];
+                    }
+                    console.timeEnd('RoundRobbin');
+                    dispute.staffId = nextStaffId;
+                    console.time('dispute.save');
+                    updates.push(
+                        Dispute.update(
+                            { staffId: dispute?.staffId },
+                            {
+                                where: { id: dispute?.id }
+                            }
+
+                        )
+                    );
+                    console.timeEnd('dispute.save');
+
+                    console.time('state.save');
+                    if (!isFirst) {
+                        updates.push(
+                            StaffAssignmentState.update(
+                                { lastStaffAssigned: nextStaffId },
+                                {
+                                    where: { merchantId: merchant.id }
+                                }
+                            )
+                        );
+                    }
+                    console.timeEnd('state.save');
+                    console.time('updates');
+                    await Promise.all(updates);
+                    console.timeEnd('updates');
+                }
+            }
+        }
 
 
-        // // Step 12 : Return OK to Gateway
+        // Step 11 : Notify Merchant or Staff for the status Update
+
+
+        // Step 12 : Return OK to Gateway
         // await t.commit(); // commit if everything passes
-        // const message = isExist ? `${dispute.customId} status Updated` : `New Dispute Added with id -> ${dispute.customId}`;
+        const message = isExist ? `${dispute.customId} status Updated` : `New Dispute Added with id -> ${dispute.customId}`;
 
-        // console.time('logCreate')
-        // await DisputeLog.create({
-        //     gateway: Gateway,
-        //     merchantId: merchant.id,
-        //     log: `Dispute: ` + message,
-        //     ipAddress: clientIp,
-        //     payloadId: payload?.id
-        // });
-        // console.timeEnd('logCreate')
+        console.time('logCreate')
+        await DisputeLog.create({
+            gateway: Gateway,
+            merchantId: merchant.id,
+            log: `Dispute: ` + message,
+            ipAddress: clientIp,
+            payloadId: payloadData?.id
+        });
+        console.timeEnd('logCreate')
         return res.status(statusCodes.OK).json({
-            normalizePayload
+            dispute
         });
     } catch (error) {
-        await t.rollback();
-        // if (logPayload.merchantId) {
-        //     await DisputeLog.create({
-        //         ...logPayload,
-        //         log: logPayload?.log + ", Error : " + error?.message,
-        //         payload: req.body
-        //     });
-        // }
+        // await t.rollback();
+        if (logPayload.merchantId) {
+            await DisputeLog.create({
+                ...logPayload,
+                log: logPayload?.log + " , Error : " + error?.message,
+                payload: req.body
+            });
+        }
         return res.status(statusCodes.BAD_REQUEST).json({ message: error?.message || 'Failed to receive Dispute From Gateway' });
     }
 }
