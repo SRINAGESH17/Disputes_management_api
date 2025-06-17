@@ -36,8 +36,8 @@ Notification.init({
         allowNull: false,
     },
 
-    payload: {
-        type: DataTypes.JSONB,
+    disputeId: {
+        type: DataTypes.INTEGER,
         allowNull: true,
     },
 
@@ -61,9 +61,15 @@ Notification.init({
     modelName: 'Notification',
     tableName: 'notifications',
     timestamps: true,
+    indexes: [
+        {
+            fields: ['recipient_type']
+        },
+        {
+            fields: ['recipient_id', 'recipient_type']
+        },
+    ]
 
-    // ❗ Do NOT define indexes here if you're using migrations to add them
-    // Define indexes via migration only to avoid duplication/conflicts
 });
 
 export default Notification;

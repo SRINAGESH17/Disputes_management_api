@@ -3,7 +3,7 @@ import statusCodes from "../constants/httpStatusCodes.js";
 import { failed_response, success_response } from "../utils/response.js";
 import schemaValidator from "../utils/schemaValidator.js";
 import { merchantRegisterSchema } from "../utils/yupSchema.js";
-import merchantRegisterService from "../services/merchant/merchantRegister.js";
+import merchantRegisterService from "../services/merchant/merchantRegister.service.js";
 
 
 const registerMerchant = catchAsync(async (req, res) => {
@@ -24,7 +24,7 @@ const registerMerchant = catchAsync(async (req, res) => {
         // Step  2: Call the merchant registration service
         const payload = await merchantRegisterService(data);
 
-        
+
         // Step  3: create a response payload and return
         return res.status(statusCodes.CREATED).json(
             success_response(

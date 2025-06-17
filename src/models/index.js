@@ -9,7 +9,7 @@ import UserRole from "./userRole.model.js";
 import OTP from "./otp.model.js";
 import StaffAssignmentState from "./staffAssignState.model.js";
 import Payload from "./payload.model.js";
-// import Notification from "./notification.model.js";
+import Notification from "./notification.model.js";
 
 
 
@@ -24,7 +24,7 @@ const db = {
     OTP,
     StaffAssignmentState,
     Payload,
-    // Notification
+    Notification
 };
 
 Object.values(db).forEach(model => {

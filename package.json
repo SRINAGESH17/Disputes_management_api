@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "devstart": "nodemon src/app.js",
-    "dev_migrate": "sequelize-cli db:migrate --env development"
+    "dev_migrate": "sequelize-cli db:migrate --env development",
+    "generate": "sequelize-cli migration:generate --name",
+    "undo_last": "npx sequelize-cli db:migrate:undo --env development"
   },
   "keywords": [],
   "author": "",
