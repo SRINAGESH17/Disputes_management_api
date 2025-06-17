@@ -57,26 +57,15 @@ Merchant.init({
             // notEmpty: { msg: "merchant ID is required" },
             len: [10, 30],
         },
-        unique: true,
     },
     email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
         validate: {
             notEmpty: { msg: "Email is required" },
             isEmail: { msg: 'Invalid email format' },
         },
     },
-    // password: {
-    //     type: DataTypes.STRING,
-    //     allowNull: false,
-    //     validate: {
-    //         notEmpty: { msg: "Password is required" },
-    //         is: /^[a-zA-Z0-9!@#$%^&*]{8,100}$/, // Regex for password validation
-    //         len: [8, 100],
-    //     },
-    // },
     name: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -155,6 +144,18 @@ Merchant.init({
     indexes: [
         {
             fields: ["created_at"]
+        },
+        {
+            fields: ["merchant_id"]
+        },
+        {
+            fields: ["email"]
+        },
+        {
+            fields: ["mobile_number"]
+        },
+        {
+            fields: ["firebase_id"]
         },
     ]
 });

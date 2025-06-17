@@ -26,7 +26,7 @@ const receiveDisputesWebhook = async (req, res) => {
         payloadId: null
     }
 
-    // const t = await sequelize.transaction(); // start a transaction
+    const t = await sequelize.transaction(); // start a transaction
 
     // @desc : Receive Dispute From Payment Gateway and Store It And Notify Merchant or Staff
     try {
@@ -90,7 +90,7 @@ const receiveDisputesWebhook = async (req, res) => {
 
         // Step 7  : Check Merchant Exist or not
         console.time('merchantFetch');
-        const merchant = await Merchant.findOne({ where: { merchantId }, attributes: ['id'], raw: true });
+        const merchant = await Merchant.findOne({ where: { merchantId }, attributes: ['id'], transaction: t, raw: true });
         if (_.isEmpty(merchant)) {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound('Merchant'));
         }
@@ -118,16 +118,19 @@ const receiveDisputesWebhook = async (req, res) => {
                     Gateway,
                     ...req.body
                 })
+            }, {
+                transaction: t
             }),
 
             // 2 . Fetch the Dispute Exist Or Not
             Dispute.findOne({
                 where: { disputeId: normalizePayload?.disputeId, merchantId: merchant.id },
                 attributes: ['id', 'customId', 'ipAddress', 'disputeStatus', 'event', 'statusUpdatedAt', 'dueDate', 'type', 'status'],
+                transaction: t
             }),
 
             // 3 . Generate Unique id for Dispute
-            uniqueDisputeId(mid),
+            uniqueDisputeId(mid, t),
         ]);
         console.timeEnd("disputeFetch");
         logPayload.payloadId = payloadData?.id;
@@ -146,7 +149,7 @@ const receiveDisputesWebhook = async (req, res) => {
             dispute.status = 'UPDATED';
             const [disputeData, historyRecord] = await Promise.all([
                 // 1. Save Updated Dispute
-                dispute.save(),
+                dispute.save({ transaction: t }),
 
                 // 2. Create History record for Dispute
                 dispute.createDisputeHistory({
@@ -156,6 +159,8 @@ const receiveDisputesWebhook = async (req, res) => {
                     updatedEvent: normalizePayload?.event,
                     statusUpdateAt: normalizePayload?.statusUpdatedAt,
                     payloadId: payloadData?.id
+                }, {
+                    transaction: t
                 })
             ])
             dispute = disputeData;
@@ -172,7 +177,7 @@ const receiveDisputesWebhook = async (req, res) => {
                 ...normalizePayload
             }
             console.time('disputeCreation')
-            dispute = await Dispute.create(disputePayload);
+            dispute = await Dispute.create(disputePayload, { transaction: t });
             console.timeEnd('disputeCreation')
             if (_.isEmpty(dispute)) {
                 logPayload.log = "Dispute : Failed to Add New Received Dispute.";
@@ -189,12 +194,15 @@ const receiveDisputesWebhook = async (req, res) => {
                     updatedEvent: dispute?.event,
                     statusUpdateAt: dispute?.statusUpdatedAt,
                     payloadId: payloadData?.id
+                }, {
+                    transaction: t
                 }),
 
                 // 2. Fetch Merchant Staff
                 Staff.findAll({
                     where: { merchantId: merchant?.id },
                     attributes: ['id'],
+                    transaction: t,
                     raw: true,
                 }),
 
@@ -202,9 +210,8 @@ const receiveDisputesWebhook = async (req, res) => {
                 StaffAssignmentState.findOne({
                     where: { merchantId: merchant?.id },
                     attributes: ['id', 'lastStaffAssigned'],
-
-                    // lock: t.LOCK.UPDATE,  // use lock WITHIN parent transaction
-                    // transaction: t,
+                    lock: t.LOCK.UPDATE,  // use lock WITHIN parent transaction
+                    transaction: t,
                     raw: true
                 })
             ]);
@@ -232,9 +239,9 @@ const receiveDisputesWebhook = async (req, res) => {
                         const firstStaffId = ids[0];
                         updates.push(
                             StaffAssignmentState.create({
-                                merchantId,
+                                merchantId: merchant.id,
                                 lastStaffAssigned: firstStaffId
-                            })
+                            }, { transaction: t })
                         )
                         isFirst = true;
                         nextStaffId = firstStaffId;
@@ -251,20 +258,22 @@ const receiveDisputesWebhook = async (req, res) => {
                         Dispute.update(
                             { staffId: dispute?.staffId },
                             {
-                                where: { id: dispute?.id }
-                            }
-
+                                where: { id: dispute?.id },
+                                transaction: t
+                            },
                         )
                     );
                     console.timeEnd('dispute.save');
 
                     console.time('state.save');
+                    console.log("testing : ", merchant.id);
                     if (!isFirst) {
                         updates.push(
                             StaffAssignmentState.update(
                                 { lastStaffAssigned: nextStaffId },
                                 {
-                                    where: { merchantId: merchant.id }
+                                    where: { merchantId: merchant.id },
+                                    transaction: t
                                 }
                             )
                         );
@@ -281,8 +290,7 @@ const receiveDisputesWebhook = async (req, res) => {
         // Step 11 : Notify Merchant or Staff for the status Update
 
 
-        // Step 12 : Return OK to Gateway
-        // await t.commit(); // commit if everything passes
+        await t.commit(); // commit if everything passes
         const message = isExist ? `${dispute.customId} status Updated` : `New Dispute Added with id -> ${dispute.customId}`;
 
         console.time('logCreate')
@@ -294,6 +302,7 @@ const receiveDisputesWebhook = async (req, res) => {
             payloadId: payloadData?.id
         });
         console.timeEnd('logCreate')
+        // Step 12 : Return OK to Gateway
         return res.status(statusCodes.OK).json({
             dispute
         });

@@ -38,7 +38,6 @@ Staff.init(
             validate: {
                 len: [10, 30],
             },
-            unique: true,
         },
         firebaseId: {
             type: DataTypes.STRING,
@@ -55,7 +54,6 @@ Staff.init(
         email: {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: true,
             validate: {
                 isEmail: true,
             },
@@ -119,6 +117,15 @@ Staff.init(
         },
         {
             fields: ["mobile_number"],
+        },
+        {
+            fields: ["staff_id"],
+        },
+        {
+            fields: ["firebase_id"],
+        },
+        {
+            fields: ["email"],
         },
         {
             fields: ["created_at"]

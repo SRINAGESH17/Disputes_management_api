@@ -23,8 +23,8 @@ Payload.init({
             model: 'merchants',
             key: 'id',
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT'
+        // onUpdate: 'CASCADE',
+        // onDelete: 'RESTRICT'
     },
     rawPayload: {
         type: DataTypes.TEXT,

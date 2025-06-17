@@ -20,7 +20,7 @@ const startServer = async () => {
         // Connect to DB and load all resources
         await initializeDB();
         app.listen(env.PORT, () => {
-            console.log("Server is Started");
+            // console.log("Server is Started");
             console.log(`Server running on http://localhost:${env.PORT}`);
         });
     } catch (error) {
