@@ -40,8 +40,8 @@ export const initializeDB = async () => {
         await sequelize.authenticate();
         console.log(`${env.NODE_ENV} DB connected successfully.`);
         // Sync all models
-        await sequelize.sync({ alter: true });
-        // console.log('Models synced.');
+        await sequelize.sync({ force: true });
+        // console.log('Models synced. Testing the unique staff constraints testing things');
         console.log(`${env.NODE_ENV} : ${env.DEV_DB_URL}`);
     } catch (error) {
         console.error('DB initialization failed:', error);

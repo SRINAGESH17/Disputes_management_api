@@ -161,12 +161,16 @@ Dispute.init({
             fields: ['merchant_id']
         },
         {
+            unique: true,
+            name: 'unique_custom_id',
             fields: ['custom_id']
         },
         {
             fields: ['staff_id']
         },
         {
+            unique: true,
+            name: 'unique_dispute_id',
             fields: ['dispute_id']
         },
         {

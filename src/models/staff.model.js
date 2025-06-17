@@ -116,15 +116,23 @@ Staff.init(
             fields: ["merchant_id"]
         },
         {
+            unique: true,
+            name: 'unique_staff_mobile',
             fields: ["mobile_number"],
         },
         {
+            unique: true,
+            name: 'unique_staff_id',
             fields: ["staff_id"],
         },
         {
+            unique: true,
+            name: 'unique_staff_firebase',
             fields: ["firebase_id"],
         },
         {
+            unique: true,
+            name: 'unique_staff_email',
             fields: ["email"],
         },
         {

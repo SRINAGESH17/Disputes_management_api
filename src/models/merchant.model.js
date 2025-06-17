@@ -146,15 +146,23 @@ Merchant.init({
             fields: ["created_at"]
         },
         {
+            unique: true,
+            name: 'unique_merchant_id',
             fields: ["merchant_id"]
         },
         {
+            unique: true,
+            name: 'unique_merchant_email',
             fields: ["email"]
         },
         {
+            unique: true,
+            name: 'unique_merchant_mobile',
             fields: ["mobile_number"]
         },
         {
+            unique: true,
+            name: 'unique_merchant_firebase',
             fields: ["firebase_id"]
         },
     ]
