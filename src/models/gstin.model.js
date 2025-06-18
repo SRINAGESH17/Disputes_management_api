@@ -19,8 +19,8 @@ GSTIN.init({
             model: 'merchants',
             key: 'id',
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT'
+        // onUpdate: 'CASCADE',
+        // onDelete: 'RESTRICT'
     },
     verificationValue: {
         type: DataTypes.STRING,

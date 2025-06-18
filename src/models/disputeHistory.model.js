@@ -102,9 +102,9 @@ DisputeHistory.init({
         {
             fields: ["merchant_id"]
         },
-        // {
-        //     fields : ["merchant_id", "dispute_id"]
-        // },
+        {
+            fields: ["merchant_id", "dispute_id"]
+        },
         {
             fields: ["dispute_id"]
         },

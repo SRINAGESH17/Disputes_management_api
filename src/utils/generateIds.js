@@ -98,10 +98,10 @@ function generateDisputeID(mid) {
     return `${prefix}${mid}${numbering}`;
 }
 
-async function uniqueDisputeId(mid) {
+async function uniqueDisputeId(mid, t) {
     let id = generateDisputeID(mid);
 
-    const isExist = await Dispute.findOne({ where: { customId: id }, attributes: ['disputeId'], raw: true});
+    const isExist = await Dispute.findOne({ where: { customId: id }, attributes: ['disputeId'], transaction: t, raw: true });
 
     if (!_.isEmpty(isExist)) {
         return generateDisputeID(mid);

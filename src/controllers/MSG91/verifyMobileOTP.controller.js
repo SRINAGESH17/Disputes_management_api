@@ -36,7 +36,7 @@ const verifyMobileOTP = catchAsync(async (req, res) => {
         }
 
         // 2.3 : Validate otp_number 
-        if (_.isEmpty(otp_number)) {
+        if (_.isEmpty(otp_number) && !_.isInteger(otp_number)) {
             throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.fieldIsRequired('otp_number'));
         }
         if (!/^\d{6}$/.test(otp_number)) {

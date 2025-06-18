@@ -52,7 +52,7 @@ const AddMerchantStaffService = async (data) => {
             OTP.findOne({ where: mobilePayload, attributes: ['verificationValue'], raw: true })
         ]);
 
-        // 1.1 : Check Email is Exist or not
+        // 1.1 : Check Email is Exist or testing staff
         if (userEmailRecord) {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.EmailAlreadyRegistered);
         }

@@ -58,7 +58,6 @@ Dispute.init({
         validate: {
             notNull: { msg: 'customId is required' },
         },
-        unique: true,
     },
     disputeId: {
         type: DataTypes.STRING,
@@ -67,7 +66,6 @@ Dispute.init({
             notEmpty: { msg: 'dispute reference cannot be empty' },
             len: [3, 50]
         },
-        unique: true,
     },
     paymentId: {
         type: DataTypes.STRING,
@@ -163,12 +161,16 @@ Dispute.init({
             fields: ['merchant_id']
         },
         {
+            unique: true,
+            name: 'unique_custom_id',
             fields: ['custom_id']
         },
         {
             fields: ['staff_id']
         },
         {
+            unique: true,
+            name: 'unique_dispute_id',
             fields: ['dispute_id']
         },
         {

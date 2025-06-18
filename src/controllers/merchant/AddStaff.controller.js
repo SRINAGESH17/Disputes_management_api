@@ -6,7 +6,7 @@ import schemaValidator from "../../utils/schemaValidator.js";
 import { addingStaffSchema } from "../../utils/yupSchema.js";
 import AppError from "../../utils/AppError.js";
 import AppErrorCode from "../../constants/AppErrorCodes.js";
-import AddMerchantStaffService from "../../services/merchant/AddStaffService.js";
+import AddMerchantStaffService from "../../services/merchant/AddStaff.service.js";
 
 
 

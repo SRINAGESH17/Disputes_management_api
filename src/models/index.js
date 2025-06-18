@@ -9,6 +9,8 @@ import UserRole from "./userRole.model.js";
 import OTP from "./otp.model.js";
 import StaffAssignmentState from "./staffAssignState.model.js";
 import Payload from "./payload.model.js";
+import Notification from "./notification.model.js";
+
 
 
 const db = {
@@ -21,7 +23,8 @@ const db = {
     Staff,
     OTP,
     StaffAssignmentState,
-    Payload
+    Payload,
+    Notification
 };
 
 Object.values(db).forEach(model => {
@@ -36,10 +39,11 @@ export const initializeDB = async () => {
     try {
         await sequelize.authenticate();
         console.log(`${env.NODE_ENV} DB connected successfully.`);
-
         // Sync all models
-        await sequelize.sync({ alter: true }); // or { force: true } or { alter : true}
-        console.log('Models synced.');
+        if (env.NODE_ENV !== "PROD") {
+            // await sequelize.sync({ alter: true });
+            // console.log('Models synced.');
+        }
         console.log(`${env.NODE_ENV} : ${env.DEV_DB_URL}`);
     } catch (error) {
         console.error('DB initialization failed:', error);
