@@ -221,7 +221,7 @@ const receiveDisputesWebhook = async (req, res) => {
         logPayload.payloadId = payloadData?.id;
         const isExist = !!dispute;
 
-        // Step 9  : Store or Update Dispute history
+        // Step 9  : Store or Update Dispute history Record
         const notify = [];
         if (isExist) {
 
