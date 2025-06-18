@@ -2,6 +2,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
+
     // 1. Create ENUM types manually
     await queryInterface.sequelize.query(`CREATE TYPE "enum_notifications_type" AS ENUM ('DISPUTE', 'SYSTEM', 'INFO', 'REMINDER');`);
 
@@ -48,7 +49,13 @@ module.exports = {
       disputeId: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        field: 'dispute_id'
+        field: 'dispute_id',
+        references: {
+          model: 'disputes',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       },
 
       isRead: {

@@ -8,7 +8,7 @@
     "devstart": "nodemon src/app.js",
     "dev_migrate": "sequelize-cli db:migrate --env development",
     "generate": "sequelize-cli migration:generate --name",
-    "undo_last": "npx sequelize-cli db:migrate:undo --env development"
+    "dev_undo_last": "npx sequelize-cli db:migrate:undo --env development"
   },
   "keywords": [],
   "author": "",

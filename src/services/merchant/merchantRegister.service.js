@@ -29,7 +29,7 @@ const merchantRegisterService = async (data) => {
         const mobilePayload = {
             verificationKey: verificationCodes.mobile_number,
             verificationValue: mobileNumber,
-            isVerified: false
+            isVerified: true
         }
 
         const [

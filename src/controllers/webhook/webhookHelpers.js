@@ -228,6 +228,85 @@ const getNextRoundRobinStaffWithLocking = async (staffIds, merchantId) => {
 //     return nextStaffId;
 // };
 
+function generateDisputeNotificationTemplate(disputeId, status, staffName, options) {
+    switch (status) {
+        case 'ASSIGNED':
+            return {
+                title: `New Dispute Assigned (#ID: ${disputeId})`,
+                message: `Dispute #ID:${disputeId} has been assigned to You '${staffName}'. Please review and take appropriate action.`
+            };
+        case 'DISPUTE_RECEIVED_MERCHANT':
+            return {
+                title: `New Dispute Received (#ID: ${disputeId})`,
+                message: `A new dispute has been raised and added to your feed. Your staff member '${staffName}' has been assigned to handle it. Please monitor for updates or required input.`
+            };
+        case 'DISPUTE_RECEIVED_UNASSIGNED':
+            return {
+                title: `New Dispute Received (#ID: ${disputeId})`,
+                message: `A new dispute has been raised and added to your feed. Currently, no staff is available or assigned to handle this dispute. Please monitor for updates.`
+            };
+
+        case 'EVENT_CHANGED_ASSIGNED_STAFF':
+            return {
+                title: `Dispute Status Changed (#ID: ${disputeId}) and Assigned to Staff Member '${staffName}'`,
+                message: `The event of Dispute #ID:${disputeId} has been updated to "${options?.newStatus || 'New One'}". Review the case for more details.`
+            };
+        case 'STATUS_CHANGED':
+            return {
+                title: `Dispute Status Changed (#ID: ${disputeId})`,
+                message: `The status of Dispute #ID: ${disputeId} has been updated to "${options?.newStatus || 'New One'}". Review the case for more details.`
+            };
+        case 'EVENT_CHANGED':
+            return {
+                title: `Dispute Status Changed (#ID: ${disputeId})`,
+                message: `The event of Dispute #ID:${disputeId} has been updated to "${options?.newStatus || 'New One'}". Review the case for more details.`
+            };
+
+        case 'DISPUTE_UPDATED':
+            return {
+                title: `Dispute Updated (#ID: ${disputeId})`,
+                message: `Dispute #ID:${disputeId} has been updated by ${options?.updatedBy || 'a user'}. Please review the latest changes.`
+            };
+
+        case 'ATTACHMENT_ADDED':
+            return {
+                title: `New Attachment in Dispute (#ID: ${disputeId})`,
+                message: `A new document or file has been added to Dispute #ID:${disputeId}. Please check the attachments section.`
+            };
+
+        case 'DETAILS_EDITED':
+            return {
+                title: `Dispute Details Edited (#ID: ${disputeId})`,
+                message: `Some key information in Dispute #ID:${disputeId} has been edited. Kindly review the changes to stay updated.`
+            };
+        case 'ESCALATED':
+            return {
+                title: `Dispute Escalated (#ID: ${disputeId})`,
+                message: `Dispute #ID:${disputeId} has been escalated for higher-level review. Please examine the case urgently.`
+            };
+        case 'RESOLVED':
+            return {
+                title: `Dispute Resolved (#ID: ${disputeId})`,
+                message: `Dispute #ID:${disputeId} has been marked as resolved. No further action is required unless reopened.`
+            };
+        case 'REOPENED':
+            return {
+                title: `Dispute Reopened (#ID: ${disputeId})`,
+                message: `Customer has reopened Dispute #ID:${disputeId}. Review the updated comments and respond as necessary.`
+            };
+        case 'COMMENTED':
+            return {
+                title: `New Comment on Dispute (#ID: ${disputeId})`,
+                message: `A new comment was added to Dispute #ID:${disputeId}. Please review the comment and provide a response.`
+            };
+        default:
+            return {
+                title: `Dispute Update (#ID: ${disputeId})`,
+                message: `There is a new update on Dispute #ID:${disputeId}. Please check the latest information in your dashboard.`
+            };
+    }
+}
+
 
 
 export {
@@ -235,6 +314,6 @@ export {
     DetectPaymentGateway,
     OrchestratorGatewayParser,
     getNextRoundRobinStaffWithLocking,
-    getNextRoundRobinStaffWithoutLocking
-
+    getNextRoundRobinStaffWithoutLocking,
+    generateDisputeNotificationTemplate
 }

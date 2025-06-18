@@ -25,7 +25,7 @@ const verifyEmailOTP = catchAsync(async (req, res) => {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidEmailFormat);
         }
 
-        if (_.isEmpty(otp_number)) {
+        if (_.isEmpty(otp_number) || !_.isInteger(otp_number)) {
             throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.fieldIsRequired('otp_number'));
         }
         if (_.isEmpty(otp_reference)) {
@@ -57,7 +57,7 @@ const verifyEmailOTP = catchAsync(async (req, res) => {
                     statusCodes.OK,
                     "OTP Already Verified",
                     {
-                        referenceId :otp_reference
+                        referenceId: otp_reference
                     },
                     true
                 )
