@@ -94,7 +94,7 @@ const sentMobileOTP = catchAsync(async (req, res) => {
         // Step 5 : Sent Mobile OTP
 
         const MSG_DATA = await sentVerifyMobileOTP(mobileNumber);
-        console.log("MSG_DATA : ", MSG_DATA?.message,MSG_DATA?.data);
+        // console.log("MSG_DATA : ", MSG_DATA?.message,MSG_DATA?.data);
 
         if (MSG_DATA?.data?.type !== "success") {
             throw new AppError(statusCodes.BAD_REQUEST, MSG_DATA?.message || 'Failed to sent OTP')

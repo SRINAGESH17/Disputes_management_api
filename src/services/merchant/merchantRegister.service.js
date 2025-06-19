@@ -86,7 +86,7 @@ const merchantRegisterService = async (data) => {
         const merchantId = await uniqueMerchantId(mobileDigits);
 
         // 4.2 : Create account
-        const merchant = await Merchant.create({
+        let merchant = await Merchant.create({
             name,
             email,
             mobileNumber,
@@ -110,14 +110,20 @@ const merchantRegisterService = async (data) => {
         }
         // 4.4 Update role id into merchant
         merchant.userRole = role?.id;
-        await merchant.save();
 
-        // Step 5 : Generate custom firebase token for login
 
-        const customToken = await FirebaseGenerateCustomToken(isUserCreated?.user?.uid);
+        const [, customToken,] = await Promise.all([
 
-        // Step 6 : Deleting OTP records of merchant email and mobileNumber
-        await OTP.destroy({ where: { verificationValue: { [Op.in]: [email, mobileNumber] } } });
+            // 4.4 Update role id into merchant
+            merchant.save(),
+
+            // Step 5 : Generate custom firebase token for login
+            FirebaseGenerateCustomToken(isUserCreated?.user?.uid),
+
+            // Step 6 : Deleting OTP records of merchant email and mobileNumber
+            OTP.destroy({ where: { verificationValue: { [Op.in]: [email, mobileNumber] } } })
+        ])
+
 
         return {
             merchant: {
