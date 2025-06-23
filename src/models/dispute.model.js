@@ -88,6 +88,7 @@ Dispute.init({
         allowNull: false,
         validate: {
             isIP: true,
+            notEmpty: { msg: 'IP address cannot be empty' },    
         }
     },
     amount: {

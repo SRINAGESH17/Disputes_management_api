@@ -19,8 +19,6 @@ GSTIN.init({
             model: 'merchants',
             key: 'id',
         },
-        // onUpdate: 'CASCADE',
-        // onDelete: 'RESTRICT'
     },
     verificationValue: {
         type: DataTypes.STRING,
@@ -57,5 +55,18 @@ GSTIN.init({
     ]
 });
 
+/*
+
+Authorized Signatory : body.result.authorized_signatory as string[]
+Name Of the Business Owner
+Legal Business Name : body.result.legal_name as string
+Business Nature : body.result.primary_business_address.business_nature as string
+Business Email : body.result.business_email as string
+Business Mobile : body.result.business_mobile as string
+Public or Private Limited : body.result.business_constitution as string | 'Private Limited Company'
+Primary Business Address: body.result.primary_business_address.registered_address
+currentRegistrationStatus : body.result.current_registration_status as string | 'Active
+
+*/
 
 export default GSTIN;

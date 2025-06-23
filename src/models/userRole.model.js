@@ -76,6 +76,11 @@ UserRole.init({
     modelName: 'userRole',
     tableName: 'user_roles',
     timestamps: true,
+    indexes: [
+        {
+            fields: ['firebase_id']
+        }
+    ]
 });
 
 export default UserRole;

@@ -70,27 +70,27 @@ Staff.init(
             type: DataTypes.STRING,
             allowNull: false,
         },
-        designation: {
+        staffRole: {
             type: DataTypes.STRING,
             allowNull: true,
-            defaultValue: ""
+            defaultValue: "staff"
         },
-        disputeLimit: {
-            type: DataTypes.INTEGER,
-            defaultValue: 10,
-        },
-        totalDisputes: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0,
-        },
-        disputesPending: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0,
-        },
-        disputesClosed: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0,
-        },
+        // disputeLimit: {
+        //     type: DataTypes.INTEGER,
+        //     defaultValue: 10,
+        // },
+        // totalDisputes: {
+        //     type: DataTypes.INTEGER,
+        //     defaultValue: 0,
+        // },
+        // disputesPending: {
+        //     type: DataTypes.INTEGER,
+        //     defaultValue: 0,
+        // },
+        // disputesClosed: {
+        //     type: DataTypes.INTEGER,
+        //     defaultValue: 0,
+        // },
         userRole: {
             type: DataTypes.INTEGER,
             allowNull: true,

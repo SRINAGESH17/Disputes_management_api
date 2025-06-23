@@ -1,5 +1,6 @@
 import StaffAssignmentState from "../../models/staffAssignState.model.js";
 import sequelize from '../../config/database.js';
+import { disputeStates, getDisputeInternalState } from "../../constants/disputeStates.js";
 
 
 
@@ -29,9 +30,25 @@ function DetectPaymentGateway(headers, body) {
     if (body?.event?.includes('dispute')) return 'razorpay';
 
     // 2. Cashfree
-    if (headers['x-cashfree-signature']) return 'cashfree';
+    /*
+    {
+        "content-length": "1099",
+        "x-webhook-attempt": "1",
+        "content-type": "application/json",
+        "x-webhook-signature": "07r5C3VMwsGYeldGOCYxe5zoHhIN1zLfa8O0U/yngHI=",
+        "x-idempotency-key": "n9rn7079wqXcse3GEDEXCYle9ajXmU0SUQY8zrUNAlc=",
+        "x-webhook-timestamp": "1746427759733",
+        "x-webhook-version": "2025-01-01"
+    }
+    */
+    if (headers['x-webhook-signature']) return 'cashfree';
 
     return null;
+}
+
+const getStatusIntoHumanReadableFormat = (status) => {
+    // @desc : Convert the status to human readable format
+    return status?.split('_')?.map((s) => s[0]?.toUpperCase() + s.slice(1)?.toLowerCase())?.join(' ') || 'Initiated';
 }
 
 const RazorpayDisputeParser = (payload) => {
@@ -48,23 +65,84 @@ const RazorpayDisputeParser = (payload) => {
     const reason_code = disputeData?.entity?.reason_code;
     const reasonDesc = reason_code?.split('_')?.map((word) => word?.[0]?.toUpperCase() + word?.slice(1)).join(' ');
 
+
+    // Configuration for dispute internal state
+    const stateValue = disputeData?.entity?.status?.toLowerCase();
+    const internalState = getDisputeInternalState(stateValue) || disputeStates.INITIATED;
+
+
     const dispute = {
         event: disEvent,                                         // [ 'created', 'won', 'lost', 'closed', 'under_review', 'action_required' ]
         disputeId: disputeData?.entity?.id,                      // Ex: disp_EsIAlDcoUr8CaQ
         paymentId: disputeData?.entity?.payment_id,              // Ex: pay_EFtmUsbwpXwBHI
         amount: disputeData?.entity?.amount,                     // Ex: 39000
         currency: disputeData?.entity?.currency,                 // Ex : INR
-        // paymentMode: paymentData?.entity?.method || null,        // Ex : card  
+        // paymentMode: paymentData?.entity?.method || null,     // Ex : card  
         statusUpdatedAt: updatedDate,                            // Ex : 1589907957 (Unix Timestamp) --> seconds (1589907957)  * milliseconds ( 1000 ) = new Date( seconds * milliseconds )  
         dueDate: respondBy,                                      // Ex : 1589907957 (Unix Timestamp) --> seconds (1589907957)  * milliseconds ( 1000 ) = new Date( seconds * milliseconds )  
         reasonCode: reason_code,                                 // EX : goods_or_services_not_received_or_partially_received
         reasonDescription: reasonDesc,                           // Ex : Goods Or Services Not Received Or Partially Received
-        status: disputeData?.entity?.status,                     // Ex : open, won, lost, closed, under_review
-        type: disputeData?.entity?.phase || 'chargeback'        // Ex :  chargeback, fraud
+        status: getStatusIntoHumanReadableFormat(disputeData?.entity?.status),                     // Ex : open, won, lost, closed, under_review
+        type: disputeData?.entity?.phase || 'chargeback',        // Ex :  chargeback, fraud
+        state: getStatusIntoHumanReadableFormat(internalState),
     }
     return dispute;
 
 }
+
+function getInternalDisputeStatusForCashfree(rawStatus = 'initiated') {
+    const normalized = rawStatus.toUpperCase();
+
+    const suffixMappings = [
+        {
+            suffix: '_CREATED',
+            internal_status: 'action_required',
+            internal_sub_status: 'awaiting_merchant_response',
+            description: 'Dispute created; merchant action required.'
+        },
+        {
+            suffix: '_DOCS_RECEIVED',
+            internal_status: 'under_review',
+            internal_sub_status: 'evidence_submitted',
+            description: 'Evidence received and under review.'
+        },
+        {
+            suffix: '_UNDER_REVIEW',
+            internal_status: 'under_review',
+            internal_sub_status: 'reviewing_evidence',
+            description: 'Dispute is under evaluation by issuer/gateway.'
+        },
+        {
+            suffix: '_MERCHANT_WON',
+            internal_status: 'won',
+            internal_sub_status: 'auto_resolved',
+            description: 'Merchant won the dispute.'
+        },
+        {
+            suffix: '_MERCHANT_LOST',
+            internal_status: 'lost',
+            internal_sub_status: 'evidence_invalid',
+            description: 'Merchant lost the dispute.'
+        },
+        {
+            suffix: '_MERCHANT_ACCEPTED',
+            internal_status: 'accepted',
+            internal_sub_status: 'accepted_by_merchant',
+            description: 'Merchant accepted the dispute.'
+        },
+        {
+            suffix: '_INSUFFICIENT_EVIDENCE',
+            internal_status: 'action_required',
+            internal_sub_status: 'evidence_rejected',
+            description: 'Evidence was deemed insufficient; further action may be required.'
+        }
+    ];
+
+    const match = suffixMappings.find(m => normalized.endsWith(m.suffix));
+
+    return match ? disputeStates[match?.internal_status?.toUpperCase()] : 'INITIATED';
+}
+
 const CashfreeDisputeParser = (payload) => {
 
     // @desc : Parse the razorpay payload and pull important fields
@@ -76,9 +154,14 @@ const CashfreeDisputeParser = (payload) => {
     const updatedDate = new Date(payload?.event_time);
     const respondBy = new Date(payload?.data?.dispute?.respond_by);
 
+
+    // Configuration for dispute internal state
+    const stateValue = disputeData?.dispute_status;
+    const internalState = getInternalDisputeStatusForCashfree(stateValue || 'initiated') || disputeStates.INITIATED;
+
     const dispute = {
         event: disEvent,                                                // [ 'created', 'updated', 'closed']
-        disputeId: disputeData?.dispute_id,                             // Ex: 433475258
+        disputeId: disputeData?.dispute_id?.toString(),                 // Ex: 433475258
         paymentId: orderData?.cf_payment_id?.toString(),                // Ex: 885473311
         amount: disputeData?.dispute_amount,                            // Ex: 39000
         currency: disputeData?.dispute_amount_currency,                 // Ex : INR                                             // Ex : card --> no paymentMode field 
@@ -86,14 +169,14 @@ const CashfreeDisputeParser = (payload) => {
         dueDate: respondBy,                                             // Ex : "2023-06-18T23:59:59+05:30"
         reasonCode: disputeData?.reason_code,                           // EX : "1402"
         reasonDescription: disputeData?.reason_description,             // Ex : Duplicate Processing
-        status: disputeData?.dispute_status,                            // Ex : CHARGEBACK_MERCHANT_WON, PRE_ARBITRATION_CREATED,DISPUTE_CREATED
-        type: disputeData?.dispute_type?.toLowerCase() || 'chargeback'  // Ex : DISPUTE, CHARGEBACK, PRE_ARBITRATION, ARBITRATION, RETRIEVAL
+        status: getStatusIntoHumanReadableFormat(disputeData?.dispute_status),                            // Ex : CHARGEBACK_MERCHANT_WON, PRE_ARBITRATION_CREATED,DISPUTE_CREATED
+        type: disputeData?.dispute_type?.toLowerCase() || 'chargeback',  // Ex : DISPUTE, CHARGEBACK, PRE_ARBITRATION, ARBITRATION, RETRIEVAL
+        state: getStatusIntoHumanReadableFormat(internalState),
     }
     return dispute;
 }
 
 function OrchestratorGatewayParser(gateway, rawPayload) {
-    console.log("gateway in parser : ", gateway);
     switch (gateway) {
         case 'razorpay':
             return RazorpayDisputeParser(rawPayload);

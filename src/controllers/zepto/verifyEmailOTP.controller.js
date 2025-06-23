@@ -47,7 +47,7 @@ const verifyEmailOTP = catchAsync(async (req, res) => {
         }
 
         let OTP_REF = await OTP.findOne({ where: emailVerifyPayload });
-        console.log("TEST : ",emailVerifyPayload,OTP_REF);
+        console.log("TEST : ", emailVerifyPayload, OTP_REF);
         if (_.isEmpty(OTP_REF)) {
             throw new AppError(statusCodes.NOT_FOUND, "Invalid OTP. Send OTP again.");
         }

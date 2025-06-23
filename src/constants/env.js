@@ -24,6 +24,11 @@ const zepto_email_template_key = getEnv("zepto_email_template_key");
 
 const MSG_91_AUTH_KEY = getEnv('MSG_91_AUTH_KEY');
 const MSG_91_TEMPLATE_ID = getEnv('MSG_91_TEMPLATE_ID');
+
+const RABBITMQ_URL = getEnv('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672');
+const RABBITMQ_EXCHANGE = getEnv('RABBITMQ_EXCHANGE');
+const RABBITMQ_QUEUE_NAME = getEnv('RABBITMQ_QUEUE_NAME');
+const RABBITMQ_WH_ROUTING_KEY = getEnv('RABBITMQ_WH_ROUTING_KEY');
 // just add it
 const env = {
     NODE_ENV,
@@ -41,7 +46,13 @@ const env = {
 
     // MSG 91 credentials
     MSG_91_AUTH_KEY,
-    MSG_91_TEMPLATE_ID
+    MSG_91_TEMPLATE_ID,
+
+    // rabbitMQ
+    RABBITMQ_URL,
+    RABBITMQ_EXCHANGE,
+    RABBITMQ_QUEUE_NAME,
+    RABBITMQ_WH_ROUTING_KEY
 }
 
 export default env;

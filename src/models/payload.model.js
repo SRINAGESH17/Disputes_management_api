@@ -3,9 +3,9 @@ import sequelize from '../config/database.js';
 
 class Payload extends Model {
     static associate(models) {
-        Payload.hasMany(models.DisputeHistory, { foreignKey: 'payloadId', as: 'disputeHistory' });
+        Payload.hasOne(models.DisputeHistory, { foreignKey: 'payloadId', as: 'disputeHistory' });
 
-        Payload.hasMany(models.DisputeLog, { foreignKey: 'payloadId', as: 'disputeLog' });
+        Payload.hasOne(models.DisputeLog, { foreignKey: 'payloadId', as: 'disputeLog' });
     }
 
 }
@@ -23,8 +23,16 @@ Payload.init({
             model: 'merchants',
             key: 'id',
         },
-        // onUpdate: 'CASCADE',
-        // onDelete: 'RESTRICT'
+    },
+    payloadType: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: 'webhook',
+        validate: {
+            isIn: {
+                args: [['webhook', 'gstin']]
+            },
+        }
     },
     rawPayload: {
         type: DataTypes.TEXT,

@@ -2,6 +2,7 @@ import express from 'express';
 import env from './constants/env.js';
 import { initializeDB } from './models/index.js';
 import indexRoutes from './routes/index.js';
+import webhookProcessor from './controllers/rabbitMQ/ProcessWebhook.class.js';
 
 
 const app = express();
@@ -14,14 +15,20 @@ app.get('/', (req, res) => {
 });
 app.use('/', indexRoutes);
 
+
 // Setting up the server
 const startServer = async () => {
     try {
         // Connect to DB and load all resources
         await initializeDB();
+
+        // Listen Channel To Consume the letters From Queue
+        await webhookProcessor.start();
+
+        // Start the Server
         app.listen(env.PORT, () => {
             // console.log("Server is Started");
-            console.log(`Server running on http://localhost:${env.PORT}`);
+            console.log(`🌐 Server running on http://localhost:${env.PORT}`);
         });
     } catch (error) {
         console.error('Initialization failed:', error);

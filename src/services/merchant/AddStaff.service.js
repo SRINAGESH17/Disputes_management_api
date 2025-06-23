@@ -17,7 +17,7 @@ const AddMerchantStaffService = async (data) => {
     // @desc : Create Merchant Staff service
     try {
 
-        const { firstName, lastName, email, mobileNumber, password, designation, merchantId } = data;
+        const { firstName, lastName, email, mobileNumber, password, role: userRole, merchantId } = data;
 
         // Check Merchant exist or not 
         const merchant = await Merchant.findOne({ where: { id: merchantId }, attributes: ['id', 'email'], raw: true });
@@ -103,7 +103,7 @@ const AddMerchantStaffService = async (data) => {
             mobileNumber,
             firebaseId: isUserCreated?.user?.uid,
             merchantId: merchant?.id,
-            designation
+            staffRole: userRole || 'staff'
         });
         if (_.isEmpty(staff)) {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.notAbleToCreateField('Staff'));

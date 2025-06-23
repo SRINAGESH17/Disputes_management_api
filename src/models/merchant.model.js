@@ -25,7 +25,6 @@ class Merchant extends Model {
         });
         Merchant.hasMany(models.Staff, {
             foreignKey: "merchantId",
-            constraints: true,
             onDelete: 'RESTRICT',
             as: {
                 singular: "staff",
@@ -34,7 +33,6 @@ class Merchant extends Model {
         });
         Merchant.hasMany(models.DisputeLog, {
             foreignKey: "merchantId",
-            constraints: true,
             onDelete: 'RESTRICT',
             as: {
                 singular: "disputeLog",
@@ -54,7 +52,6 @@ Merchant.init({
         type: DataTypes.STRING,
         allowNull: true,
         validate: {
-            // notEmpty: { msg: "merchant ID is required" },
             len: [10, 30],
         },
     },
@@ -78,7 +75,11 @@ Merchant.init({
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
-            is: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/
+            is(value) {
+                if (value && !/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(value)) {
+                    throw new Error('Invalid mobile number format');
+                }
+            }
         }
     },
     firebaseId: {
@@ -87,6 +88,35 @@ Merchant.init({
         validate: {
             notEmpty: { msg: "Firebase ID is required" },
             len: [3, 50],
+        },
+    },
+    gstin: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+            notEmpty(value) {
+                if (value && value.trim() === '') {
+                    throw new Error("GSTIN is required");
+                }
+            },
+            len(value) {
+                if (value && value.length !== 15) {
+                    throw new Error("GSTIN must be 15 characters");
+                }
+            },
+            is(value) {
+                if (value && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value)) {
+                    throw new Error('Invalid GSTIN format');
+                }
+            },
+            isValidGSTIN(value) {
+                if (value) {
+                    const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+                    if (!regex.test(value)) {
+                        throw new Error('Invalid GSTIN format');
+                    }
+                }
+            }
         },
     },
     gateways: {

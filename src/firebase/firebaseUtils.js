@@ -47,12 +47,17 @@ const FirebaseGenerateCustomToken = async (uid) => {
     }
 }
 
+const FirebaseVerifyIdToken = async (token) => {
+    const userInfo = await admin.auth().verifyIdToken(token);
+    return userInfo;
+}
 
 export {
     FirebaseCheckEmailExistOrNot,
     FirebaseCheckPhoneExistOrNot,
     FirebaseCreateUserAccount,
-    FirebaseGenerateCustomToken
+    FirebaseGenerateCustomToken,
+    FirebaseVerifyIdToken
 }
 
 

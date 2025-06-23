@@ -34,7 +34,7 @@ const merchantRegisterSchema = yup.object({
 const addingStaffSchema = yup.object({
     firstName: yup.string().required('firstName is required').min(2, 'First Name must contain minimum 1 or 2 characters'),
     lastName: yup.string().required('lastName is required').min(2, 'Last Name must contain minimum 1 or 2 characters'),
-    designation: yup.string().required('designation is required'),
+    role: yup.string().required('role is required'),
     email: emailValidate,
     mobileNumber: mobileNumberValidate,
     password: passwordValidate,
@@ -60,7 +60,18 @@ const normalizePayloadSchema = yup.object({
     statusUpdatedAt: yup.date().required('statusUpdatedAt is required').typeError('Invalid date format'),
     dueDate: yup.date().required('dueDate is required').typeError('Invalid date format'),
     type: yup.string().required('type is required'),
+    status: yup.string().required('status is required'),
 });
+
+const msgPayloadSchema = yup.object({
+    merchantId: yup.string()
+        .required('merchantId is required')
+        .matches(/^MID/, 'merchantId must start with MID'),
+    GatewayIP: yup.string().required('GatewayIP is required'),
+    headers: yup.mixed().required('headers are required'),
+    rawPayload: yup.mixed().required('rawPayload is required')
+});
+
 
 export {
     emailValidate,
@@ -68,5 +79,6 @@ export {
     dobValidate,
     merchantRegisterSchema,
     addingStaffSchema,
-    normalizePayloadSchema
+    normalizePayloadSchema,
+    msgPayloadSchema
 }

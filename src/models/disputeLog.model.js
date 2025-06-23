@@ -43,6 +43,11 @@ DisputeLog.init({
             len: [1, 200]
         }
     },
+    status: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        enum: ['failed', 'success', 'pending', 'disputed', 'resolved'],
+    },
     gateway: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -50,18 +55,27 @@ DisputeLog.init({
     ipAddress: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: {
-            notEmpty: { msg: 'ipAddress cannot be empty' },
-            isIP: { msg: 'ipAddress must be a valid IP address' }
-        }
     },
-    // payload: {
-    //     type: DataTypes.JSONB,
-    //     allowNull: false,
-    //     validate: {
-    //         notEmpty: { msg: 'rowPayload cannot be empty' },
-    //     }
-    // },
+    eventType: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    disputeId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    paymentId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    statusUpdatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    dueDate: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
     payloadId: {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -69,9 +83,6 @@ DisputeLog.init({
             model: 'payloads',
             key: 'id',
         },
-        validate: {
-            notEmpty: { msg: 'rowPayload cannot be empty' },
-        }
     }
 
 }, {

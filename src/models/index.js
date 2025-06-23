@@ -38,7 +38,7 @@ Object.values(db).forEach(model => {
 export const initializeDB = async () => {
     try {
         await sequelize.authenticate();
-        console.log(`${env.NODE_ENV} DB connected successfully.`);
+        console.log(`✅ ${env.NODE_ENV} DB connected successfully.`);
         // Sync all models
         if (env.NODE_ENV !== "PROD") {
             // await sequelize.sync({ alter: true });

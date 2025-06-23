@@ -54,7 +54,7 @@ DisputeHistory.init({
         allowNull: false,
         validate: {
             notEmpty: { msg: 'dispute status cannot be empty' },
-            len: [3, 30]
+            len: [3, 50]
         }
     },
     updatedEvent: {
@@ -62,25 +62,17 @@ DisputeHistory.init({
         allowNull: false,
         validate: {
             notEmpty: { msg: 'dispute status cannot be empty' },
-            len: [3, 30]
+            len: [3, 50]
         }
     },
 
     statusUpdateAt: {
         type: DataTypes.DATE,
         allowNull: false,
-        // defaultValue: DataTypes.NOW,
         validate: {
             isDate: { msg: 'statusUpdateAt must be a date' },
         }
     },
-    // rowPayload: {
-    //     type: DataTypes.JSONB,
-    //     allowNull: false,
-    //     validate: {
-    //         notEmpty: { msg: 'rowPayload cannot be empty' },
-    //     }
-    // },
     payloadId: {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -88,9 +80,6 @@ DisputeHistory.init({
             model: 'payloads',
             key: 'id',
         },
-        validate: {
-            notEmpty: { msg: 'rowPayload cannot be empty' },
-        }
     }
 
 }, {

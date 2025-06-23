@@ -17,7 +17,7 @@ const AddMerchantStaff = catchAsync(async (req, res) => {
 
         // Step 1 : Extract the Staff Details and Merchant Id from request
         const { merchantId } = req.params;
-        const { firstName, lastName, email, password, mobileNumber, designation } = req.body;
+        const { firstName, lastName, email, password, mobileNumber, role } = req.body;
 
 
         // Step 2 : Validate the Staff Details and valid MerchantId 
@@ -32,7 +32,7 @@ const AddMerchantStaff = catchAsync(async (req, res) => {
             lastName,
             email,
             mobileNumber,
-            designation,
+            role,
             password
         }
         if (await schemaValidator(addingStaffSchema, data, res)) {
