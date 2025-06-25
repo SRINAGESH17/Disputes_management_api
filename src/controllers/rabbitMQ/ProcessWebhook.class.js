@@ -1,3 +1,11 @@
+
+/**
+ * Class responsible for processing webhooks using RabbitMQ.
+ * Handles publishing webhook payloads to an exchange, consuming messages from a queue,
+ * and processing webhook events.
+ *
+ * @class ProcessWebhook
+ */
 import env from '../../constants/env.js';
 import ProcessWebhookPayload from '../webhook/webhookProcessor.js';
 import { getChannel } from './rabbitMQ.js';
@@ -16,9 +24,11 @@ class ProcessWebhook {
             await channel.assertQueue(this.queueName, { durable: true });
             await this.consumeWebhook(channel);
         } catch (error) {
-            console.error('❌ Failed to start consumer:', error.message);
+            console.error('❌ Failed to start consumer:', error?.message);
+            throw error;
         }
     }
+
     async publishToExchange(payload) {
         try {
             // Establish a connection and get a channel to RabbitMQ
@@ -49,6 +59,7 @@ class ProcessWebhook {
         } catch (error) {
             // Log any errors that occur during the process
             console.log("Failed in enqueue the webhook payload : ", error.message);
+            throw error;
         }
     }
 

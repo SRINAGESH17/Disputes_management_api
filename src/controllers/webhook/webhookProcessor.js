@@ -1,3 +1,66 @@
+
+/**
+ * @doc Webhooks
+ * @desc Processes incoming webhook payload from the rabbitMQ queue and assigns disputes to staff members.
+ * 
+ * Assigns a dispute to a staff member using a round-robin algorithm.
+ *
+ * Steps:
+ * 1. If no staff assignment state exists for the merchant, assign the dispute to the first staff member and create the state.
+ * 2. If a state exists, determine the next staff member in the list after the last assigned one.
+ * 3. Update the dispute's staff assignment.
+ * 4. Update the staff assignment state to reflect the new last assigned staff.
+ * 5. All operations are performed within a transaction for consistency.
+ *
+ * @async
+ * @function AssignedDisputeToStaff
+ * @param {Object} params - The parameters object.
+ * @param {Array<number>} params.ids - Array of staff member IDs.
+ * @param {number} params.merchantId - The merchant's internal ID.
+ * @param {number} params.disputeId - The dispute's internal ID.
+ * @param {Object|null} params.staffState - The current staff assignment state, or null if not set.
+ * @param {Object} params.t - The Sequelize transaction object.
+ * @returns {Promise<number>} The ID of the staff member assigned to the dispute.
+ * @throws {AppError} If any database operation fails.
+ */
+
+/**
+ * Processes a webhook payload to create or update a dispute record.
+ *
+ * Steps:
+ * 1. Extract merchant ID, raw payload, headers, and client IP from the message payload.
+ * 2. Validate the merchant ID for presence and format.
+ * 3. Verify the merchant exists in the database.
+ * 4. Save the incoming payload for record-keeping.
+ * 5. Detect the payment gateway from headers and payload.
+ * 6. Parse the gateway payload using the orchestrator layer.
+ * 7. Normalize the parsed payload to a standard format.
+ * 8. Validate the normalized payload schema.
+ * 9. Check for duplicate disputes by dispute ID and merchant.
+ * 10. If the dispute exists:
+ *     - Update dispute fields and create a history record.
+ *     - Assign staff if not already assigned, using round-robin.
+ *     - Generate and queue notifications for staff and merchant.
+ * 11. If the dispute does not exist:
+ *     - Create a new dispute and history record.
+ *     - Assign staff if available, using round-robin.
+ *     - Generate and queue notifications for staff and merchant.
+ * 12. Bulk create notifications.
+ * 13. Commit the transaction if all steps succeed.
+ * 14. Log the operation in the dispute log.
+ * 15. On error, rollback the transaction and log the failure.
+ *
+ * @async
+ * @function ProcessWebhookPayload
+ * @param {Object} msgPayload - The payload received from the message queue.
+ * @param {string} msgPayload.merchantId - The merchant's external ID.
+ * @param {Object} msgPayload.rawPayload - The raw webhook payload from the gateway.
+ * @param {Object} [msgPayload.headers] - Optional HTTP headers from the webhook.
+ * @param {string} [msgPayload.GatewayIP] - Optional client IP address.
+ * @returns {Promise<Object>} The created or updated dispute instance.
+ * @throws {AppError} If any validation or database operation fails.
+ */
+
 import _ from 'lodash';
 import AppErrorCode from '../../constants/AppErrorCodes.js';
 import statusCodes from '../../constants/httpStatusCodes.js';

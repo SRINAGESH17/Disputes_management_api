@@ -1,3 +1,30 @@
+/**
+ * Controller to handle merchant registration.
+ *
+ * @function registerMerchant
+ * @async
+ * @description
+ * Handles the creation of a new merchant account on the platform.
+ * 
+ * **Steps:**
+ * 1. Extracts merchant registration fields (`name`, `email`, `mobileNumber`, `password`) from the request body.
+ * 2. Validates the extracted data using a Yup schema via the `schemaValidator` utility.
+ * 3. If validation passes, calls the external `merchantRegisterService` to create the merchant account.
+ * 4. Returns a success response with the created merchant payload.
+ * 5. Handles and responds to any errors during the process.
+ *
+ * @param {import('express').Request} req - Express request object containing merchant registration data.
+ * @param {import('express').Response} res - Express response object used to send the response.
+ * @returns {Promise<import('express').Response>} JSON response indicating success or failure.
+ *
+ * @external merchantRegisterService
+ * @see {@link ../services/merchant/merchantRegister.service.js}
+ *
+ * @external schemaValidator
+ * @see {@link ../utils/schemaValidator.js}
+ */
+
+
 import catchAsync from "../utils/catchAsync.js";
 import statusCodes from "../constants/httpStatusCodes.js";
 import { failed_response, success_response } from "../utils/response.js";

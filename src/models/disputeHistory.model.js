@@ -1,3 +1,37 @@
+/**
+ * DisputeHistory Model
+ * 
+ * Represents the history of status and event updates for a Dispute.
+ * 
+ * @typedef {Object} DisputeHistory
+ * @property {number} id - Primary key, auto-incremented.
+ * @property {number} merchantId - Foreign key referencing Merchant (required).
+ * @property {number} disputeId - Foreign key referencing Dispute (required).
+ * @property {string} updatedStatus - The updated status of the dispute (required, 3-50 chars).
+ * @property {string} updatedEvent - The event that triggered the update (required, 3-50 chars).
+ * @property {Date} statusUpdateAt - The timestamp when the status was updated (required).
+ * @property {number|null} payloadId - Foreign key referencing Payload (optional).
+ * @property {Date} createdAt - Timestamp when the record was created (managed by Sequelize).
+ * @property {Date} updatedAt - Timestamp when the record was last updated (managed by Sequelize).
+ * 
+ * @see {@link models.Dispute} - Associated Dispute model (belongsTo, as: "dispute", foreignKey: "disputeId")
+ * @see {@link models.Merchant} - Associated Merchant model (belongsTo, as: "merchant", foreignKey: "merchantId")
+ * @see {@link models.Payload} - Associated Payload model (belongsTo, as: "rawPayload", foreignKey: "payloadId")
+ * 
+ * @class DisputeHistory
+ * @extends Model
+ * 
+ * @example
+ * Creating a new DisputeHistory record
+ * DisputeHistory.create({
+ *   merchantId: 1,
+ *   disputeId: 10,
+ *   updatedStatus: 'RESOLVED',
+ *   updatedEvent: 'STATUS_CHANGE',
+ *   statusUpdateAt: new Date(),
+ *   payloadId: 5
+ * });
+ */
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 

@@ -1,3 +1,13 @@
+/**
+ * Sends a verification OTP to the specified mobile number using MSG91 API.
+ *
+ * @async
+ * @function sentVerifyMobileOTP
+ * @param {string} mobileNumber - The mobile number to which the OTP will be sent.
+ * @returns {Promise<Object>} The response object from the MSG91 API.
+ * @throws {Error} If the request to MSG91 API fails.
+ */
+
 import axios from "axios";
 import env from "../../constants/env.js";
 

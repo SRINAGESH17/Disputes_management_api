@@ -1,3 +1,50 @@
+/**
+ * Sequelize model for representing a Dispute record.
+ *
+ * @class Dispute
+ * @extends Model
+ *
+ * @property {number} id - Primary key, auto-incremented.
+ * @property {number} merchantId - Foreign key referencing Merchant, required.
+ * @property {number|null} staffId - Foreign key referencing Staff, optional.
+ * @property {string} customId - Unique custom identifier for the dispute, required.
+ * @property {string} disputeId - Unique dispute reference, required.
+ * @property {string} paymentId - Payment reference, required.
+ * @property {string} gateway - Payment gateway name, required.
+ * @property {string} ipAddress - IP address associated with the dispute, required.
+ * @property {number} amount - Disputed amount, required.
+ * @property {string} currency - Currency code, required.
+ * @property {string} reasonCode - Reason code for the dispute, required.
+ * @property {string} reason - Description of the dispute reason, required.
+ * @property {string} disputeStatus - Current status of the dispute, required.
+ * @property {string} event - Event associated with the dispute, required.
+ * @property {Date} statusUpdatedAt - Timestamp when status was last updated, required.
+ * @property {Date} dueDate - Due date for dispute resolution, required.
+ * @property {string} [type="ChargeBack"] - Type of dispute, defaults to "ChargeBack".
+ * @property {string} [status="PENDING"] - Status of the dispute, defaults to "PENDING".
+ * @property {Date} createdAt - Timestamp when the record was created.
+ * @property {Date} updatedAt - Timestamp when the record was last updated.
+ *
+ * @see {@link module:models/Merchant} for merchant association.
+ * @see {@link module:models/Staff} for staff association.
+ * @see {@link module:models/DisputeHistory} for dispute history association.
+ *
+ * @static
+ * @function associate
+ * @description Defines associations for the Dispute model:
+ * - Belongs to {@link Merchant} via `merchantId` (as `merchant`): Each dispute is linked to a single merchant.
+ * - Belongs to {@link Staff} via `staffId` (as `staff`): Each dispute may be optionally linked to a staff member.
+ * - Has many {@link DisputeHistory} via `disputeId` (as `disputeHistories`): Each dispute can have multiple dispute history records.
+ *
+ * @example
+ *  Accessing associated merchant
+ * const dispute = await Dispute.findByPk(1, { include: ['merchant'] });
+ *
+ * @example
+ * // Accessing dispute histories
+ * const dispute = await Dispute.findByPk(1, { include: ['disputeHistories'] });
+ */
+
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 

@@ -1,3 +1,47 @@
+/** 
+ * @function verifyMobileOTP
+ * @description Verifies the OTP sent to a user's mobile number. This function validates the input data, checks the OTP reference, verifies the OTP using an external service, updates the OTP verification status, and returns the result.
+ * Steps:
+ * 1. Extract the mobile number and OTP references from the request.
+ * 2. Validate incoming data fields:
+ *    - Check if mobile number is present and in E.164 format.
+ *    - Check if the mobile number is a valid Indian number.
+ *    - Validate OTP number (6 digits).
+ *    - Validate OTP reference (15 characters).
+ * 3. Check if the OTP reference exists and is not already verified.
+ * 4. Call the external service to verify the OTP.
+ * 5. Update the OTP verification status in the database.
+ * 6. Return the verification result with the reference ID.* 
+ * 
+ * @async
+ * @param {import('express').Request} req - Express request object containing:
+ *   - params.mobileNumber {string}: The mobile number to verify (in E.164 format).
+ *   - body.otp_number {string|number}: The 6-digit OTP entered by the user.
+ *   - body.otp_reference {string}: The OTP reference ID (15 characters).
+ * @param {import('express').Response} res - Express response object used to send the verification result.
+ * 
+ * @returns {Promise<void>} Returns a JSON response with the verification status and reference ID.
+ * 
+ * @throws {AppError} Throws an error if validation fails, OTP is invalid, or verification fails.
+ * 
+ * @example
+ *  Request
+ * POST /verify-mobile-otp/:mobileNumber
+ * {
+ *   "otp_number": "123456",
+ *   "otp_reference": "ABCDEFGHIJKLMNO"
+ * }
+ * 
+ *  Success Response
+ * {
+ *   "status": 200,
+ *   "message": "Mobile OTP Verified Successfully",
+ *   "data": {
+ *     "referenceId": "ABCDEFGHIJKLMNO"
+ *   },
+ *   "success": true
+ * }
+ */
 import _ from "lodash";
 import AppErrorCode from "../../constants/AppErrorCodes.js";
 import statusCodes from "../../constants/httpStatusCodes.js";

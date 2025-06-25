@@ -1,3 +1,39 @@
+/**
+ * Controller to send an OTP to the user's email for verification.
+ *
+ * @function sentVerifyEmailOTP
+ * @async
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<import('express').Response>} Returns a JSON response with the OTP reference ID and email on success, or an error message on failure.
+ *
+ * @description
+ * This controller handles the process of sending a verification OTP to a user's email address.
+ * 
+ * Steps:
+ * 1. Extracts the email from the request parameters.
+ * 2. Validates the email for presence and correct format.
+ * 3. Checks if the email already exists in Firebase.
+ * 4. Generates a new OTP and a reference ID.
+ * 5. Sends the OTP to the provided email address.
+ * 6. Stores the OTP details in the database.
+ * 7. Returns the reference ID and email in the response.
+ *
+ * @throws {AppError} If the email is missing, invalid, already registered, OTP sending fails, or OTP saving fails.
+ *
+ * @example
+ *  Request: POST /api/verify-email/:email
+ *  Response (201):
+ * {
+ *   "status": 201,
+ *   "message": "verify email OTP is sent",
+ *   "data": {
+ *     "email": "user@example.com",
+ *     "referenceId": "abc123xyz"
+ *   },
+ *   "success": true
+ * }
+ */
 import AppErrorCode from "../../constants/AppErrorCodes.js";
 import statusCodes from "../../constants/httpStatusCodes.js";
 import AppError from "../../utils/AppError.js";

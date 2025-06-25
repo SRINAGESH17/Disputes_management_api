@@ -1,3 +1,15 @@
+/**
+ * Sends an OTP email to the specified user using ZeptoMail.
+ *
+ * @async
+ * @function sentEmailOTP
+ * @param {Object} data - The data required to send the OTP email.
+ * @param {string} data.email - The recipient's email address.
+ * @param {string} data.name - The recipient's name.
+ * @param {string|number} data.otp - The OTP to be sent in the email.
+ * @returns {Promise<Object>} The response from the ZeptoMail API.
+ * @throws {AppError} Throws an error if sending the email fails.
+ */
 import { SendMailClient } from "zeptomail";
 import env from "../../constants/env.js";
 import AppError from "../../utils/AppError.js";

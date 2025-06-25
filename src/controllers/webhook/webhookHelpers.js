@@ -1,3 +1,82 @@
+/**
+ * Detects the payment gateway based on request headers and body.
+ * @function DetectPaymentGateway
+ * @param {Object} headers - The HTTP request headers.
+ * @param {Object} body - The HTTP request body.
+ * @returns {string|null} The detected payment gateway ('razorpay', 'cashfree'), or null if not detected.
+ */
+
+/**
+ * Converts a status string to a human-readable format.
+ * @function getStatusIntoHumanReadableFormat
+ * @param {string} status - The status string (e.g., 'open', 'under_review').
+ * @returns {string} The human-readable status (e.g., 'Open', 'Under Review').
+ */
+
+/**
+ * Parses a Razorpay dispute webhook payload and extracts relevant dispute information.
+ * @function RazorpayDisputeParser
+ * @param {Object} payload - The Razorpay webhook payload.
+ * @returns {Object} Parsed dispute information.
+ */
+
+/**
+ * Maps a raw Cashfree dispute status to an internal dispute state.
+ * @function getInternalDisputeStatusForCashfree
+ * @param {string} [rawStatus='initiated'] - The raw status from Cashfree.
+ * @returns {string} The mapped internal dispute state.
+ */
+
+/**
+ * Parses a Cashfree dispute webhook payload and extracts relevant dispute information.
+ * @function CashfreeDisputeParser
+ * @param {Object} payload - The Cashfree webhook payload.
+ * @returns {Object} Parsed dispute information.
+ */
+
+/**
+ * Orchestrates the parsing of a dispute webhook payload based on the payment gateway.
+ * @function OrchestratorGatewayParser
+ * @param {string} gateway - The payment gateway identifier ('razorpay', 'cashfree').
+ * @param {Object} rawPayload - The webhook payload.
+ * @returns {Object|null} Parsed dispute information or null if unsupported gateway.
+ */
+
+/**
+ * Gets the next staff member in a round-robin fashion for assignment, without locking.
+ * @function getNextRoundRobinStaffWithoutLocking
+ * @async
+ * @param {Array<number>} staffIds - Array of staff member IDs.
+ * @param {number|string} merchantId - The merchant's identifier.
+ * @param {Object} options - Additional options, including transaction.
+ * @param {Object} options.transaction - The Sequelize transaction object.
+ * @returns {Promise<number>} The next staff member's ID.
+ * @throws {Error} If staff list is empty or invalid, or DB operation fails.
+ */
+
+/**
+ * Gets the next staff member in a round-robin fashion for assignment, with row-level locking.
+ * @function getNextRoundRobinStaffWithLocking
+ * @async
+ * @param {Array<number>} staffIds - Array of staff member IDs.
+ * @param {number|string} merchantId - The merchant's identifier.
+ * @returns {Promise<number>} The next staff member's ID.
+ * @throws {Error} If staff list is empty or invalid, or DB operation fails.
+ */
+
+/**
+ * Generates a notification template for dispute events.
+ * @function generateDisputeNotificationTemplate
+ * @param {string|number} disputeId - The dispute identifier.
+ * @param {string} status - The dispute event/status type.
+ * @param {string} staffName - The name of the assigned staff member.
+ * @param {Object} [options] - Additional options for template customization.
+ * @param {string} [options.newStatus] - The new status/event for the dispute.
+ * @param {string} [options.updatedBy] - The user who updated the dispute.
+ * @returns {Object} The notification template with title and message.
+ */
+
+
 import StaffAssignmentState from "../../models/staffAssignState.model.js";
 import sequelize from '../../config/database.js';
 import { disputeStates, getDisputeInternalState } from "../../constants/disputeStates.js";

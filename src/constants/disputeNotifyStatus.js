@@ -1,3 +1,23 @@
+/**
+ * DisputeNotifyStatus constants represent the various notification statuses 
+ * and events that a dispute can go through in the system.
+ *
+ * @readonly
+ * @enum {string}
+ * @property {string} ASSIGNED - When a dispute is assigned to a staff member.
+ * @property {string} DISPUTE_RECEIVED_MERCHANT - Dispute received and assigned to a merchant.
+ * @property {string} DISPUTE_RECEIVED_UNASSIGNED - Dispute received but not yet assigned to any staff.
+ * @property {string} EVENT_CHANGED_ASSIGNED_STAFF - Dispute event is changed and assigned to staff when it has not been assigned.
+ * @property {string} STATUS_CHANGED - Status of the dispute has changed.
+ * @property {string} EVENT_CHANGED - Generic event change related to the dispute.
+ * @property {string} DISPUTE_UPDATED - Dispute details have been updated.
+ * @property {string} ATTACHMENT_ADDED - An attachment has been added to the dispute.
+ * @property {string} DETAILS_EDITED - Dispute details have been edited.
+ * @property {string} ESCALATED - Dispute has been escalated to a higher authority.
+ * @property {string} RESOLVED - Dispute has been resolved.
+ * @property {string} REOPENED - Dispute has been reopened after being resolved.
+ * @property {string} COMMENTED - A comment has been added to the dispute.
+ */
 // DisputeStatus constants represent the various states and events
 
 // that a dispute can go through in the system.

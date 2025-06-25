@@ -1,3 +1,27 @@
+/**
+ * Controller to handle incoming dispute webhooks from payment gateways.
+ *
+ * Steps performed by this controller:
+ * 1. Extracts the merchant ID from the request parameters and the payload from the request body.
+ * 2. Validates that the merchant ID and payload are present and correctly formatted.
+ * 3. Checks that the merchant ID has the expected format (15 characters, starts with 'MID').
+ * 4. Retrieves the sender's IP address for whitelisting purposes.
+ * 5. Prepares and publishes the payload to the webhook processing service.
+ * 6. Sends an acknowledgement response ('OK') to the gateway upon successful processing.
+ *
+ * @async
+ * @function disputeReceiveWebhook
+ * @param {import('express').Request} req - Express request object.
+ *   @property {Object} params - URL parameters.
+ *   @property {string} params.merchantId - The merchant ID in the URL path.
+ *   @property {Object} body - The raw webhook payload from the gateway.
+ *   @property {Object} headers - The HTTP headers from the request.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>} Sends HTTP 200 'OK' on success, or HTTP 400 with error message on failure.
+ *
+ * @throws {AppError} If merchantId or payload is missing or invalid.
+ */
+
 import _ from 'lodash';
 import AppErrorCode from '../../constants/AppErrorCodes.js';
 import statusCodes from '../../constants/httpStatusCodes.js';

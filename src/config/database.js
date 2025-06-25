@@ -1,3 +1,22 @@
+/**
+ * Initializes and exports a Sequelize instance configured for PostgreSQL.
+ *
+ * @module config/database
+ * @requires module:constants/env
+ * @requires sequelize
+ *
+ * @constant
+ * @type {Sequelize}
+ * @description
+ * - Connects to the database using the connection string from environment variables.
+ * - Uses PostgreSQL as the database dialect.
+ * - Disables SQL query logging in development, enables it otherwise.
+ * - Prevents automatic pluralization of table names and enforces snake_case for columns.
+ * - (Optional) Connection pool settings can be customized as needed.
+ *
+ * @see {@link https://sequelize.org/master/class/lib/sequelize.js~Sequelize.html|Sequelize Documentation}
+ */
+
 import env from "../constants/env.js";
 import { Sequelize } from 'sequelize';
 

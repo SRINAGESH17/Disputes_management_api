@@ -1,3 +1,30 @@
+/**
+ * @module rabbitMQ
+ * @description Provides functions to connect to RabbitMQ and manage channels for message publishing.
+ */
+
+/**
+   * Establishes a connection to the RabbitMQ server.
+   * Reuses the existing connection if already established.
+   * Handles connection errors and closure events.
+   *
+   * @async
+   * @function connectToRabbitMQ
+   * @returns {Promise<amqp.Connection>} The RabbitMQ connection instance.
+   * @throws {Error} If unable to connect to RabbitMQ.
+   */
+
+/**
+   * Retrieves a channel for publishing messages to the RabbitMQ queue.
+   * Reuses the existing channel if already established.
+   * Handles channel errors and closure events.
+   *
+   * @async
+   * @function getChannel
+   * @returns {Promise<amqp.Channel>} The RabbitMQ channel instance.
+   * @throws {Error} If unable to create a RabbitMQ channel.
+   */
+
 import amqp from 'amqplib';
 import env from '../../constants/env.js';
 

@@ -1,3 +1,43 @@
+/**
+ * Extracts the Bearer token from the Authorization header and attaches it to the request object.
+ *
+ * @function getAuthToken
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ */
+
+/**
+ * Middleware to authenticate requests by verifying the Firebase ID token from headers.
+ *
+ * @function auth
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @returns {void}
+ */
+
+/**
+ * Middleware to retrieve the user's role or permissions from the database using Firebase UID.
+ *
+ * @function getUserRole
+ * @param {import('express').Request} req - Express request object (expects req.currUser.uid).
+ * @param {import('express').Response} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @returns {Promise<void>}
+ */
+
+/**
+ * Middleware to verify if the authenticated user is a merchant.
+ * Calls `auth` and `getUserRole` middlewares internally.
+ *
+ * @function verifyMerchant
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @returns {void}
+ */
+
 import _ from "lodash";
 import { failed_response } from "../utils/response.js";
 import statusCodes from "../constants/httpStatusCodes.js"

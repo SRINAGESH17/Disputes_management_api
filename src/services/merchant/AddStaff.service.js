@@ -1,3 +1,25 @@
+/**
+ * Service to add a new staff member for a merchant.
+ *
+ * Steps:
+ * 1. Validates if the merchant exists.
+ * 2. Checks if the staff email and mobile number are already registered.
+ * 3. Verifies if the email and mobile number are verified via OTP.
+ * 4. Creates a staff account in Firebase.
+ * 5. Creates a staff record in the database and assigns a role.
+ * 6. Cleans up OTP records for the used email and mobile number.
+ *
+ * @param {Object} data - Staff details.
+ * @param {string} data.firstName - Staff's first name.
+ * @param {string} data.lastName - Staff's last name.
+ * @param {string} data.email - Staff's email address.
+ * @param {string} data.mobileNumber - Staff's mobile number.
+ * @param {string} data.password - Staff's password.
+ * @param {string} data.role - Staff's role (optional).
+ * @param {string|number} data.merchantId - Merchant's ID.
+ * @returns {Promise<Object>} Created staff details.
+ * @throws {AppError} If any validation or creation step fails.
+ */
 
 import _ from "lodash";
 import AppErrorCode from "../../constants/AppErrorCodes.js";
@@ -11,7 +33,6 @@ import UserRole from "../../models/userRole.model.js";
 import { uniqueStaffId } from "../../utils/generateIds.js";
 import { Op } from "sequelize";
 import Staff from "../../models/staff.model.js";
-
 
 const AddMerchantStaffService = async (data) => {
     // @desc : Create Merchant Staff service

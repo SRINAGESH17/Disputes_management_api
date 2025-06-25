@@ -1,3 +1,27 @@
+/**
+ * Registers a new merchant account.
+ *
+ * @async
+ * @function merchantRegisterService
+ * @param {Object} data - The merchant registration data.
+ * @param {string} data.name - The name of the merchant.
+ * @param {string} data.email - The email address of the merchant.
+ * @param {string} data.mobileNumber - The mobile number of the merchant.
+ * @param {string} data.password - The password for the merchant account.
+ * @returns {Promise<Object>} The registered merchant's details and a custom Firebase token.
+ * @throws {AppError} Throws an error if registration fails at any step.
+ *
+ * @description
+ * This service performs the following steps:
+ * 1. Checks if the email and mobile number are already registered.
+ * 2. Verifies that the email and mobile number have been verified via OTP.
+ * 3. Creates a merchant account in Firebase.
+ * 4. Creates a merchant record in the database and assigns a unique merchant ID.
+ * 5. Assigns a merchant role to the user.
+ * 6. Generates a custom Firebase token for authentication.
+ * 7. Deletes OTP records for the merchant's email and mobile number.
+ */
+
 import _ from "lodash";
 import AppErrorCode from "../../constants/AppErrorCodes.js";
 import statusCodes from "../../constants/httpStatusCodes.js"

@@ -1,3 +1,41 @@
+
+
+/**
+ * GSTIN Model
+ *
+ * Represents the GSTIN (Goods and Services Tax Identification Number) entity.
+ *
+ * @typedef {Object} GSTIN
+ * @property {number} id - Primary key, auto-incremented.
+ * @property {number} merchantId - Foreign key referencing the merchant.
+ * @property {string} verificationValue - Value used for GSTIN verification.
+ * @property {string} otpReference - Reference for the OTP sent for verification.
+ * @property {number} otpNumber - OTP number sent for verification.
+ * @property {Date} expiresIn - Expiry date and time for the OTP.
+ * @property {boolean} isVerified - Indicates if the GSTIN has been verified.
+ *
+ * @schema
+ * {
+ *   "id": "integer (auto-increment, primary key)",
+ *   "merchantId": "integer (required, references merchants.id)",
+ *   "verificationValue": "string (required)",
+ *   "otpReference": "string (required)",
+ *   "otpNumber": "integer (required)",
+ *   "expiresIn": "date (required)",
+ *   "isVerified": "boolean (default: false)"
+ * }
+ *
+ * @example
+ * {
+ *   id: 1,
+ *   merchantId: 101,
+ *   verificationValue: "ABC123XYZ",
+ *   otpReference: "REF987654",
+ *   otpNumber: 123456,
+ *   expiresIn: "2024-06-30T12:00:00Z",
+ *   isVerified: false
+ * }
+ */
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 

@@ -1,3 +1,74 @@
+/**
+ * Utility functions for generating unique IDs and OTPs for merchants, staff, and disputes.
+ * 
+ * @module utils/generateIds
+ */
+
+/**
+ * generateOTP
+ * Generates a 6-digit numeric OTP (One Time Password).
+ * @function generateOTP
+ * @returns {number} A 6-digit OTP.
+ */
+
+/**
+ * generateReferenceID
+ * Generates a 15-character alphanumeric reference ID.
+ * @function generateReferenceID
+ * @returns {string} The generated reference ID.
+ */
+
+/**
+ * generateMerchantID
+ * Generates a merchant ID using the provided mobile digits and a unique numeric sequence.
+ * @function generateMerchantID
+ * @param {string} mobileDigits - The last digits of the merchant's mobile number.
+ * @returns {string} The generated merchant ID.
+ */
+
+/**
+ * uniqueMerchantId
+ * Asynchronously generates a unique merchant ID, ensuring it does not already exist in the database.
+ * @async
+ * @function uniqueMerchantId
+ * @param {string} mobileDigits - The last digits of the merchant's mobile number.
+ * @returns {Promise<string>} The unique merchant ID.
+ */
+
+/**
+ * generateStaffID
+ * Generates a staff ID using the provided mobile digits and a unique numeric sequence.
+ * @function generateStaffID
+ * @param {string} mobileDigits - The last digits of the staff's mobile number.
+ * @returns {string} The generated staff ID.
+ */
+
+/**
+ * uniqueStaffId
+ * Asynchronously generates a unique staff ID, ensuring it does not already exist in the database.
+ * @async
+ * @function uniqueStaffId
+ * @param {string} mobileDigits - The last digits of the staff's mobile number.
+ * @returns {Promise<string>} The unique staff ID.
+ */
+
+/**
+ * generateDisputeID
+ * Generates a dispute ID using the provided merchant ID and a unique numeric sequence.
+ * @function generateDisputeID
+ * @param {string} mid - The merchant ID to associate with the dispute.
+ * @returns {string} The generated dispute ID.
+ */
+
+/**
+ * uniqueDisputeId
+ * Asynchronously generates a unique dispute ID, ensuring it does not already exist in the database.
+ * @async
+ * @function uniqueDisputeId
+ * @param {string} mid - The merchant ID to associate with the dispute.
+ * @param {object} t - The transaction object for database operations.
+ * @returns {Promise<string>} The unique dispute ID.
+ */
 import _ from "lodash";
 import Merchant from "../models/merchant.model.js";
 import Dispute from "../models/dispute.model.js";

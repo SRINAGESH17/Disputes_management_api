@@ -1,3 +1,28 @@
+/**
+ * Controller to verify the Email OTP.
+ *
+ * @function
+ * @name verifyEmailOTP
+ * @async
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>} Returns a JSON response indicating the result of OTP verification.
+ *
+ * @description
+ * This controller verifies the OTP sent to the user's email for email verification.
+ * 
+ * Steps:
+ * 1. Extracts the email from request parameters and OTP details from request body.
+ * 2. Validates the email and OTP fields for presence and correct format.
+ * 3. Checks if the OTP reference exists in the database for the given email.
+ * 4. If OTP is already verified, returns a success response.
+ * 5. Compares the provided OTP with the stored OTP.
+ * 6. Checks if the OTP has expired.
+ * 7. Updates the OTP record as verified if all checks pass.
+ * 8. Returns a success response if OTP is verified, otherwise returns an error response.
+ *
+ * @throws {AppError} If any validation or verification step fails, an appropriate error is thrown and handled.
+ */
 import AppErrorCode from "../../constants/AppErrorCodes.js";
 import statusCodes from "../../constants/httpStatusCodes.js";
 import AppError from "../../utils/AppError.js";

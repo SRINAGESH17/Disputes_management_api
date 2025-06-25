@@ -1,3 +1,20 @@
+/**
+ * Validates the provided data against a Yup schema and handles validation errors.
+ *
+ * @async
+ * @function schemaValidator
+ * @param {yup.ObjectSchema} schema - The Yup schema to validate against.
+ * @param {Object} data - The data object to validate.
+ * @param {import('express').Response} res - The Express response object used to send error responses.
+ * @returns {Promise<boolean>} Returns `false` if validation passes, `true` if validation fails and a response is sent.
+ *
+ * @throws {yup.ValidationError} Throws if validation fails, but is caught and handled internally.
+ *
+ * @example
+ * const schema = yup.object().shape({ name: yup.string().required() });
+ * const isError = await schemaValidator(schema, req.body, res);
+ * if (isError) return;
+ */
 import statusCodes from "../constants/httpStatusCodes.js";
 import { failed_response } from "./response.js";
 import * as yup from "yup";

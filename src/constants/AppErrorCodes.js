@@ -1,3 +1,48 @@
+
+/**
+ * @namespace AppErrorCode
+ * @description
+ * Contains standard application error codes and utility functions for generating dynamic error messages.
+ *
+ * @property {string} InvalidAccessToken - Error code for invalid access token.
+ * @property {string} MissingAuthToken - Error code for missing authentication token.
+ * @property {string} EmailNotRegistered - Error code for unregistered email.
+ * @property {string} InvalidPassword - Error code for invalid password.
+ * @property {string} EmailAlreadyRegistered - Error code for already registered email.
+ * @property {string} UserAlreadyExist - Error code for already existing user.
+ * @property {string} InvalidEmailFormat - Error code for invalid email format.
+ * @property {string} userRoleNotFound - Error code for user role not found.
+ * @property {string} YouAreNotAuthorized - Error code for unauthorized access.
+ *
+ * @function fieldAlreadyRegistered
+ * @param {string} field - The name of the field.
+ * @returns {string} Error message indicating the field is already registered.
+ *
+ * @function validFieldIsRequired
+ * @param {string} field - The name of the field.
+ * @returns {string} Error message indicating a valid field is required.
+ *
+ * @function InvalidFieldFormat
+ * @param {string} field - The name of the field.
+ * @returns {string} Error message indicating the field has an invalid format.
+ *
+ * @function notAbleToCreateField
+ * @param {string} field - The name of the field.
+ * @returns {string} Error message indicating the field could not be created.
+ *
+ * @function fieldNotFound
+ * @param {string} field - The name of the field.
+ * @returns {string} Error message indicating the field was not found.
+ *
+ * @function fieldNotExist
+ * @param {string} field - The name of the field.
+ * @returns {string} Error message indicating the field does not exist.
+ *
+ * @function fieldIsRequired
+ * @param {string} field - The name of the field.
+ * @returns {string} Error message indicating the field is required.
+ *
+ */
 const AppErrorCode = {
     // Auth App Errors Codes
     InvalidAccessToken: "InvalidAccessToken",
@@ -18,8 +63,6 @@ const AppErrorCode = {
     fieldNotFound: (field) => (`${field} Not Found.`),
     fieldNotExist: (field) => (`${field} Not Exist.`),
     fieldIsRequired: (field) => (`${field} is required.`),
-    validFieldObjectIdIsRequired: (field) => (`Valid ${field} as ObjectId is required.`),
-    fieldMustBeaValidObjectId: (field) => (`${field} Must Be A Valid ObjectId`)
 }
 
 export default AppErrorCode;

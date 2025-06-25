@@ -1,3 +1,16 @@
+/**
+ * Wraps an asynchronous controller function and catches any errors, passing them to the error handler.
+ * If an error occurs, sends a standardized failed response with the error status and message.
+ *
+ * @function
+ * @param {Function} controller - The async controller function to wrap. Should accept (req, res, next).
+ * @returns {Function} Express middleware function that handles errors from the controller.
+ *
+ * @example
+ * router.get('/endpoint', catchAsync(async (req, res, next) => {
+ *   // controller logic
+ * }));
+ */
 import { failed_response } from "./response.js";
 
 const catchAsync =

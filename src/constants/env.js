@@ -1,3 +1,27 @@
+/**
+ * Loads and validates required environment variables for the application.
+ * Throws an error if any required variable is missing.
+ *
+ * @module env
+ * @property {string} NODE_ENV - Current environment (e.g., DEV, PROD).
+ * @property {string} PORT - Port number for the server.
+ * @property {string} DEV_DB_URL - Development database connection URL.
+ * @property {string} DB_NAME - Database name.
+ * @property {string} DB_USER - Database user.
+ * @property {string} DB_PASSWORD - Database password.
+ * @property {string} DB_HOST - Database host.
+ * @property {string} JWT_SECRET - JWT secret key.
+ * @property {string} ZEPTO_MAIL_TOKEN - Zepto mail API token.
+ * @property {string} zepto_email_template_key - Zepto email template key.
+ * @property {string} MSG_91_AUTH_KEY - MSG91 authentication key.
+ * @property {string} MSG_91_TEMPLATE_ID - MSG91 template ID.
+ * @property {string} RABBITMQ_URL - RabbitMQ connection URL.
+ * @property {string} RABBITMQ_EXCHANGE - RabbitMQ exchange name.
+ * @property {string} RABBITMQ_QUEUE_NAME - RabbitMQ queue name.
+ * @property {string} RABBITMQ_WH_ROUTING_KEY - RabbitMQ webhook routing key.
+ * @throws {Error} If any required environment variable is not set.
+ * @returns {object} An object containing all the environment variables.
+ */
 import dotSetup from "dotenv";
 dotSetup.config();
 

@@ -1,3 +1,64 @@
+/**
+ * Merchant Model
+ * 
+ * Represents a merchant entity in the system.
+ * 
+ * @extends Model
+ * 
+ * @typedef {Object} Merchant
+ * @property {number} id - Primary key, auto-incremented.
+ * @property {string} [merchantId] - Unique merchant identifier (10-30 chars).
+ * @property {string} email - Merchant's email address (unique, required).
+ * @property {string} name - Merchant's name (required, 3-50 chars).
+ * @property {string} mobileNumber - Merchant's mobile number (unique, required, validated format).
+ * @property {string} firebaseId - Firebase user ID (unique, required, 3-50 chars).
+ * @property {string} [gstin] - GSTIN number (optional, 15 chars, validated format).
+ * @property {string[]} [gateways] - Array of payment gateway names (optional).
+ * @property {number} totalStaff - Total number of staff (default: 0).
+ * @property {number} totalDisputes - Total number of disputes (default: 0).
+ * @property {number} disputesClosed - Number of closed disputes (default: 0).
+ * @property {number} activeDisputes - Number of active disputes (default: 0).
+ * @property {number} [userRole] - Foreign key referencing UserRole.
+ * @property {Date} createdAt - Timestamp of creation.
+ * @property {Date} updatedAt - Timestamp of last update.
+ * 
+ * @class
+ * @property {function} associate - Defines model associations.
+ * 
+ * @see {@link ../config/database.js}
+ * 
+ * @schema
+ * Table name: merchants
+ * Columns:
+ *   - id: INTEGER, PRIMARY KEY, AUTO_INCREMENT
+ *   - merchant_id: STRING, UNIQUE, NULLABLE, 10-30 chars
+ *   - email: STRING, UNIQUE, NOT NULL
+ *   - name: STRING, NOT NULL, 3-50 chars
+ *   - mobile_number: STRING, UNIQUE, NOT NULL, validated format
+ *   - firebase_id: STRING, UNIQUE, NOT NULL, 3-50 chars
+ *   - gstin: STRING, NULLABLE, 15 chars, validated format
+ *   - gateways: ARRAY of STRING, NULLABLE, default []
+ *   - total_staff: INTEGER, default 0
+ *   - total_disputes: INTEGER, default 0
+ *   - disputes_closed: INTEGER, default 0
+ *   - active_disputes: INTEGER, default 0
+ *   - user_role: INTEGER, FK to user_roles(id), NULLABLE
+ *   - created_at: DATE
+ *   - updated_at: DATE
+ * Indexes:
+ *   - created_at
+ *   - merchant_id (unique)
+ *   - email (unique)
+ *   - mobile_number (unique)
+ *   - firebase_id (unique)
+ * 
+ * Associations:
+ *   - belongsTo UserRole (as: role)
+ *   - hasMany Dispute (as: disputes)
+ *   - hasMany DisputeHistory (as: disputeHistories)
+ *   - hasMany Staff (as: staffs)
+ *   - hasMany DisputeLog (as: disputeLogs)
+ */
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
