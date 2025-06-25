@@ -12,10 +12,12 @@ module.exports = {
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        field: 'user_id',
       },
       userRef: {
         type: Sequelize.STRING,
         allowNull: false,
+        field: 'user_ref'
       },
       firebaseId: {
         type: Sequelize.STRING,

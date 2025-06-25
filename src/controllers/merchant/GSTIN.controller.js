@@ -66,6 +66,17 @@ const VerifyMerchantGSTIN = catchAsync(async (req, res) => {
         //     userId,
         //     gstin,
         // });
+        const gstinVerificationResponse = {};
+
+        const gstinPayload = {
+            merchantId: userId,
+            payloadType: 'gstin',
+            rawPayload: JSON.stringify({
+                gstin,
+                verifyAt: new Date(),
+                payload: gstinVerificationResponse,
+            })
+        }
 
         return res.status(statusCodes.CREATED).json(
             success_response(

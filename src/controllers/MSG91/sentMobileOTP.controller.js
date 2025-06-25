@@ -59,7 +59,7 @@ import { FirebaseCheckPhoneExistOrNot } from "../../firebase/firebaseUtils.js";
 import { generateOTP, generateReferenceID } from "../../utils/generateIds.js";
 import { verificationCodes } from "../../constants/verificationCode.js";
 import { fiveMinutesFromNow } from "../../utils/dateHandlers.js";
-import OTP from "../../models/otp.model.js";
+import OTP from "../../models/Otp.model.js";
 import sentVerifyMobileOTP from "./sentOtpToMobile.js";
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 

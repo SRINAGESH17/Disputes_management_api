@@ -9,7 +9,8 @@
     "dev_migrate": "sequelize-cli db:migrate --env development",
     "generate": "sequelize-cli migration:generate --name",
     "dev_generate": "node src/generate-migration.cjs",
-    "dev_undo_last": "npx sequelize-cli db:migrate:undo --env development"
+    "dev_undo_last": "npx sequelize-cli db:migrate:undo --env development",
+    "dev_undo_all": "npx sequelize-cli db:migrate:undo:all --env development"
   },
   "keywords": [],
   "author": "",

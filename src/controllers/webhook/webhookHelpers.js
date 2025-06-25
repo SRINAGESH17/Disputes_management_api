@@ -77,7 +77,7 @@
  */
 
 
-import StaffAssignmentState from "../../models/staffAssignState.model.js";
+import StaffAssignmentState from "../../models/StaffAssignState.model.js";
 import sequelize from '../../config/database.js';
 import { disputeStates, getDisputeInternalState } from "../../constants/disputeStates.js";
 

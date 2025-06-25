@@ -26,13 +26,13 @@ import AppErrorCode from "../../constants/AppErrorCodes.js";
 import statusCodes from "../../constants/httpStatusCodes.js"
 import { verificationCodes } from "../../constants/verificationCode.js";
 import { FirebaseCheckEmailExistOrNot, FirebaseCheckPhoneExistOrNot, FirebaseCreateUserAccount } from "../../firebase/firebaseUtils.js";
-import OTP from "../../models/otp.model.js";
-import Merchant from "../../models/merchant.model.js";
+import OTP from "../../models/Otp.model.js";
+import Merchant from "../../models/Merchant.model.js";
 import AppError from "../../utils/AppError.js"
-import UserRole from "../../models/userRole.model.js";
+import UserRole from "../../models/UserRole.model.js";
 import { uniqueStaffId } from "../../utils/generateIds.js";
 import { Op } from "sequelize";
-import Staff from "../../models/staff.model.js";
+import Staff from "../../models/Staff.model.js";
 
 const AddMerchantStaffService = async (data) => {
     // @desc : Create Merchant Staff service
@@ -97,12 +97,26 @@ const AddMerchantStaffService = async (data) => {
 
         // Step 3 : Create Staff Account in firebase
 
-        const isUserCreated = await FirebaseCreateUserAccount({
-            email,
-            phoneNumber: mobileNumber,
-            password,
-            displayName: `${firstName} ${lastName}`,
-        });
+        const mobileDigits = mobileNumber.slice(-4);
+
+        const [isUserCreated, staffId] = await Promise.all([
+            // Create Staff Account in firebase
+            FirebaseCreateUserAccount({
+                email,
+                phoneNumber: mobileNumber,
+                password,
+                displayName: `${firstName} ${lastName}`,
+            }),
+            // Create Staff unique id
+            uniqueStaffId(mobileDigits),
+        ]);
+
+        // const isUserCreated = await FirebaseCreateUserAccount({
+        //     email,
+        //     phoneNumber: mobileNumber,
+        //     password,
+        //     displayName: `${firstName} ${lastName}`,
+        // });
 
         if (!isUserCreated.status || _.isEmpty(isUserCreated?.user)) {
             throw new AppError(statusCodes.BAD_REQUEST, 'Firebase Staff Account creation failed : ' + isUserCreated.error);
@@ -112,9 +126,7 @@ const AddMerchantStaffService = async (data) => {
         // Step 4 : Create Staff Account in db
 
         // 4.1 : Create Staff 
-        // Create Staff unique id
-        const mobileDigits = mobileNumber.slice(-4);
-        const staffId = await uniqueStaffId(mobileDigits);
+
         // Create account
         const staff = await Staff.create({
             firstName,
@@ -143,10 +155,13 @@ const AddMerchantStaffService = async (data) => {
         }
 
         staff.userRole = role?.id;
-        await staff.save();
 
-        // Step 5 : Deleting OTP records of merchant email and mobileNumber
-        await OTP.destroy({ where: { verificationValue: { [Op.in]: [email, mobileNumber] } } });
+        await Promise.all([
+            staff.save(),
+
+            // Step 5 : Deleting OTP records of merchant email and mobileNumber
+            OTP.destroy({ where: { verificationValue: { [Op.in]: [email, mobileNumber] } } })
+        ])
 
         return {
             staff: {
