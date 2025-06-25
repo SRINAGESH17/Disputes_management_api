@@ -45,7 +45,7 @@ import { generateOTP, generateReferenceID } from "../../utils/generateIds.js";
 import sentEmailOTP from "./sentEmailOTP.js";
 import { verificationCodes } from "../../constants/verificationCode.js";
 import { OneMinuteFromNow } from "../../utils/dateHandlers.js";
-import OTP from "../../models/otp.model.js";
+import OTP from "../../models/Otp.model.js";
 
 
 const sentVerifyEmailOTP = catchAsync(async (req, res) => {

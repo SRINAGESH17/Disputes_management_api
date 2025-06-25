@@ -15,7 +15,8 @@ module.exports = {
       },
       verificationKey: {
         type: Sequelize.ENUM(...verificationTypes),
-        allowNull: false
+        allowNull: false,
+        field: 'verification_key'
       },
       verificationValue: {
         type: Sequelize.STRING,

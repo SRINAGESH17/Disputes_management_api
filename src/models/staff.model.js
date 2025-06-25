@@ -94,10 +94,7 @@ class Staff extends Model {
         });
         Staff.hasMany(models.Dispute, {
             foreignKey: 'staffId',
-            as: {
-                singular: "dispute",
-                plural: "disputes"
-            },
+            as: 'disputes',
         });
     };
 }

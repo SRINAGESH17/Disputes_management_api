@@ -71,35 +71,23 @@ class Merchant extends Model {
             foreignKey: "merchantId",
             constraints: true,
             onDelete: 'RESTRICT',
-            as: {
-                singular: "dispute",
-                plural: "disputes"
-            },
+            as: "disputes",
         });
         Merchant.hasMany(models.DisputeHistory, {
             foreignKey: "merchantId",
             onDelete: 'RESTRICT',
-            as: {
-                singular: "disputeHistory",
-                plural: "disputeHistories"
-            },
+            as: 'disputeHistories',
         });
         Merchant.hasMany(models.Staff, {
             foreignKey: "merchantId",
             onDelete: 'RESTRICT',
-            as: {
-                singular: "staff",
-                plural: "staffs"
-            },
+            as: 'staffs',
         });
         Merchant.hasMany(models.DisputeLog, {
             foreignKey: "merchantId",
             onDelete: 'RESTRICT',
-            as: {
-                singular: "disputeLog",
-                plural: "disputeLogs"
-            },
-        })
+            as: 'disputeLogs',
+        });
     };
 }
 

@@ -50,7 +50,7 @@ import catchAsync from "../../utils/catchAsync.js";
 import { failed_response, success_response } from "../../utils/response.js";
 import { isValidIndianMobileNumber, validatePhoneNumber } from "./sentMobileOTP.controller.js";
 import { verificationCodes } from "../../constants/verificationCode.js";
-import OTP from "../../models/otp.model.js";
+import OTP from "../../models/Otp.model.js";
 import verifyMobileNumberOTP from "./verifyMobileOTP.js";
 
 

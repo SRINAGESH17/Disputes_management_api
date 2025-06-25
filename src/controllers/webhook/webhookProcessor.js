@@ -64,18 +64,18 @@
 import _ from 'lodash';
 import AppErrorCode from '../../constants/AppErrorCodes.js';
 import statusCodes from '../../constants/httpStatusCodes.js';
-import Merchant from '../../models/merchant.model.js';
+import Merchant from '../../models/Merchant.model.js';
 import AppError from '../../utils/AppError.js';
 import { DetectPaymentGateway, generateDisputeNotificationTemplate, OrchestratorGatewayParser } from './webhookHelpers.js';
-import Dispute from '../../models/dispute.model.js';
+import Dispute from '../../models/Dispute.model.js';
 import { uniqueDisputeId } from '../../utils/generateIds.js';
-import Staff from '../../models/staff.model.js';
-import StaffAssignmentState from '../../models/staffAssignState.model.js';
+import Staff from '../../models/Staff.model.js';
+import StaffAssignmentState from '../../models/StaffAssignState.model.js';
 import { normalizePayloadSchema } from '../../utils/yupSchema.js';
 import sequelize from '../../config/database.js';
-import DisputeLog from '../../models/disputeLog.model.js';
-import Payload from '../../models/payload.model.js';
-import Notification from '../../models/notification.model.js';
+import DisputeLog from '../../models/DisputeLog.model.js';
+import Payload from '../../models/Payload.model.js';
+import Notification from '../../models/Notification.model.js';
 import DisputeNotifyStatus from '../../constants/disputeNotifyStatus.js';
 
 
@@ -437,10 +437,15 @@ const ProcessWebhookPayload = async (msgPayload) => {
             logPayload.dueDate = dispute?.dueDate;
             logPayload.paymentId = dispute?.paymentId || normalizePayload?.paymentId;
 
+            // for (const key of Object.getOwnPropertyNames(Object.getPrototypeOf(dispute))) {
+            //     if (typeof dispute[key] === 'function' && key.includes('DisputeHistory')) {
+            //         console.log(key);
+            //     }
+            // }
             //  Create Dispute History Record
             const historyRecord = await dispute.createDisputeHistory({
                 merchantId: merchant.id,
-                disputeId: dispute?.id,
+                // disputeId: dispute?.id,
                 updatedStatus: dispute?.disputeStatus,
                 updatedEvent: dispute?.event,
                 statusUpdateAt: dispute?.statusUpdatedAt,

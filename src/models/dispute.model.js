@@ -59,13 +59,14 @@ class Dispute extends Model {
             as: "staff"
         });
         Dispute.hasMany(models.DisputeHistory, {
-            foreignKey: "disputeId",
+            foreignKey: "disputeId", // 
             constraints: true,
             // onDelete: 'RESTRICT', // when a dispute is deleted, the history is not deleted
-            as: {
-                singular: "disputeHistory",
-                plural: "disputeHistories"
-            },
+            as: 'disputeHistories',
+            // as: {
+            //     singular: "disputeHistory",
+            //     plural: "disputeHistories"
+            // },
         });
     };
 }

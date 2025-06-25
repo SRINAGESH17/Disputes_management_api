@@ -30,7 +30,7 @@ import catchAsync from "../../utils/catchAsync.js";
 import { failed_response, success_response } from "../../utils/response.js";
 import _ from 'lodash';
 import { verificationCodes } from "../../constants/verificationCode.js";
-import OTP from "../../models/otp.model.js";
+import OTP from "../../models/Otp.model.js";
 
 
 const verifyEmailOTP = catchAsync(async (req, res) => {
