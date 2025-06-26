@@ -1,5 +1,5 @@
 import express from 'express';
-import registerMerchant from '../controllers/register.controller.js';
+import registerMerchant from '../controllers/merchant/register.controller.js';
 import sentVerifyEmailOTP from '../controllers/zepto/sent-email-otp.controller.js';
 import verifyEmailOTP from '../controllers/zepto/verify-email-otp.controller.js';
 import verifyMobileOTP from '../controllers/msg91/verify-mobile-otp.controller.js';
