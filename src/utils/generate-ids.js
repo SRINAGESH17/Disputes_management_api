@@ -70,9 +70,9 @@
  * @returns {Promise<string>} The unique dispute ID.
  */
 import _ from "lodash";
-import Merchant from "../models/Merchant.model.js";
-import Dispute from "../models/Dispute.model.js";
-import Staff from "../models/Staff.model.js";
+import Merchant from "../models/merchant.model.js";
+import Dispute from "../models/dispute.model.js";
+import Staff from "../models/staff.model.js";
 
 //********************************************** For OTP reference */
 

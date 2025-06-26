@@ -1,15 +1,15 @@
-import sequelize from "../config/database.js";
+import sequelize from '../config/database.config.js';
 import env from "../constants/env.js";
-import Dispute from "./Dispute.model.js";
-import DisputeHistory from "./DisputeHistory.model.js";
-import DisputeLog from "./DisputeLog.model.js";
-import Merchant from "./Merchant.model.js";
-import Staff from "./Staff.model.js";
-import UserRole from "./UserRole.model.js";
-import OTP from "./Otp.model.js";
-import StaffAssignmentState from "./StaffAssignState.model.js";
-import Payload from "./Payload.model.js";
-import Notification from "./Notification.model.js";
+import Dispute from "./dispute.model.js";
+import DisputeHistory from "./dispute-history.model.js";
+import DisputeLog from "./dispute-log.model.js";
+import Merchant from "./merchant.model.js";
+import Staff from "./staff.model.js";
+import UserRole from "./user-role.model.js";
+import OTP from "./otp.model.js";
+import StaffAssignmentState from "./staff-assign-state.model.js";
+import Payload from "./payload.model.js";
+import Notification from "./notification.model.js";
 
 
 

@@ -18,14 +18,14 @@
  * @throws {AppError} If merchantId is missing or validation fails.
  */
 import _ from "lodash";
-import statusCodes from "../../constants/httpStatusCodes.js";
-import catchAsync from "../../utils/catchAsync.js";
+import statusCodes from "../../constants/status-codes.js";
+import catchAsync from "../../utils/catch-async.js";
 import { failed_response, success_response } from "../../utils/response.js";
-import schemaValidator from "../../utils/schemaValidator.js";
-import { addingStaffSchema } from "../../utils/yupSchema.js";
-import AppError from "../../utils/AppError.js";
-import AppErrorCode from "../../constants/AppErrorCodes.js";
-import AddMerchantStaffService from "../../services/merchant/AddStaff.service.js";
+import schemaValidator from "../../utils/schema-validator.js";
+import { addingStaffSchema } from "../../utils/yup-schema.js";
+import AppError from "../../utils/app-error.js";
+import AppErrorCode from "../../constants/app-error-codes.js";
+import AddMerchantStaffService from "../../services/merchant/add-staff.service.js";
 
 
 

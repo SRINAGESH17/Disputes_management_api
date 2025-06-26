@@ -1,9 +1,9 @@
 import express from 'express';
 import registerMerchant from '../controllers/register.controller.js';
-import sentVerifyEmailOTP from '../controllers/zepto/sentEmailOTP.controller.js';
-import verifyEmailOTP from '../controllers/zepto/verifyEmailOTP.controller.js';
-import verifyMobileOTP from '../controllers/MSG91/verifyMobileOTP.controller.js';
-import sentMobileOTP from '../controllers/MSG91/sentMobileOTP.controller.js';
+import sentVerifyEmailOTP from '../controllers/zepto/sent-email-otp.controller.js';
+import verifyEmailOTP from '../controllers/zepto/verify-email-otp.controller.js';
+import verifyMobileOTP from '../controllers/msg91/verify-mobile-otp.controller.js';
+import sentMobileOTP from '../controllers/msg91/sent-mobile-otp.controller.js';
 
 const router = express.Router();
 

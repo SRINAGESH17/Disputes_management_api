@@ -7,8 +7,8 @@
  * @class ProcessWebhook
  */
 import env from '../../constants/env.js';
-import ProcessWebhookPayload from '../webhook/webhookProcessor.js';
-import { getChannel } from './rabbitMQ.js';
+import ProcessWebhookPayload from '../webhook/webhook-processor.js';
+import { getChannel } from './rabbitmq.js';
 
 class ProcessWebhook {
     constructor() {

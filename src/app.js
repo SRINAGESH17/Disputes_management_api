@@ -2,7 +2,7 @@ import express from 'express';
 import env from './constants/env.js';
 import { initializeDB } from './models/index.js';
 import indexRoutes from './routes/index.js';
-import webhookProcessor from './controllers/rabbitMQ/ProcessWebhook.class.js';
+import webhookProcessor from './controllers/rabbitmq/process-webhook.class.js';
 
 
 const app = express();

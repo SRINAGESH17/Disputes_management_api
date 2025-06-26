@@ -43,15 +43,15 @@
  * }
  */
 import _ from "lodash";
-import AppErrorCode from "../../constants/AppErrorCodes.js";
-import statusCodes from "../../constants/httpStatusCodes.js";
-import AppError from "../../utils/AppError.js";
-import catchAsync from "../../utils/catchAsync.js";
+import AppErrorCode from "../../constants/app-error-codes.js";
+import statusCodes from "../../constants/status-codes.js";
+import AppError from "../../utils/app-error.js";
+import catchAsync from "../../utils/catch-async.js";
 import { failed_response, success_response } from "../../utils/response.js";
-import { isValidIndianMobileNumber, validatePhoneNumber } from "./sentMobileOTP.controller.js";
-import { verificationCodes } from "../../constants/verificationCode.js";
-import OTP from "../../models/Otp.model.js";
-import verifyMobileNumberOTP from "./verifyMobileOTP.js";
+import { isValidIndianMobileNumber, validatePhoneNumber } from "./sent-mobile-otp.controller.js";
+import { verificationCodes } from "../../constants/verification-codes.js";
+import OTP from "../../models/otp.model.js";
+import verifyMobileNumberOTP from "./verify-mobile-otp.js";
 
 
 

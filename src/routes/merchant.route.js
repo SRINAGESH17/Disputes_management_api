@@ -1,5 +1,5 @@
 import express from 'express';
-import AddMerchantStaff from '../controllers/merchant/AddStaff.controller.js';
+import AddMerchantStaff from '../controllers/merchant/add-staff.controller.js';
 import { verifyMerchant } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();

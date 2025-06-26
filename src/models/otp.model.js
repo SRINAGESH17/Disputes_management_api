@@ -31,8 +31,8 @@
  * }
  */
 import { Model, DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
-import { verificationTypes } from "../constants/verificationCode.js"
+import sequelize from '../config/database.config.js';
+import { verificationTypes } from "../constants/verification-codes.js"
 
 class OTP extends Model {
     // static associate(models) {}

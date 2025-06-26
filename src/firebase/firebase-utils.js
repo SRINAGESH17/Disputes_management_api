@@ -44,8 +44,8 @@
  */
 
 
-import statusCodes from '../constants/httpStatusCodes.js';
-import AppError from '../utils/AppError.js';
+import statusCodes from '../constants/status-codes.js';
+import AppError from '../utils/app-error.js';
 import admin from './admin.js';
 
 
