@@ -23,11 +23,11 @@
  */
 
 import _ from 'lodash';
-import AppErrorCode from '../../constants/AppErrorCodes.js';
-import statusCodes from '../../constants/httpStatusCodes.js';
-import AppError from '../../utils/AppError.js';
+import AppErrorCode from '../../constants/app-error-codes.js';
+import statusCodes from '../../constants/status-codes.js';
+import AppError from '../../utils/app-error.js';
 import requestIP from "request-ip";
-import webhookProcessor from '../rabbitMQ/ProcessWebhook.class.js';
+import webhookProcessor from '../rabbitmq/process-webhook.class.js';
 
 const disputeReceiveWebhook = async (req, res) => {
     try {

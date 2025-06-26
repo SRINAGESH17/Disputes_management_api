@@ -33,7 +33,7 @@
  * });
  */
 import { Model, DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
+import sequelize from '../config/database.config.js';
 
 class DisputeHistory extends Model {
     static associate(models) {

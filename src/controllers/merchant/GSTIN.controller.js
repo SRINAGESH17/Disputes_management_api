@@ -1,9 +1,9 @@
 import _ from "lodash";
-import statusCodes from "../../constants/httpStatusCodes.js";
-import catchAsync from "../../utils/catchAsync.js";
+import statusCodes from "../../constants/status-codes.js";
+import catchAsync from "../../utils/catch-async.js";
 import { failed_response, success_response } from "../../utils/response.js";
-import AppError from "../../utils/AppError.js";
-import AppErrorCode from "../../constants/AppErrorCodes.js";
+import AppError from "../../utils/app-error.js";
+import AppErrorCode from "../../constants/app-error-codes.js";
 
 
 function isValidGSTINFormat(gstin) {
@@ -28,6 +28,8 @@ function isValidGSTINFormat(gstin) {
     const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
     return regex.test(gstin);
 }
+// generate unique number
+
 console.log(isValidGSTINFormat("27AAPFU0939F1ZV"));
 console.log(isValidGSTINFormat("29ABCDE1234F1Z5"));
 console.log(isValidGSTINFormat("36AANCP2226M1Z2"));

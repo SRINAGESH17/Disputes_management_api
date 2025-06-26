@@ -34,18 +34,18 @@
  *   "success": true
  * }
  */
-import AppErrorCode from "../../constants/AppErrorCodes.js";
-import statusCodes from "../../constants/httpStatusCodes.js";
-import AppError from "../../utils/AppError.js";
-import catchAsync from "../../utils/catchAsync.js";
+import AppErrorCode from "../../constants/app-error-codes.js";
+import statusCodes from "../../constants/status-codes.js";
+import AppError from "../../utils/app-error.js";
+import catchAsync from "../../utils/catch-async.js";
 import { failed_response, success_response } from "../../utils/response.js";
 import _ from 'lodash';
-import { FirebaseCheckEmailExistOrNot } from "../../firebase/firebaseUtils.js";
-import { generateOTP, generateReferenceID } from "../../utils/generateIds.js";
-import sentEmailOTP from "./sentEmailOTP.js";
-import { verificationCodes } from "../../constants/verificationCode.js";
-import { OneMinuteFromNow } from "../../utils/dateHandlers.js";
-import OTP from "../../models/Otp.model.js";
+import { FirebaseCheckEmailExistOrNot } from "../../firebase/firebase-utils.js";
+import { generateOTP, generateReferenceID } from "../../utils/generate-ids.js";
+import sentEmailOTP from "./sent-email-otp.js";
+import { verificationCodes } from "../../constants/verification-codes.js";
+import { OneMinuteFromNow } from "../../utils/date-handlers.js";
+import OTP from "../../models/otp.model.js";
 
 
 const sentVerifyEmailOTP = catchAsync(async (req, res) => {

@@ -40,10 +40,10 @@
 
 import _ from "lodash";
 import { failed_response } from "../utils/response.js";
-import statusCodes from "../constants/httpStatusCodes.js"
-import AppErrorCodes from "../constants/AppErrorCodes.js"
-import { FirebaseVerifyIdToken } from "../firebase/firebaseUtils.js";
-import userRoleModel from '../models/UserRole.model.js';
+import statusCodes from "../constants/status-codes.js"
+import AppErrorCodes from "../constants/app-error-codes.js"
+import { FirebaseVerifyIdToken } from "../firebase/firebase-utils.js";
+import userRoleModel from '../models/user-role.model.js';
 
 // GET AUTH TOKEN FROM HEADERS
 const getAuthToken = (req, res, next) => {

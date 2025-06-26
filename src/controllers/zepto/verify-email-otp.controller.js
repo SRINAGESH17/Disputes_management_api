@@ -23,14 +23,14 @@
  *
  * @throws {AppError} If any validation or verification step fails, an appropriate error is thrown and handled.
  */
-import AppErrorCode from "../../constants/AppErrorCodes.js";
-import statusCodes from "../../constants/httpStatusCodes.js";
-import AppError from "../../utils/AppError.js";
-import catchAsync from "../../utils/catchAsync.js";
+import AppErrorCode from "../../constants/app-error-codes.js";
+import statusCodes from "../../constants/status-codes.js";
+import AppError from "../../utils/app-error.js";
+import catchAsync from "../../utils/catch-async.js";
 import { failed_response, success_response } from "../../utils/response.js";
 import _ from 'lodash';
-import { verificationCodes } from "../../constants/verificationCode.js";
-import OTP from "../../models/Otp.model.js";
+import { verificationCodes } from "../../constants/verification-codes.js";
+import OTP from "../../models/otp.model.js";
 
 
 const verifyEmailOTP = catchAsync(async (req, res) => {

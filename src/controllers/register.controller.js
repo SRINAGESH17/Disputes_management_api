@@ -25,12 +25,12 @@
  */
 
 
-import catchAsync from "../utils/catchAsync.js";
-import statusCodes from "../constants/httpStatusCodes.js";
+import catchAsync from "../utils/catch-async.js";
+import statusCodes from "../constants/status-codes.js";
 import { failed_response, success_response } from "../utils/response.js";
-import schemaValidator from "../utils/schemaValidator.js";
-import { merchantRegisterSchema } from "../utils/yupSchema.js";
-import merchantRegisterService from "../services/merchant/merchantRegister.service.js";
+import schemaValidator from "../utils/schema-validator.js";
+import { merchantRegisterSchema } from "../utils/yup-schema.js";
+import merchantRegisterService from "../services/merchant/merchant-register.service.js";
 
 
 const registerMerchant = catchAsync(async (req, res) => {

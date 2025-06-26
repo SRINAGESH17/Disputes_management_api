@@ -30,7 +30,7 @@
  * }
  */
 import { Model, DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
+import sequelize from '../config/database.config.js';
 
 class Payload extends Model {
     static associate(models) {

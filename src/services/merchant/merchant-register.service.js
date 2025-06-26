@@ -23,15 +23,15 @@
  */
 
 import _ from "lodash";
-import AppErrorCode from "../../constants/AppErrorCodes.js";
-import statusCodes from "../../constants/httpStatusCodes.js"
-import { verificationCodes } from "../../constants/verificationCode.js";
-import { FirebaseCheckEmailExistOrNot, FirebaseCheckPhoneExistOrNot, FirebaseCreateUserAccount, FirebaseGenerateCustomToken } from "../../firebase/firebaseUtils.js";
-import OTP from "../../models/Otp.model.js";
-import Merchant from "../../models/Merchant.model.js";
-import AppError from "../../utils/AppError.js"
-import UserRole from "../../models/UserRole.model.js";
-import { uniqueMerchantId } from "../../utils/generateIds.js";
+import AppErrorCode from "../../constants/app-error-codes.js";
+import statusCodes from "../../constants/status-codes.js"
+import { verificationCodes } from "../../constants/verification-codes.js";
+import { FirebaseCheckEmailExistOrNot, FirebaseCheckPhoneExistOrNot, FirebaseCreateUserAccount, FirebaseGenerateCustomToken } from "../../firebase/firebase-utils.js";
+import OTP from "../../models/otp.model.js";
+import Merchant from "../../models/merchant.model.js";
+import AppError from "../../utils/app-error.js"
+import UserRole from "../../models/user-role.model.js";
+import { uniqueMerchantId } from "../../utils/generate-ids.js";
 import { Op } from "sequelize";
 
 
