@@ -1,13 +1,13 @@
-import sequelize from "../config/database.js";
+import sequelize from '../config/database.config.js';
 import env from "../constants/env.js";
 import Dispute from "./dispute.model.js";
-import DisputeHistory from "./disputeHistory.model.js";
-import DisputeLog from "./disputeLog.model.js";
+import DisputeHistory from "./dispute-history.model.js";
+import DisputeLog from "./dispute-log.model.js";
 import Merchant from "./merchant.model.js";
 import Staff from "./staff.model.js";
-import UserRole from "./userRole.model.js";
+import UserRole from "./user-role.model.js";
 import OTP from "./otp.model.js";
-import StaffAssignmentState from "./staffAssignState.model.js";
+import StaffAssignmentState from "./staff-assign-state.model.js";
 import Payload from "./payload.model.js";
 import Notification from "./notification.model.js";
 
@@ -38,12 +38,8 @@ Object.values(db).forEach(model => {
 export const initializeDB = async () => {
     try {
         await sequelize.authenticate();
-        console.log(`${env.NODE_ENV} DB connected successfully.`);
+        console.log(`✅ ${env.NODE_ENV} DB connected successfully.`);
         // Sync all models
-        if (env.NODE_ENV !== "PROD") {
-            // await sequelize.sync({ alter: true });
-            // console.log('Models synced.');
-        }
         console.log(`${env.NODE_ENV} : ${env.DEV_DB_URL}`);
     } catch (error) {
         console.error('DB initialization failed:', error);
