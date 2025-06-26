@@ -8,11 +8,11 @@ import requestIP from "request-ip";
 import Dispute from '../../models/dispute.model.js';
 import { uniqueDisputeId } from '../../utils/generateIds.js';
 import Staff from '../../models/staff.model.js';
-import StaffAssignmentState from '../../models/staffAssignState.model.js';
+import StaffAssignmentState from '../../models/staff-assign-state.model.js';
 import schemaValidator from '../../utils/schemaValidator.js';
 import { normalizePayloadSchema } from '../../utils/yupSchema.js';
 import sequelize from '../../config/database.js';
-import DisputeLog from '../../models/disputeLog.model.js';
+import DisputeLog from '../../models/dispute-log.model.js';
 import Payload from '../../models/payload.model.js';
 
 
