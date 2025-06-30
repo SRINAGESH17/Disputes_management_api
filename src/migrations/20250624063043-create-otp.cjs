@@ -4,7 +4,7 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     // Dynamic import ( mjs to cjs )
-    const { verificationTypes } = await import('../constants/verificationCode.js');
+    const { verificationTypes } = await import('../constants/verification-codes.js');
 
     await queryInterface.createTable('otp', {
       id: {
