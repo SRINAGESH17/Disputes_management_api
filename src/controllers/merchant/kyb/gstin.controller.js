@@ -4,6 +4,8 @@ import catchAsync from "../../../utils/catch-async.js";
 import { failed_response, success_response } from "../../../utils/response.js";
 import AppError from "../../../utils/app-error.js";
 import AppErrorCode from "../../../constants/app-error-codes.js";
+import { uniqueMerchantId } from "../../../utils/generate-ids.js";
+import Merchant from "../../../models/merchant.model.js";
 
 
 function isValidGSTINFormat(gstin) {
@@ -28,12 +30,11 @@ function isValidGSTINFormat(gstin) {
     const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
     return regex.test(gstin);
 }
-// generate unique number
 
-console.log(isValidGSTINFormat("27AAPFU0939F1ZV"));
-console.log(isValidGSTINFormat("29ABCDE1234F1Z5"));
-console.log(isValidGSTINFormat("36AANCP2226M1Z2"));
-console.log(isValidGSTINFormat("36ABACS8072J1Z0"));
+// console.log(isValidGSTINFormat("27AAPFU0939F1ZV"));
+// console.log(isValidGSTINFormat("29ABCDE1234F1Z5"));
+// console.log(isValidGSTINFormat("36AANCP2226M1Z2"));
+// console.log(isValidGSTINFormat("36ABACS8072J1Z0"));
 
 const VerifyMerchantGSTIN = catchAsync(async (req, res) => {
     // @desc  : Merchant GSTIN Verification Controller
@@ -68,23 +69,52 @@ const VerifyMerchantGSTIN = catchAsync(async (req, res) => {
         //     userId,
         //     gstin,
         // });
-        const gstinVerificationResponse = {};
+        // const gstinVerificationResponse = {};
 
-        const gstinPayload = {
-            merchantId: userId,
-            payloadType: 'gstin',
-            rawPayload: JSON.stringify({
-                gstin,
-                verifyAt: new Date(),
-                payload: gstinVerificationResponse,
-            })
+        // const gstinPayload = {
+        //     merchantId: userId,
+        //     payloadType: 'gstin',
+        //     rawPayload: JSON.stringify({
+        //         gstin,
+        //         verifyAt: new Date(),
+        //         payload: gstinVerificationResponse,
+        //     })
+        // }
+
+        // Step 4 : Save the GSTIN Verification Payload
+
+        // Step 5 : Update the Merchant Details with GSTIN
+        // 5.1 : Select only a few fields from Merchant (e.g., id, name, gstin, email)
+        const merchantDetails = await Merchant.findByPk(userId, {
+            attributes: ['id', 'merchantId', 'gstin', 'mobileNumber'],
+            raw: true
+        });
+
+        if (!merchantDetails) {
+            throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.fieldNotFound('Merchant'))
         }
 
+        // check if the GSTIN is already verified
+        if (merchantDetails.gstin) {
+            throw new AppError(statusCodes.BAD_REQUEST, 'GSTIN is already verified for this merchant.');
+        }
+
+        // 5.2 : Update the merchant's GSTIN and assign a unique merchant ID
+        const mobileDigits = merchantDetails?.mobileNumber?.slice(-4);
+        const merchantId = await uniqueMerchantId(mobileDigits);
+
+        // Update Merchant
+        await Merchant.update(
+            { gstin, merchantId },
+            { where: { id: userId }, fields: ['gstin'] }
+        );
         return res.status(statusCodes.CREATED).json(
             success_response(
                 statusCodes.CREATED,
                 "Merchant GSTIN Verified Successfully.",
-                {},
+                {
+                    message: 'GSTIN Verified Successfully'
+                },
                 true
             )
         )
