@@ -12,7 +12,7 @@ const router = express.Router();
 // @route  : GET /api/v2/merchant/dashboard/welcome
 // @desc   : Display Merchant Dashboard after Register
 // @access : Private to merchant Only !
-
+//
 router.get("/dashboard/welcome", verifyMerchant, welcomeDashboard);
 
 // *********************************** Staff Routes
