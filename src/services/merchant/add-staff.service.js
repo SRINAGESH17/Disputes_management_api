@@ -33,6 +33,7 @@ import UserRole from "../../models/user-role.model.js";
 import { uniqueStaffId } from "../../utils/generate-ids.js";
 import { Op } from "sequelize";
 import Staff from "../../models/staff.model.js";
+import sequelize from "../../config/database.config.js";
 
 const AddMerchantStaffService = async (data) => {
     // @desc : Create Merchant Staff service
@@ -157,6 +158,15 @@ const AddMerchantStaffService = async (data) => {
         staff.userRole = role?.id;
 
         await Promise.all([
+            // Update Merchant Total Disputes Count
+            Merchant.update(
+                { totalStaff: sequelize.literal('totalStaff + 1') },
+                {
+                    where: { id: merchant.id },
+                    fields: ['totalStaff']
+                }
+            ),
+            // Update staff Data
             staff.save(),
 
             // Step 5 : Deleting OTP records of merchant email and mobileNumber
