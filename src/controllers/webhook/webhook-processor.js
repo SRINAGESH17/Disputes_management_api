@@ -453,6 +453,15 @@ const ProcessWebhookPayload = async (msgPayload) => {
             }, {
                 transaction: t
             });
+            
+            // Update Merchant Total Disputes Count
+            await Merchant.update(
+                { totalDisputes: sequelize.literal('totalDisputes + 1') },
+                {
+                    where: { id: merchant.id },
+                    transaction: t
+                }
+            );
 
             if (_.isEmpty(historyRecord)) {
                 logPayload.log = `Dispute : Failed to Update ${dispute.customId} Status`;
