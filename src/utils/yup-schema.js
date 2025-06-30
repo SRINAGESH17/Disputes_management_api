@@ -30,6 +30,11 @@ const merchantRegisterSchema = yup.object({
     mobileNumber: mobileNumberValidate,
     password: passwordValidate,
 });
+const resetPasswordSchema = yup.object({
+    email: emailValidate,
+    referenceId:yup.string().required('referenceId is required'),
+    newPassword: passwordValidate,
+});
 
 const addingStaffSchema = yup.object({
     firstName: yup.string().required('firstName is required').min(2, 'First Name must contain minimum 1 or 2 characters'),
@@ -80,5 +85,6 @@ export {
     merchantRegisterSchema,
     addingStaffSchema,
     normalizePayloadSchema,
-    msgPayloadSchema
+    msgPayloadSchema,
+    resetPasswordSchema
 }
