@@ -54,6 +54,7 @@ const AppErrorCode = {
     InvalidEmailFormat: "Invalid Email Format.",
     userRoleNotFound: "User Role Not Found.",
     YouAreNotAuthorized: "You Are Not Authorized.",
+    NoGatewaysFound: "No Gateways Found.",
 
 
     fieldAlreadyRegistered : (field) => (`${field} Already Registered!`),
@@ -62,6 +63,7 @@ const AppErrorCode = {
     notAbleToCreateField: (field) => (`Not Able to Create ${field}.`),
     fieldNotFound: (field) => (`${field} Not Found.`),
     fieldNotExist: (field) => (`${field} Not Exist.`),
+    fieldAlreadyExist: (field) => (`${field} Already Exist.`),
     fieldIsRequired: (field) => (`${field} is required.`),
 }
 

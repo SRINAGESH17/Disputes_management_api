@@ -73,6 +73,8 @@ const msgPayloadSchema = yup.object({
 });
 
 
+
+
 export {
     emailValidate,
     mobileNumberValidate,
@@ -80,5 +82,5 @@ export {
     merchantRegisterSchema,
     addingStaffSchema,
     normalizePayloadSchema,
-    msgPayloadSchema
+    msgPayloadSchema,
 }

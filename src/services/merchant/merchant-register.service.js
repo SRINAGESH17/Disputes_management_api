@@ -59,13 +59,13 @@ const merchantRegisterService = async (data) => {
         const [
             userEmailRecord,
             userMobileRecord,
-            isEmailVerified,
-            isMobileNumberVerified
+            // isEmailVerified,
+            // isMobileNumberVerified
         ] = await Promise.all([
             FirebaseCheckEmailExistOrNot(email),
             FirebaseCheckPhoneExistOrNot(mobileNumber),
-            OTP.findOne({ where: emailPayload, attributes: ['verificationValue'], raw: true }),
-            OTP.findOne({ where: mobilePayload, attributes: ['verificationValue'], raw: true })
+            // OTP.findOne({ where: emailPayload, attributes: ['verificationValue'], raw: true }),
+            // OTP.findOne({ where: mobilePayload, attributes: ['verificationValue'], raw: true })
         ]);
 
         // 1.1 : Check Email is Exist or not
@@ -80,15 +80,15 @@ const merchantRegisterService = async (data) => {
 
         // Step 2 : Check Email and mobileNumber verified or not
 
-        // 2.1 : Email is Verified or not
-        if (_.isEmpty(isEmailVerified)) {
-            throw new AppError(statusCodes.BAD_REQUEST, 'Email is Not verified.');
-        }
+        // // 2.1 : Email is Verified or not
+        // if (_.isEmpty(isEmailVerified)) {
+        //     throw new AppError(statusCodes.BAD_REQUEST, 'Email is Not verified.');
+        // }
 
-        // 2.2 : mobile Number is Verified or not
-        if (_.isEmpty(isMobileNumberVerified)) {
-            throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
-        }
+        // // 2.2 : mobile Number is Verified or not
+        // if (_.isEmpty(isMobileNumberVerified)) {
+        //     throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
+        // }
 
         // Step 3 : Create Merchant Account in firebase
 
