@@ -55,6 +55,7 @@ const AppErrorCode = {
     userRoleNotFound: "User Role Not Found.",
     YouAreNotAuthorized: "You Are Not Authorized.",
     NoGatewaysFound: "No Gateways Found.",
+    
 
 
     fieldAlreadyRegistered : (field) => (`${field} Already Registered!`),
@@ -65,6 +66,7 @@ const AppErrorCode = {
     fieldNotExist: (field) => (`${field} Not Exist.`),
     fieldAlreadyExist: (field) => (`${field} Already Exist.`),
     fieldIsRequired: (field) => (`${field} is required.`),
+    fieldNotAuthorized :(field) => (`${field} Not Authorized` )
 }
 
 export default AppErrorCode;

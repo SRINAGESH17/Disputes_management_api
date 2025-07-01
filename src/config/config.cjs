@@ -1,6 +1,6 @@
 /**
  * Loads environment variables from a .env file into process.env.
- * 
+ *
  * @module config
  * @description Database configuration object for different environments.
  * @type {Object}
@@ -11,16 +11,18 @@
  * @property {string} development.host - Database host from environment variable DB_HOST.
  * @property {string} development.dialect - Database dialect, set to 'postgres'.
  */
-require('dotenv').config(); // This stays CommonJS!
+require("dotenv").config(); // This stays CommonJS!
 
 const config = {
-    development: {
-        username: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DEV_DB_NAME,
-        host: process.env.DB_HOST,
-        dialect: 'postgres',
-    }
-}
+  development: {
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DEV_DB_NAME,
+    host: process.env.DB_HOST,
+    dialect: "postgres",
+  },
+};
+
+console.log(config);
 
 module.exports = config;

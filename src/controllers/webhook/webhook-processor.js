@@ -152,7 +152,7 @@ const ProcessWebhookPayload = async (msgPayload) => {
 
     // @desc : Receive Dispute From Payment Gateway and Store It And Notify Merchant or Staff
     try {
-
+  
         // Step 1  : Extract the Gateway Data and MerchantId
         const merchantId = msgPayload.merchantId;
         const rawPayload = msgPayload.rawPayload;
@@ -226,12 +226,12 @@ const ProcessWebhookPayload = async (msgPayload) => {
             currency: parsePayload?.currency,
             reasonCode: parsePayload?.reasonCode,
             reason: parsePayload?.reasonDescription,
-            disputeStatus: parsePayload?.status,
+            status: parsePayload?.status,
             event: parsePayload?.event,
             statusUpdatedAt: parsePayload?.statusUpdatedAt,
             dueDate: parsePayload?.dueDate,
             type: parsePayload?.type,
-            status: parsePayload?.state,
+            state: parsePayload?.state,
         }
 
         // 7 : validate payload format
@@ -256,7 +256,7 @@ const ProcessWebhookPayload = async (msgPayload) => {
             // 1 . Fetch the Dispute Exist Or Not
             Dispute.findOne({
                 where: { disputeId: normalizePayload?.disputeId, merchantId: merchant.id },
-                attributes: ['id', 'staffId', 'customId', 'disputeId', 'paymentId', 'ipAddress', 'disputeStatus', 'event', 'statusUpdatedAt', 'dueDate', 'type', 'status'],
+                attributes: ['id', 'staffId', 'customId', 'disputeId', 'paymentId', 'ipAddress', 'status', 'event', 'statusUpdatedAt', 'dueDate', 'type', 'state'],
                 transaction: t
             }),
 
@@ -289,12 +289,12 @@ const ProcessWebhookPayload = async (msgPayload) => {
 
             // Update the dispute history
             dispute.ipAddress = normalizePayload?.ipAddress;
-            dispute.disputeStatus = normalizePayload?.disputeStatus;
+            dispute.status = normalizePayload?.status;
             dispute.event = normalizePayload?.event;
             dispute.statusUpdatedAt = normalizePayload?.statusUpdatedAt;
             dispute.dueDate = normalizePayload?.dueDate;
             dispute.type = normalizePayload?.type;
-            dispute.status = normalizePayload?.status;
+            dispute.state = normalizePayload?.state;
 
             logPayload.disputeId = dispute?.disputeId;
             logPayload.eventType = dispute?.event;
@@ -310,7 +310,7 @@ const ProcessWebhookPayload = async (msgPayload) => {
                 dispute.createDisputeHistory({
                     merchantId: merchant?.id,
                     disputeId: dispute?.id,
-                    updatedStatus: normalizePayload?.disputeStatus,
+                    updatedStatus: normalizePayload?.status,
                     updatedEvent: normalizePayload?.event,
                     statusUpdateAt: normalizePayload?.statusUpdatedAt,
                     payloadId: payload?.id
@@ -446,17 +446,17 @@ const ProcessWebhookPayload = async (msgPayload) => {
             const historyRecord = await dispute.createDisputeHistory({
                 merchantId: merchant.id,
                 // disputeId: dispute?.id,
-                updatedStatus: dispute?.disputeStatus,
+                updatedStatus: dispute?.status,
                 updatedEvent: dispute?.event,
                 statusUpdateAt: dispute?.statusUpdatedAt,
                 payloadId: payload?.id
             }, {
                 transaction: t
             });
-            
+
             // Update Merchant Total Disputes Count
             await Merchant.update(
-                { totalDisputes: sequelize.literal('totalDisputes + 1') },
+                { totalDisputes: sequelize.literal('total_disputes + 1') },
                 {
                     where: { id: merchant.id },
                     transaction: t
