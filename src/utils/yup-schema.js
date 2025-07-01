@@ -30,6 +30,11 @@ const merchantRegisterSchema = yup.object({
     mobileNumber: mobileNumberValidate,
     password: passwordValidate,
 });
+const resetPasswordSchema = yup.object({
+    email: emailValidate,
+    referenceId:yup.string().required('referenceId is required'),
+    newPassword: passwordValidate,
+});
 
 const addingStaffSchema = yup.object({
     firstName: yup.string().required('firstName is required').min(2, 'First Name must contain minimum 1 or 2 characters'),
@@ -55,12 +60,12 @@ const normalizePayloadSchema = yup.object({
     currency: yup.string().required('currency is required'),
     reasonCode: yup.string().required('reasonCode is required'),
     reason: yup.string().required('reason is required'),
-    disputeStatus: yup.string().required('disputeStatus is required'),
+    status: yup.string().required('status is required'),
     event: yup.string().required('event is required'),
     statusUpdatedAt: yup.date().required('statusUpdatedAt is required').typeError('Invalid date format'),
     dueDate: yup.date().required('dueDate is required').typeError('Invalid date format'),
     type: yup.string().required('type is required'),
-    status: yup.string().required('status is required'),
+    state: yup.string().required('state is required'),
 });
 
 const msgPayloadSchema = yup.object({
@@ -80,5 +85,6 @@ export {
     merchantRegisterSchema,
     addingStaffSchema,
     normalizePayloadSchema,
-    msgPayloadSchema
+    msgPayloadSchema,
+    resetPasswordSchema
 }
