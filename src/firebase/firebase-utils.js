@@ -43,6 +43,15 @@
  * @returns {Promise<Object>} The decoded user information.
  */
 
+/**
+ * Updates a user's password in Firebase Authentication.
+ * @function FirebaseUpdateUserPassword
+ * @async
+ * @param {string} uid - The user's unique identifier.
+ * @param {string} newPassword - The new password to set.
+ * @returns {Promise<Object>} The updated user record.
+ * @throws {AppError} If password update fails.
+ */
 
 import statusCodes from '../constants/status-codes.js';
 import AppError from '../utils/app-error.js';
@@ -98,12 +107,23 @@ const FirebaseVerifyIdToken = async (token) => {
     return userInfo;
 }
 
+
+const FirebaseUpdateUserPassword = async (uid, newPassword) => {
+    try {
+        const user = await admin.auth().updateUser(uid, { password: newPassword });
+        return user;
+    } catch (error) {
+        throw new AppError(statusCodes.INTERNAL_SERVER_ERROR, error?.message || 'Failed to update user password');
+    }
+};
+
 export {
     FirebaseCheckEmailExistOrNot,
     FirebaseCheckPhoneExistOrNot,
     FirebaseCreateUserAccount,
     FirebaseGenerateCustomToken,
-    FirebaseVerifyIdToken
+    FirebaseVerifyIdToken,
+    FirebaseUpdateUserPassword
 }
 
 

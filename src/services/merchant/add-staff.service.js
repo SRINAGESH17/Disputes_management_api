@@ -160,10 +160,9 @@ const AddMerchantStaffService = async (data) => {
         await Promise.all([
             // Update Merchant Total Disputes Count
             Merchant.update(
-                { totalStaff: sequelize.literal('totalStaff + 1') },
+                { totalStaff: sequelize.literal('total_staff + 1') },
                 {
                     where: { id: merchant.id },
-                    fields: ['totalStaff']
                 }
             ),
             // Update staff Data
@@ -171,7 +170,7 @@ const AddMerchantStaffService = async (data) => {
 
             // Step 5 : Deleting OTP records of merchant email and mobileNumber
             OTP.destroy({ where: { verificationValue: { [Op.in]: [email, mobileNumber] } } })
-        ])
+        ]);
 
         return {
             staff: {
