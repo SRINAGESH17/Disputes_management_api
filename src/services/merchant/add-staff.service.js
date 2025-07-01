@@ -23,12 +23,16 @@
 
 import _ from "lodash";
 import AppErrorCode from "../../constants/app-error-codes.js";
-import statusCodes from "../../constants/status-codes.js"
+import statusCodes from "../../constants/status-codes.js";
 import { verificationCodes } from "../../constants/verification-codes.js";
-import { FirebaseCheckEmailExistOrNot, FirebaseCheckPhoneExistOrNot, FirebaseCreateUserAccount } from "../../firebase/firebase-utils.js";
+import {
+  FirebaseCheckEmailExistOrNot,
+  FirebaseCheckPhoneExistOrNot,
+  FirebaseCreateUserAccount,
+} from "../../firebase/firebase-utils.js";
 import OTP from "../../models/otp.model.js";
 import Merchant from "../../models/merchant.model.js";
-import AppError from "../../utils/app-error.js"
+import AppError from "../../utils/app-error.js";
 import UserRole from "../../models/user-role.model.js";
 import { uniqueStaffId } from "../../utils/generate-ids.js";
 import { Op } from "sequelize";
@@ -36,157 +40,187 @@ import Staff from "../../models/staff.model.js";
 import sequelize from "../../config/database.config.js";
 
 const AddMerchantStaffService = async (data) => {
-    // @desc : Create Merchant Staff service
-    try {
+  // @desc : Create Merchant Staff service
+  try {
+    const {
+      firstName,
+      lastName,
+      email,
+      mobileNumber,
+      password,
+      role: userRole,
+      merchantId,
+    } = data;
 
-        const { firstName, lastName, email, mobileNumber, password, role: userRole, merchantId } = data;
-
-        // Check Merchant exist or not 
-        const merchant = await Merchant.findOne({ where: { id: merchantId }, attributes: ['id', 'email'], raw: true });
-        if (_.isEmpty(merchant)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound('Merchant'));
-        }
-
-        // Step 1 : Check Email and mobileNumber already register or not table
-
-        // Email validate payload
-        const emailPayload = {
-            verificationKey: verificationCodes.email,
-            verificationValue: email,
-            isVerified: true
-        }
-        // Mobile number validate payload
-        const mobilePayload = {
-            verificationKey: verificationCodes.mobile_number,
-            verificationValue: mobileNumber,
-            isVerified: true
-        }
-
-        const [
-            userEmailRecord,
-            userMobileRecord,
-            isEmailVerified,
-            isMobileNumberVerified
-        ] = await Promise.all([
-            FirebaseCheckEmailExistOrNot(email),
-            FirebaseCheckPhoneExistOrNot(mobileNumber),
-            OTP.findOne({ where: emailPayload, attributes: ['verificationValue'], raw: true }),
-            OTP.findOne({ where: mobilePayload, attributes: ['verificationValue'], raw: true })
-        ]);
-
-        // 1.1 : Check Email is Exist or testing staff
-        if (userEmailRecord) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.EmailAlreadyRegistered);
-        }
-
-        // 1.2 : Check Mobile Number is Exist or not
-        if (userMobileRecord) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldAlreadyRegistered('Mobile Number'));
-        }
-
-        // Step 2 : Check Email and mobileNumber verified or not
-
-        // 2.1 : Email is Verified or not
-        if (_.isEmpty(isEmailVerified)) {
-            throw new AppError(statusCodes.BAD_REQUEST, 'Please Verify Email first');
-        }
-
-        // 2.2 : mobile Number is Verified or not
-        if (_.isEmpty(isMobileNumberVerified)) {
-            throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
-        }
-
-        // Step 3 : Create Staff Account in firebase
-
-        const mobileDigits = mobileNumber.slice(-4);
-
-        const [isUserCreated, staffId] = await Promise.all([
-            // Create Staff Account in firebase
-            FirebaseCreateUserAccount({
-                email,
-                phoneNumber: mobileNumber,
-                password,
-                displayName: `${firstName} ${lastName}`,
-            }),
-            // Create Staff unique id
-            uniqueStaffId(mobileDigits),
-        ]);
-
-        // const isUserCreated = await FirebaseCreateUserAccount({
-        //     email,
-        //     phoneNumber: mobileNumber,
-        //     password,
-        //     displayName: `${firstName} ${lastName}`,
-        // });
-
-        if (!isUserCreated.status || _.isEmpty(isUserCreated?.user)) {
-            throw new AppError(statusCodes.BAD_REQUEST, 'Firebase Staff Account creation failed : ' + isUserCreated.error);
-        }
-
-
-        // Step 4 : Create Staff Account in db
-
-        // 4.1 : Create Staff 
-
-        // Create account
-        const staff = await Staff.create({
-            firstName,
-            lastName,
-            staffId,
-            email,
-            mobileNumber,
-            firebaseId: isUserCreated?.user?.uid,
-            merchantId: merchant?.id,
-            staffRole: userRole || 'staff'
-        });
-        if (_.isEmpty(staff)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.notAbleToCreateField('Staff'));
-        }
-        // 4.2 : Create Staff Role
-        const staffRole = {
-            userId: staff?.id,
-            userRef: 'staff',
-            firebaseId: isUserCreated?.user?.uid,
-            staff: true
-        }
-
-        const role = await UserRole.create(staffRole);
-        if (_.isEmpty(role)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.notAbleToCreateField('Staff Role'));
-        }
-
-        staff.userRole = role?.id;
-
-        await Promise.all([
-            // Update Merchant Total Disputes Count
-            Merchant.update(
-                { totalStaff: sequelize.literal('totalStaff + 1') },
-                {
-                    where: { id: merchant.id },
-                    fields: ['totalStaff']
-                }
-            ),
-            // Update staff Data
-            staff.save(),
-
-            // Step 5 : Deleting OTP records of merchant email and mobileNumber
-            OTP.destroy({ where: { verificationValue: { [Op.in]: [email, mobileNumber] } } })
-        ])
-
-        return {
-            staff: {
-                id: staff?.id,
-                firstName: staff?.firstName,
-                lastName: staff?.lastName,
-                firebaseId: staff?.firebaseId,
-                email: staff?.email,
-                mobileNumber: staff?.mobileNumber
-            }
-        }
-    } catch (error) {
-        console.log('Error from create Staff account service: ', error);
-        throw new AppError(error?.statusCode || statusCodes.BAD_REQUEST, error?.message);
+    // Check Merchant exist or not
+    const merchant = await Merchant.findOne({
+      where: { id: merchantId },
+      attributes: ["id", "email"],
+      raw: true,
+    });
+    if (_.isEmpty(merchant)) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.fieldNotFound("Merchant")
+      );
     }
-}
+
+    // Step 1 : Check Email and mobileNumber already register or not table
+
+    // Email validate payload
+    const emailPayload = {
+      verificationKey: verificationCodes.email,
+      verificationValue: email,
+      isVerified: true,
+    };
+    // Mobile number validate payload
+    const mobilePayload = {
+      verificationKey: verificationCodes.mobile_number,
+      verificationValue: mobileNumber,
+      isVerified: true,
+    };
+
+    const [
+      userEmailRecord,
+      userMobileRecord,
+      isEmailVerified,
+      isMobileNumberVerified
+    ] = await Promise.all([
+      FirebaseCheckEmailExistOrNot(email),
+      FirebaseCheckPhoneExistOrNot(mobileNumber),
+      OTP.findOne({ where: emailPayload, attributes: ['verificationValue'], raw: true }),
+      OTP.findOne({ where: mobilePayload, attributes: ['verificationValue'], raw: true })
+    ]);
+
+    // 1.1 : Check Email is Exist or testing staff
+    if (userEmailRecord) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.EmailAlreadyRegistered
+      );
+    }
+
+    // 1.2 : Check Mobile Number is Exist or not
+    if (userMobileRecord) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.fieldAlreadyRegistered("Mobile Number")
+      );
+    }
+
+    // Step 2 : Check Email and mobileNumber verified or not
+
+    // 2.1 : Email is Verified or not
+    if (_.isEmpty(isEmailVerified)) {
+      throw new AppError(statusCodes.BAD_REQUEST, 'Please Verify Email first');
+    }
+
+    // 2.2 : mobile Number is Verified or not
+    if (_.isEmpty(isMobileNumberVerified)) {
+      throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
+    }
+
+    // Step 3 : Create Staff Account in firebase
+
+    const mobileDigits = mobileNumber.slice(-4);
+
+    const [isUserCreated, staffId] = await Promise.all([
+      // Create Staff Account in firebase
+      FirebaseCreateUserAccount({
+        email,
+        phoneNumber: mobileNumber,
+        password,
+        displayName: `${firstName} ${lastName}`,
+      }),
+      // Create Staff unique id
+      uniqueStaffId(mobileDigits),
+    ]);
+
+    // const isUserCreated = await FirebaseCreateUserAccount({
+    //     email,
+    //     phoneNumber: mobileNumber,
+    //     password,
+    //     displayName: `${firstName} ${lastName}`,
+    // });
+
+    if (!isUserCreated.status || _.isEmpty(isUserCreated?.user)) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        "Firebase Staff Account creation failed : " + isUserCreated.error
+      );
+    }
+
+    // Step 4 : Create Staff Account in db
+
+    // 4.1 : Create Staff
+
+    // Create account
+    const staff = await Staff.create({
+      firstName,
+      lastName,
+      staffId,
+      email,
+      mobileNumber,
+      firebaseId: isUserCreated?.user?.uid,
+      merchantId: merchant?.id,
+      staffRole: userRole || "staff",
+    });
+    if (_.isEmpty(staff)) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.notAbleToCreateField("Staff")
+      );
+    }
+    // 4.2 : Create Staff Role
+    const staffRole = {
+      userId: staff?.id,
+      userRef: "staff",
+      firebaseId: isUserCreated?.user?.uid,
+      staff: true,
+    };
+
+    const role = await UserRole.create(staffRole);
+    if (_.isEmpty(role)) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.notAbleToCreateField("Staff Role")
+      );
+    }
+
+    staff.userRole = role?.id;
+
+    await Promise.all([
+      // Update Merchant Total Disputes Count
+      Merchant.update(
+        { totalStaff: sequelize.literal('total_staff + 1') },
+        {
+          where: { id: merchant.id },
+        }
+      ),
+      // Update staff Data
+      staff.save(),
+
+      // Step 5 : Deleting OTP records of merchant email and mobileNumber
+      OTP.destroy({ where: { verificationValue: { [Op.in]: [email, mobileNumber] } } })
+    ]);
+
+    return {
+      staff: {
+        id: staff?.id,
+        firstName: staff?.firstName,
+        lastName: staff?.lastName,
+        firebaseId: staff?.firebaseId,
+        email: staff?.email,
+        mobileNumber: staff?.mobileNumber,
+      },
+    };
+  } catch (error) {
+    console.log("Error from create Staff account service: ", error);
+    throw new AppError(
+      error?.statusCode || statusCodes.BAD_REQUEST,
+      error?.message
+    );
+  }
+};
 
 export default AddMerchantStaffService;

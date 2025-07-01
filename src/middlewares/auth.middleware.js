@@ -75,10 +75,12 @@ const auth = (req, res, next) => {
                 );
             }
 
+            console.time("Verify Firebase");
             const userInfo = await FirebaseVerifyIdToken(authToken);
             // console.log("userInfo : ", userInfo);
             req.currUser = userInfo;
 
+            console.timeEnd("Verify Firebase");
             next();
         } catch (error) {
             return res.status(statusCodes.UNAUTHORIZED).json(
@@ -111,6 +113,7 @@ const getUserRole = async (req, res, next) => {
     }
 
     try {
+        console.time("Find Role!")
         const Role = await userRoleModel.findOne({ where: { firebaseId: fireBaseId }, raw: true });
         // console.log("User Role : ", Role)
         if (_.isEmpty(Role)) {
@@ -126,7 +129,7 @@ const getUserRole = async (req, res, next) => {
 
         req.userRole = Role;
         req.currUser["userId"] = Role.userId;
-
+        console.timeEnd("Find Role!");
         next();
     } catch (error) {
         return res.status(statusCodes.BAD_REQUEST).json(
