@@ -83,13 +83,13 @@ const AddMerchantStaffService = async (data) => {
     const [
       userEmailRecord,
       userMobileRecord,
-      // isEmailVerified,
-      // isMobileNumberVerified
+      isEmailVerified,
+      isMobileNumberVerified
     ] = await Promise.all([
       FirebaseCheckEmailExistOrNot(email),
       FirebaseCheckPhoneExistOrNot(mobileNumber),
-      // OTP.findOne({ where: emailPayload, attributes: ['verificationValue'], raw: true }),
-      // OTP.findOne({ where: mobilePayload, attributes: ['verificationValue'], raw: true })
+      OTP.findOne({ where: emailPayload, attributes: ['verificationValue'], raw: true }),
+      OTP.findOne({ where: mobilePayload, attributes: ['verificationValue'], raw: true })
     ]);
 
     // 1.1 : Check Email is Exist or testing staff
@@ -111,14 +111,14 @@ const AddMerchantStaffService = async (data) => {
     // Step 2 : Check Email and mobileNumber verified or not
 
     // 2.1 : Email is Verified or not
-    // if (_.isEmpty(isEmailVerified)) {
-    //     throw new AppError(statusCodes.BAD_REQUEST, 'Please Verify Email first');
-    // }
+    if (_.isEmpty(isEmailVerified)) {
+      throw new AppError(statusCodes.BAD_REQUEST, 'Please Verify Email first');
+    }
 
     // 2.2 : mobile Number is Verified or not
-    // if (_.isEmpty(isMobileNumberVerified)) {
-    //     throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
-    // }
+    if (_.isEmpty(isMobileNumberVerified)) {
+      throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
+    }
 
     // Step 3 : Create Staff Account in firebase
 
@@ -189,20 +189,20 @@ const AddMerchantStaffService = async (data) => {
 
     staff.userRole = role?.id;
 
-        await Promise.all([
-            // Update Merchant Total Disputes Count
-            Merchant.update(
-                { totalStaff: sequelize.literal('total_staff + 1') },
-                {
-                    where: { id: merchant.id },
-                }
-            ),
-            // Update staff Data
-            staff.save(),
+    await Promise.all([
+      // Update Merchant Total Disputes Count
+      Merchant.update(
+        { totalStaff: sequelize.literal('total_staff + 1') },
+        {
+          where: { id: merchant.id },
+        }
+      ),
+      // Update staff Data
+      staff.save(),
 
-            // Step 5 : Deleting OTP records of merchant email and mobileNumber
-            OTP.destroy({ where: { verificationValue: { [Op.in]: [email, mobileNumber] } } })
-        ]);
+      // Step 5 : Deleting OTP records of merchant email and mobileNumber
+      OTP.destroy({ where: { verificationValue: { [Op.in]: [email, mobileNumber] } } })
+    ]);
 
     return {
       staff: {
