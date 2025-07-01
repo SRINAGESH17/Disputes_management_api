@@ -1,28 +1,24 @@
 /**
- * Controller to update the status of a staff member (ACTIVE/INACTIVE) for a merchant.
+ * Controller to fetch a staff member's details for a merchant.
  *
  * @function
+ * @name getStaff
  * @async
- * @param {import('express').Request} req - Express request object, expects:
- *   - `req.currUser` {Object}: The current authenticated merchant user.
- *   - `req.userRole` {Object}: The roles of the current user, expects `merchant` boolean.
- *   - `req.params.staffId` {string}: The staff ID to update.
+ * @param {import('express').Request} req - Express request object, expects `currUser` and `userRole` on the request, and `staffId` in params.
  * @param {import('express').Response} res - Express response object.
- * @returns {Promise<void>} Responds with a JSON object indicating success or failure.
+ * @returns {Promise<void>} Returns a JSON response with staff details if successful, or an error message if failed.
  *
- * @throws {AppError} If validation fails at any step (missing user, invalid staffId, unauthorized, etc).
+ * @throws {AppError} Throws error if required fields are missing, user is not authorized, or staffId is invalid.
  *
  * @description
  * Steps performed:
- * 1. Extracts current user and role from request.
- * 2. Validates user and role as merchant.
- * 3. Validates and checks staffId format.
- * 4. Fetches staff by staffId and merchantId.
- * 5. Toggles staff status between ACTIVE and INACTIVE.
- * 6. Updates staff status in the database.
- * 7. Returns a success or error response.
+ * 1. Extracts current user and user role from the request.
+ * 2. Validates presence and correctness of user and staffId.
+ * 3. Checks if the user has merchant privileges.
+ * 4. Validates the format of the staffId.
+ * 5. Fetches the staff member associated with the merchant.
+ * 6. Returns the staff details in the response.
  */
-
 
 import _ from "lodash";
 import Staff from "../../../models/staff.model.js";
@@ -32,9 +28,8 @@ import catchAsync from "../../../utils/catch-async.js";
 import { failed_response, success_response } from "../../../utils/response.js";
 import statusCodes from "../../../constants/status-codes.js";
 
-
-const updateStaffStatus = catchAsync(async (req, res) => {
-  // @desc Updating the Status of the Staff
+const getStaff = catchAsync(async (req, res) => {
+  // @desc Fetching  the Staff
   try {
     // Step 1 Exctrat the Details
 
@@ -87,52 +82,29 @@ const updateStaffStatus = catchAsync(async (req, res) => {
     // Step 7:  Fetching the Staff Which statisfies the StaffId and the Merchant Id
     const staff = await Staff.findOne({
       where: { staffId, merchantId: currUser.userId },
-      attributes: ["id", "staffId", "merchantId", "status"],
+      attributes: { exclude: ["id", "firebaseId", "createdAt", "updatedAt"] },
       raw: true,
     });
 
-    // Step 8: Checking For Staff is Available in the Database
-    if (_.isEmpty(staff)) {
-      throw new AppError(
-        statusCodes.NOT_FOUND,
-        AppErrorCode.fieldNotAuthorized("staff")
-      );
-    }
-
-    // Step 9: Changing the Status of the Staff Based on present Status
-    const newStatus = staff.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-
-    // step 10: updating the Staff Status
-
-    await Staff.update(
-      { status: newStatus },
-      { where: { staffId }, fields: ["status"] }
-    );
-
-    // Step 11: Returning the Reponse with the Status Upadted with StaffId
+    // step 8: Returing the Response with the Staff Details
     return res
       .status(statusCodes.OK)
       .json(
-        success_response(
-          statusCodes.OK,
-          "Staff Status Updated",
-          { staffId },
-          true
-        )
+        success_response(statusCodes.OK, "Staff is Fetched", { staff }, true)
       );
   } catch (error) {
-    console.log("Error in Changing Staff Status:", error?.message);
+    console.log("Failed to Fetch the User", error?.message);
     return res
       .status(error?.statusCodes || statusCodes.INTERNAL_SERVER_ERROR)
       .json(
         failed_response(
           error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
-          "Failed to Update Status",
-          { message: error?.message || "Updating Status Failed!" },
+          "Failed to Fetch the Staff",
+          { message: error?.message || "Fetching Staff Failed" },
           false
         )
       );
   }
 });
 
-export default updateStaffStatus;
+export default getStaff;

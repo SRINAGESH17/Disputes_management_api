@@ -4,21 +4,21 @@
  * @function
  * @name welcomeDashboard
  * @async
- * @param {import('express').Request} req - Express request object, expects `currUser` property containing the current user info.
+ * @param {import('express').Request} req - Express request object, expects `currUser` and `userRole` properties.
  * @param {import('express').Response} res - Express response object.
  * @returns {Promise<void>} Returns a JSON response with merchant details on success, or an error message on failure.
  *
- * @throws {AppError} If the current user is not authorized or merchant is not found.
+ * @throws {AppError} If the current user or userId is missing, or if the user is not authorized as a merchant, or if the merchant is not found in the database.
  *
  * @description
  * Steps performed:
- * 1. Extracts the current user from the request.
- * 2. Validates the presence of the user.
- * 3. Fetches merchant details from the database using the user's ID.
- * 4. Validates the existence of the merchant.
- * 5. Returns the merchant details in the response.
- * 6. Handles and logs errors, returning appropriate error responses.
+ * 1. Extracts the current user and user role from the request.
+ * 2. Validates that the user and userId exist.
+ * 3. Checks if the user has merchant privileges.
+ * 4. Fetches merchant details from the database using the userId.
+ * 5. Returns the merchant details in the response if found, otherwise throws an error.
  */
+
 
 import _ from "lodash";
 import catchAsync from "../../../utils/catch-async.js";
@@ -31,19 +31,34 @@ import Merchant from "../../../models/merchant.model.js";
 const welcomeDashboard = catchAsync(async (req, res) => {
   // @desc Fetching MerchantDetails After Login
   try {
-    // Step 1. Extract the User From the Request
-    const { currUser } = req;
+    // Step 1: Extract the User and UserRole From the Request
+    const { currUser, userRole } = req;
 
-    // Step 2 : Validate the User if Fetched or Not
-
+    // Step 2: validating the User  is Fetched
     if (_.isEmpty(currUser)) {
       throw new AppError(
         statusCodes.BAD_REQUEST,
-        AppErrorCode.fieldNotAuthorized("Merchant")
+        AppErrorCode.fieldNotFound("merchant")
       );
     }
 
-    // Step 3: Fetching the Merchant Details From the Database ;
+    // Step 3 : Checking For the UserId
+    if (!currUser?.userId) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.fieldNotFound("merchant")
+      );
+    }
+
+    // step 4 : Validating the User is Merchant or Not
+    if (!userRole.merchant) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.fieldNotAuthorized("merchant")
+      );
+    }
+
+    // Step 5: Fetching the Merchant Details From the Database ;
     const merchant = await Merchant.findOne(
       {
         where: { id: currUser.userId },
@@ -63,7 +78,7 @@ const welcomeDashboard = catchAsync(async (req, res) => {
       { raw: true }
     );
 
-    // step 4 : Validating the Merchants Exist or Not From the Database
+    // step 6: Validating the Merchants Exist or Not From the Database
     if (_.isEmpty(merchant)) {
       throw new AppError(
         statusCodes.NOT_FOUND,
@@ -71,7 +86,7 @@ const welcomeDashboard = catchAsync(async (req, res) => {
       );
     }
 
-    // Step 5: Returning the Merchant Payload
+    // Step 7: Returning the Merchant Payload
     return res.status(statusCodes.OK).json(
       success_response(
         statusCodes.OK,
