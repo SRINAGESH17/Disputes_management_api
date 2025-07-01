@@ -136,7 +136,7 @@ Dispute.init({
         allowNull: false,
         validate: {
             isIP: true,
-            notEmpty: { msg: 'IP address cannot be empty' },    
+            notEmpty: { msg: 'IP address cannot be empty' },
         }
     },
     amount: {
@@ -168,9 +168,9 @@ Dispute.init({
             notEmpty: { msg: 'reason code cannot be empty' },
         }
     },
-    disputeStatus: {
+    state: {
         type: DataTypes.STRING,
-        allowNull: false,
+        defaultValue: "PENDING",
     },
     event: {
         type: DataTypes.STRING,
@@ -197,7 +197,7 @@ Dispute.init({
     },
     status: {
         type: DataTypes.STRING,
-        defaultValue: "PENDING",
+        allowNull: false,
     },
 
 }, {
@@ -232,7 +232,7 @@ Dispute.init({
             fields: ['gateway']
         },
         {
-            fields: ['status']
+            fields: ['state']
         },
 
     ]
