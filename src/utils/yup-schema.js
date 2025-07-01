@@ -60,12 +60,12 @@ const normalizePayloadSchema = yup.object({
     currency: yup.string().required('currency is required'),
     reasonCode: yup.string().required('reasonCode is required'),
     reason: yup.string().required('reason is required'),
-    disputeStatus: yup.string().required('disputeStatus is required'),
+    status: yup.string().required('status is required'),
     event: yup.string().required('event is required'),
     statusUpdatedAt: yup.date().required('statusUpdatedAt is required').typeError('Invalid date format'),
     dueDate: yup.date().required('dueDate is required').typeError('Invalid date format'),
     type: yup.string().required('type is required'),
-    status: yup.string().required('status is required'),
+    state: yup.string().required('state is required'),
 });
 
 const msgPayloadSchema = yup.object({
