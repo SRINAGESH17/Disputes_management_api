@@ -3,7 +3,7 @@ import AppErrorCode from '../../constants/AppErrorCodes.js';
 import statusCodes from '../../constants/httpStatusCodes.js';
 import Merchant from '../../models/merchant.model.js';
 import AppError from '../../utils/AppError.js';
-import { DetectPaymentGateway, getNextRoundRobinStaffWithLocking, OrchestratorGatewayParser } from './webhookHelpers.js';
+import { DetectPaymentGateway, getNextRoundRobinStaffWithLocking, OrchestratorGatewayParser } from './webhook-helpers.js';
 import requestIP from "request-ip";
 import Dispute from '../../models/dispute.model.js';
 import { uniqueDisputeId } from '../../utils/generateIds.js';
