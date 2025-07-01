@@ -37,7 +37,7 @@ const disputeReceiveWebhook = async (req, res) => {
         const rawPayload = req.body;
         const headers = req.headers;
 
-        // Step 2  : Validate MerchantId is Valid or not
+    // Step 2  : Validate MerchantId is Valid or not
 
         // 2.1 : Check id must not Empty
         if (_.isEmpty(merchantId)) {
