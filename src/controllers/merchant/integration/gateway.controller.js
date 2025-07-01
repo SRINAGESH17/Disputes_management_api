@@ -150,4 +150,6 @@ const fetchGateways = catchAsync(async (req, res) => {
   }
 });
 
-export { addGateway, fetchGateways };
+const gatewayController = { addGateway, fetchGateways };
+
+export default gatewayController;
