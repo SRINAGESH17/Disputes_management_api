@@ -54,6 +54,7 @@ const AppErrorCode = {
     InvalidEmailFormat: "Invalid Email Format.",
     userRoleNotFound: "User Role Not Found.",
     YouAreNotAuthorized: "You Are Not Authorized.",
+    
 
 
     fieldAlreadyRegistered : (field) => (`${field} Already Registered!`),
@@ -63,6 +64,7 @@ const AppErrorCode = {
     fieldNotFound: (field) => (`${field} Not Found.`),
     fieldNotExist: (field) => (`${field} Not Exist.`),
     fieldIsRequired: (field) => (`${field} is required.`),
+    fieldNotAuthorized :(field) => (`${field} Not Authorized` )
 }
 
 export default AppErrorCode;
