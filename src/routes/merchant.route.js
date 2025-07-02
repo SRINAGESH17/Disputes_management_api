@@ -1,5 +1,6 @@
 import express from "express";
 import AddMerchantStaff from "../controllers/merchant/staff/add-staff.controller.js";
+import gatewayController from '../controllers/merchant/integration/gateway.controller.js';
 import { verifyMerchant } from "../middlewares/auth.middleware.js";
 import welcomeDashboard from "../controllers/merchant/dashboard/welcome-screen.controller.js";
 import updateStaffStatus from "../controllers/merchant/staff/update-staff-status.controller.js";
@@ -64,5 +65,24 @@ router.get("/staff/all", verifyMerchant, getAllStaff);
 // @access  : Private to Merchant Only
 
 router.get("/staff/:staffId", verifyMerchant, getStaff);
+
+
+
+// **************************** Gateway oR Integration *****************************/
+// 2. Add Gateway
+// @route : POST /api/v2/merchant/integration/gateway
+// @desc  : Add Gateway for Merchant
+// @access: Private to Merchant
+router.post('/integration/gateway', verifyMerchant, gatewayController.addGateway)
+
+// 3. fetch Gateways
+// @route : GET /api/v2/merchant/integration/gateway
+// @desc  : Fetch Gateway for Merchant
+// @access: Private to Merchant
+router.get('/integration/gateway', verifyMerchant, gatewayController.fetchGateways);
+
+
+
+
 
 export default router;

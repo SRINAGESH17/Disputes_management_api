@@ -4,7 +4,7 @@
  * @readonly
  * @enum {string}
  */
- 
+
 /**
  * Array of all supported payment gateway names.
  * @type {string[]}
