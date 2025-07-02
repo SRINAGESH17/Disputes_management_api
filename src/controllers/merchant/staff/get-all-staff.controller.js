@@ -58,7 +58,7 @@ const getAllStaff = catchAsync(async (req, res) => {
       );
     }
 
-    // Step 5: Creating a whereClause to Use for the Filtering and Findind the Staff
+    // Step 5: Creating a whereClause to Use for the Filtering and Finding the Staff
     let whereClause = {
       merchantId: currUser?.userId,
     };
@@ -106,7 +106,7 @@ const getAllStaff = catchAsync(async (req, res) => {
       .json(
         success_response(
           statusCodes.OK,
-          "Fetching Staff Successfull!",
+          "Fetching Staff Successful!",
           { totalStaff: staff.length, staff },
           true
         )

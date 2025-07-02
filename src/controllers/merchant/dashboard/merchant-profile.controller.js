@@ -1,3 +1,26 @@
+/**
+ * Controller to fetch the merchant profile for the dashboard.
+ *
+ * @function
+ * @name merchantProfile
+ * @async
+ * @param {import('express').Request} req - Express request object, expects `currUser` and `userRole` properties.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>} Returns a JSON response with the merchant profile data or an error message.
+ *
+ * @throws {AppError} If the current user is not found, userId is missing, or user is not authorized as a merchant.
+ *
+ * @description
+ * Steps performed:
+ * 1. Extracts the current user and role from the request.
+ * 2. Validates that the user exists and has a userId.
+ * 3. Checks if the user has the merchant role.
+ * 4. Fetches the merchant profile from the database using the userId.
+ * 5. Returns the merchant profile in the response.
+ * 6. Handles and logs errors, returning appropriate error responses.
+ */
+
+
 import Merchant from "../../../models/merchant.model.js";
 import _ from "lodash";
 import catchAsync from "../../../utils/catch-async.js";
@@ -9,7 +32,7 @@ import statusCodes from "../../../constants/status-codes.js";
 const merchantProfile = catchAsync(async (req, res) => {
   // @desc Fetching the Merchant Dashboard
   try {
-    // Step 1: Exctracting the User and Role From the Request
+    // Step 1: Extracting the User and Role From the Request
 
     const { currUser, userRole } = req;
 
@@ -57,14 +80,14 @@ const merchantProfile = catchAsync(async (req, res) => {
         )
       );
   } catch (error) {
-    console.log("Error while Fetching Merchant Dashboard", error?.message);
+    console.log("Error while Fetching Merchant Profile", error?.message);
     return res
       .status(error?.statusCodes || statusCodes.INTERNAL_SERVER_ERROR)
       .json(
         failed_response(
           statusCodes.INTERNAL_SERVER_ERROR,
           "Failed to Fetch Merchant Profile",
-          { message: error?.message || "Fetching Merchant Dashboard Failed!" },
+          { message: error?.message || "Fetching Merchant Profile Failed!" },
           false
         )
       );
