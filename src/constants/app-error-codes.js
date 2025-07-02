@@ -66,7 +66,11 @@ const AppErrorCode = {
     fieldNotExist: (field) => (`${field} Not Exist.`),
     fieldAlreadyExist: (field) => (`${field} Already Exist.`),
     fieldIsRequired: (field) => (`${field} is required.`),
-    fieldNotAuthorized :(field) => (`${field} Not Authorized` )
+    fieldNotAuthorized :(field) => (`${field} Not Authorized` ),
+    UnAuthorizedField :(field) => (`UnAuthorized ${field}` ),
+    InvalidField: (field)=> (`Invalid ${field}`),
+    InvalidFieldValue: (field)=> (`Invalid ${field} Value`),
+    InvalidField1MustBeValidField2: (field1,field2)=> (`Invalid ${field1}. Must Be Valid ${field2}`)
 }
 
 export default AppErrorCode;
