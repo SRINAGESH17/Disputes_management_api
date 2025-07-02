@@ -36,12 +36,12 @@ import statusCodes from "../../../constants/status-codes.js";
 const updateStaffStatus = catchAsync(async (req, res) => {
   // @desc Updating the Status of the Staff
   try {
-    // Step 1 Exctrat the Details
+    // Step 1 Extract the Details
 
     //  1.1 Extract the User and UserRole From the Request
     const { currUser, userRole } = req;
 
-    // 1.2 Exctrating the StaffId from the params
+    // 1.2 Extracting the StaffId from the params
     const { staffId } = req.params;
 
     // Step 2: validating the User  is Fetched
@@ -84,7 +84,7 @@ const updateStaffStatus = catchAsync(async (req, res) => {
       );
     }
 
-    // Step 7:  Fetching the Staff Which statisfies the StaffId and the Merchant Id
+    // Step 7:  Fetching the Staff Which satisfies the StaffId and the Merchant Id
     const staff = await Staff.findOne({
       where: { staffId, merchantId: currUser.userId },
       attributes: ["id", "staffId", "merchantId", "status"],
@@ -109,7 +109,7 @@ const updateStaffStatus = catchAsync(async (req, res) => {
       { where: { staffId }, fields: ["status"] }
     );
 
-    // Step 11: Returning the Reponse with the Status Upadted with StaffId
+    // Step 11: Returning the Response with the Status Updated with StaffId
     return res
       .status(statusCodes.OK)
       .json(
