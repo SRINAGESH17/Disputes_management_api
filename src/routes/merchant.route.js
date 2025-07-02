@@ -10,7 +10,7 @@ import merchantProfile from "../controllers/merchant/dashboard/merchant-profile.
 
 const router = express.Router();
 
-// ********************************** DashBoard Routes
+// ********************************** Dashboard Routes ****************************************
 // 1.Merchant Dashboard Welcome
 // @route  : GET /api/v2/merchant/dashboard/welcome
 // @desc   : Display Merchant Dashboard after Register
@@ -25,7 +25,7 @@ router.get("/dashboard/welcome", verifyMerchant, welcomeDashboard);
 
 router.get("/profile", verifyMerchant, merchantProfile);
 
-// *********************************** Staff Routes
+// *********************************** Staff Routes ************************************************
 
 // 1. Create Staff Account
 // @route : POST /api/v2/merchant/staff/:merchantId
