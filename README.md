@@ -274,7 +274,6 @@ This guide defines consistent naming conventions for files and folders in the **
 | ❌ Anti-Pattern | ✅ Preferred Pattern              |
 | --------------- | --------------------------------- |
 | `dispute.js`    | `dispute.model.js`                |
-| `utils.js`      | `generate-report.util.js`         |
 | `controller.js` | `add-staff.controller.js`         |
 | `route.js`      | `gstin.route.js`                  |
 | `auth.js`       | `authenticate-user.middleware.js` |
