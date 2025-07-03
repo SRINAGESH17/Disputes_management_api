@@ -114,6 +114,7 @@ const getUserRole = async (req, res, next) => {
 
     try {
         console.time("Find Role!")
+        // Find The User Role
         const Role = await userRoleModel.findOne({ where: { firebaseId: fireBaseId }, raw: true });
         // console.log("User Role : ", Role)
         if (_.isEmpty(Role)) {

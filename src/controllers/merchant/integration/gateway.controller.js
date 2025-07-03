@@ -2,7 +2,7 @@ import _ from "lodash";
 import statusCodes from "../../../constants/status-codes.js";
 import catchAsync from "../../../utils/catch-async.js";
 import { failed_response, success_response } from "../../../utils/response.js";
-import { GatewayNames } from "../../../constants/Gateways.js";
+import { GatewayNames } from "../../../constants/gateways.js";
 import AppError from "../../../utils/app-error.js";
 import AppErrorCode from "../../../constants/app-error-codes.js";
 import Merchant from "../../../models/merchant.model.js";
