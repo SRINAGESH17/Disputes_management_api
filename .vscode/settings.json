@@ -1,3 +1,8 @@
 {
-  "cSpell.words": ["GSTIN"]
+  "cSpell.words": ["GSTIN"],
+  "editor.guides.highlightActiveBracketPair": true,
+  "editor.language.brackets": [],
+  "editor.language.colorizedBracketPairs": [],
+  "editor.guides.bracketPairs": "active",
+  "editor.bracketPairColorization.independentColorPoolPerBracketType": true
 }
