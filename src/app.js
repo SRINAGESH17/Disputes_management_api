@@ -1,5 +1,5 @@
 import express from 'express';
-import env from './constants/env.js';
+import env from './constants/env.constant.js';
 import { initializeDB } from './models/index.js';
 import indexRoutes from './routes/index.js';
 import webhookProcessor from './controllers/rabbitmq/process-webhook.class.js';
@@ -28,7 +28,7 @@ const startServer = async () => {
         await initializeDB();
 
         // Listen Channel To Consume the letters From Queue
-        await webhookProcessor.start();
+        // await webhookProcessor.start();
 
         // Start the Server
         app.listen(env.PORT, () => {

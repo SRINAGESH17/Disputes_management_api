@@ -15,8 +15,8 @@
  * const isError = await schemaValidator(schema, req.body, res);
  * if (isError) return;
  */
-import statusCodes from "../constants/status-codes.js";
-import { failed_response } from "./response.js";
+import statusCodes from "../constants/status-codes.constant.js";
+import { failed_response } from "./response.util.js";
 import * as yup from "yup";
 
 const schemaValidator = async (schema, data, res) => {

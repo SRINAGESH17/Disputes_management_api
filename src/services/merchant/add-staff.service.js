@@ -22,9 +22,9 @@
  */
 
 import _ from "lodash";
-import AppErrorCode from "../../constants/app-error-codes.js";
-import statusCodes from "../../constants/status-codes.js";
-import { verificationCodes } from "../../constants/verification-codes.js";
+import AppErrorCode from "../../constants/app-error-codes.constant.js";
+import statusCodes from "../../constants/status-codes.constant.js";
+import { verificationCodes } from "../../constants/verification-codes.constant.js";
 import {
   FirebaseCheckEmailExistOrNot,
   FirebaseCheckPhoneExistOrNot,
@@ -32,9 +32,9 @@ import {
 } from "../../firebase/firebase-utils.js";
 import OTP from "../../models/otp.model.js";
 import Merchant from "../../models/merchant.model.js";
-import AppError from "../../utils/app-error.js";
+import AppError from "../../utils/app-error.util.js";
 import UserRole from "../../models/user-role.model.js";
-import { uniqueStaffId } from "../../utils/generate-ids.js";
+import { uniqueStaffId } from "../../utils/generate-ids.util.js";
 import { Op } from "sequelize";
 import Staff from "../../models/staff.model.js";
 import sequelize from "../../config/database.config.js";

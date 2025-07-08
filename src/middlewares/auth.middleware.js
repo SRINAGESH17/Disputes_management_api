@@ -39,9 +39,9 @@
  */
 
 import _ from "lodash";
-import { failed_response } from "../utils/response.js";
-import statusCodes from "../constants/status-codes.js"
-import AppErrorCodes from "../constants/app-error-codes.js"
+import { failed_response } from "../utils/response.util.js";
+import statusCodes from "../constants/status-codes.constant.js"
+import AppErrorCodes from "../constants/app-error-codes.constant.js"
 import { FirebaseVerifyIdToken } from "../firebase/firebase-utils.js";
 import userRoleModel from '../models/user-role.model.js';
 

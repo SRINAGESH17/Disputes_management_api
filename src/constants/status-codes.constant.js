@@ -1,5 +1,3 @@
-import { testing } from "./TESTING/VALID.js";
-
 
 
 /**
@@ -45,6 +43,5 @@ const statusCodes = {
     SERVICE_UNAVAILABLE: 503,
     GATEWAY_TIMEOUT: 504
 };
-testing
 
 export default statusCodes;

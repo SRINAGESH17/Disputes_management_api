@@ -23,9 +23,9 @@
  */
 
 import _ from "lodash";
-import AppErrorCode from "../../constants/app-error-codes.js";
-import statusCodes from "../../constants/status-codes.js";
-import { verificationCodes } from "../../constants/verification-codes.js";
+import AppErrorCode from "../../constants/app-error-codes.constant.js";
+import statusCodes from "../../constants/status-codes.constant.js";
+import { verificationCodes } from "../../constants/verification-codes.constant.js";
 import {
   FirebaseCheckEmailExistOrNot,
   FirebaseCheckPhoneExistOrNot,
@@ -34,9 +34,9 @@ import {
 } from "../../firebase/firebase-utils.js";
 import OTP from "../../models/otp.model.js";
 import Merchant from "../../models/merchant.model.js";
-import AppError from "../../utils/app-error.js";
+import AppError from "../../utils/app-error.util.js";
 import UserRole from "../../models/user-role.model.js";
-import { uniqueMerchantId } from "../../utils/generate-ids.js";
+import { uniqueMerchantId } from "../../utils/generate-ids.util.js";
 import { Op } from "sequelize";
 
 const merchantRegisterService = async (data) => {
@@ -91,12 +91,12 @@ const merchantRegisterService = async (data) => {
 
     // 2.1 : Email is Verified or not
     if (_.isEmpty(isEmailVerified)) {
-        throw new AppError(statusCodes.BAD_REQUEST, 'Email is Not verified.');
+      throw new AppError(statusCodes.BAD_REQUEST, 'Email is Not verified.');
     }
 
     // // 2.2 : mobile Number is Verified or not
     if (_.isEmpty(isMobileNumberVerified)) {
-        throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
+      throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
     }
 
     // Step 3 : Create Merchant Account in firebase

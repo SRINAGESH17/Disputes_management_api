@@ -37,29 +37,35 @@ import sequelize from '../config/database.config.js';
 
 class DisputeHistory extends Model {
     static associate(models) {
+        // History Belongs to Dispute
         DisputeHistory.belongsTo(models.Dispute, {
             foreignKey: "disputeId",
             as: "dispute"
         });
+
+        // History Belongs to Merchant
         DisputeHistory.belongsTo(models.Merchant, {
             foreignKey: "merchantId",
             as: "merchant",
         });
+
+        // History Belongs to Payload
         DisputeHistory.belongsTo(models.Payload, {
             foreignKey: "payloadId",
-            as: "rawPayload",
+            as: "rawPayload"
         });
     };
 }
 
 DisputeHistory.init({
     id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false
     },
     merchantId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
             model: 'merchants',
@@ -71,7 +77,7 @@ DisputeHistory.init({
         }
     },
     disputeId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
             model: 'disputes',
@@ -108,12 +114,14 @@ DisputeHistory.init({
         }
     },
     payloadId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: true,
         references: {
             model: 'payloads',
             key: 'id',
         },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
     }
 
 }, {
@@ -126,10 +134,10 @@ DisputeHistory.init({
             fields: ["merchant_id"]
         },
         {
-            fields: ["merchant_id", "dispute_id"]
+            fields: ["dispute_id"]
         },
         {
-            fields: ["dispute_id"]
+            fields: ["merchant_id", "dispute_id"]
         },
         {
             fields: ["created_at"]

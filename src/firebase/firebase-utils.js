@@ -53,8 +53,8 @@
  * @throws {AppError} If password update fails.
  */
 
-import statusCodes from '../constants/status-codes.js';
-import AppError from '../utils/app-error.js';
+import statusCodes from '../constants/status-codes.constant.js';
+import AppError from '../utils/app-error.util.js';
 import admin from './admin.js';
 
 
