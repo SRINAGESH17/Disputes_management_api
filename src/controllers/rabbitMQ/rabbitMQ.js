@@ -26,7 +26,7 @@
    */
 
 import amqp from 'amqplib';
-import env from '../../constants/env.js';
+import env from '../../constants/env.constant.js';
 
 let connection = null;
 let channel = null;

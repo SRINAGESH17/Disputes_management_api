@@ -29,11 +29,11 @@
 
 
 import _ from "lodash";
-import AppErrorCode from "../constants/app-error-codes.js";
-import statusCodes from "../constants/status-codes.js";
-import { verificationCodes } from "../constants/verification-codes.js";
+import AppErrorCode from "../constants/app-error-codes.constant.js";
+import statusCodes from "../constants/status-codes.constant.js";
+import { verificationCodes } from "../constants/verification-codes.constant.js";
 import OTP from "../models/otp.model.js";
-import AppError from "../utils/app-error.js";
+import AppError from "../utils/app-error.util.js";
 import { FirebaseCheckEmailExistOrNot, FirebaseUpdateUserPassword } from "../firebase/firebase-utils.js";
 
 

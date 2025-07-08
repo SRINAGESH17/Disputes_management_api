@@ -9,7 +9,7 @@
  */
 
 import axios from "axios";
-import env from "../../constants/env.js";
+import env from "../../constants/env.constant.js";
 
 
 const sentVerifyMobileOTP = async (mobileNumber) => {

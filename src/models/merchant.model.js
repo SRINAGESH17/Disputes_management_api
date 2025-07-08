@@ -65,37 +65,81 @@ import sequelize from '../config/database.config.js';
 class Merchant extends Model {
     static associate(models) {
         // Define associations
-        Merchant.belongsTo(models.UserRole, { foreignKey: 'userRole', as: 'role' });
 
+        // Merchant has one Role
+        Merchant.hasOne(models.UserRole, {
+            foreignKey: 'userId',
+            constraints: false,
+            scope: {
+                user_ref: 'MERCHANT' // ← matches SQL column name
+            },
+            as: 'role'
+        });
+
+        // Merchant Has Many Disputes
         Merchant.hasMany(models.Dispute, {
             foreignKey: "merchantId",
             constraints: true,
             onDelete: 'RESTRICT',
             as: "disputes",
         });
+
+        // Merchant has Many Dispute History
         Merchant.hasMany(models.DisputeHistory, {
             foreignKey: "merchantId",
             onDelete: 'RESTRICT',
             as: 'disputeHistories',
         });
-        Merchant.hasMany(models.Staff, {
+
+        // Merchant has many Analyst
+        Merchant.hasMany(models.Analyst, {
             foreignKey: "merchantId",
             onDelete: 'RESTRICT',
-            as: 'staffs',
+            as: 'analysts',
         });
+
+        // Merchant has many Manager
+        Merchant.hasMany(models.Analyst, {
+            foreignKey: "merchantId",
+            onDelete: 'RESTRICT',
+            as: 'managers',
+        });
+
+        // Merchant has Many Logs Including All business
         Merchant.hasMany(models.DisputeLog, {
             foreignKey: "merchantId",
             onDelete: 'RESTRICT',
             as: 'disputeLogs',
+        });
+
+        // Merchant has Many Business Accounts
+        Merchant.hasMany(models.Business, {
+            foreignKey: "merchantId",
+            onDelete: 'RESTRICT',
+            as: 'businessAccounts',
+        });
+
+        // Merchant has Many Staff Business Accounts
+        Merchant.hasMany(models.StaffBusinessMap, {
+            foreignKey: "merchantId",
+            onDelete: 'RESTRICT',
+            as: 'staffBusinessAccounts',
+        });
+
+        // Merchant Has One Last Staff Record
+        Merchant.hasMany(models.StaffAssignmentState, {
+            foreignKey: "merchantId",
+            as: 'merchantLastStaff',
         });
     };
 }
 
 Merchant.init({
     id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false
     },
     merchantId: {
         type: DataTypes.STRING,
@@ -139,48 +183,52 @@ Merchant.init({
             len: [3, 50],
         },
     },
-    gstin: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-            notEmpty(value) {
-                if (value && value.trim() === '') {
-                    throw new Error("GSTIN is required");
-                }
-            },
-            len(value) {
-                if (value && value.length !== 15) {
-                    throw new Error("GSTIN must be 15 characters");
-                }
-            },
-            is(value) {
-                if (value && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value)) {
-                    throw new Error('Invalid GSTIN format');
-                }
-            },
-            isValidGSTIN(value) {
-                if (value) {
-                    const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-                    if (!regex.test(value)) {
-                        throw new Error('Invalid GSTIN format');
-                    }
-                }
-            }
-        },
+    // gstin: {
+    // type: DataTypes.STRING,
+    // allowNull: true,
+    // validate: {
+    //     notEmpty(value) {
+    //         if (value && value.trim() === '') {
+    //             throw new Error("GSTIN is required");
+    //         }
+    //     },
+    //     len(value) {
+    //         if (value && value.length !== 15) {
+    //             throw new Error("GSTIN must be 15 characters");
+    //         }
+    //     },
+    //     is(value) {
+    //         if (value && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value)) {
+    //             throw new Error('Invalid GSTIN format');
+    //         }
+    //     },
+    //     isValidGSTIN(value) {
+    //         if (value) {
+    //             const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    //             if (!regex.test(value)) {
+    //                 throw new Error('Invalid GSTIN format');
+    //             }
+    //         }
+    //     }
+    // },
+    // },
+    // gateways: {
+    //     type: DataTypes.ARRAY(DataTypes.STRING),
+    //     allowNull: true,
+    //     defaultValue: [],
+    //     validate: {
+    //         isValidGateways(value) {
+    //             if (!Array.isArray(value)) {
+    //                 throw new Error('Gateways must be an array of strings');
+    //             }
+    //         }
+    //     }
+    // },
+    totalAnalysts: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
     },
-    gateways: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
-        allowNull: true,
-        defaultValue: [],
-        validate: {
-            isValidGateways(value) {
-                if (!Array.isArray(value)) {
-                    throw new Error('Gateways must be an array of strings');
-                }
-            }
-        }
-    },
-    totalStaff: {
+    totalManagers: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
     },
@@ -192,20 +240,18 @@ Merchant.init({
         type: DataTypes.INTEGER,
         defaultValue: 0,
     },
-    activeDisputes: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
+    activeBusinessId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: {
+            model: 'businesses',
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT',
     },
-    // disputesSubmitted: {
-    //     type: DataTypes.INTEGER,
-    //     defaultValue: 0,
-    // },
-    // disputesAssigned: {
-    //     type: DataTypes.INTEGER,
-    //     defaultValue: 0,
-    // },
     userRole: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: true,
         references: {
             model: 'user_roles',
@@ -244,6 +290,9 @@ Merchant.init({
             name: 'unique_merchant_firebase',
             fields: ["firebase_id"]
         },
+        {
+            fields: ['active_business_id']
+        }
     ]
 });
 

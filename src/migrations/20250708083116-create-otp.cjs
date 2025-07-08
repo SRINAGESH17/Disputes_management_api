@@ -3,18 +3,16 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    // Dynamic import ( mjs to cjs )
-    const { verificationTypes } = await import('../constants/verification-codes.js');
 
     await queryInterface.createTable('otp', {
       id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
         allowNull: false
       },
       verificationKey: {
-        type: Sequelize.ENUM(...verificationTypes),
+        type: Sequelize.ENUM('email', 'mobile_number'),
         allowNull: false,
         field: 'verification_key'
       },
@@ -66,10 +64,5 @@ module.exports = {
     await queryInterface.removeIndex('otp', ['verification_key', 'verification_value', 'otp_reference']);
 
     await queryInterface.dropTable('otp');
-
-    // Drop enum type for postgres
-    if (queryInterface.sequelize.getDialect() === 'postgres') {
-      await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_otp_verificationKey";');
-    }
   }
 };

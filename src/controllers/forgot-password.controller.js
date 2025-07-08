@@ -16,12 +16,12 @@
  *
  * @throws {Error} If any error occurs during the password reset process, returns an error response with details.
  */
-import statusCodes from "../constants/status-codes.js";
+import statusCodes from "../constants/status-codes.constant.js";
 import resetPasswordService from "../services/reset-password.service.js";
-import catchAsync from "../utils/catch-async.js";
-import { failed_response, success_response } from "../utils/response.js";
-import schemaValidator from "../utils/schema-validator.js";
-import { resetPasswordSchema } from "../utils/yup-schema.js";
+import catchAsync from "../utils/catch-async.util.js";
+import { failed_response, success_response } from "../utils/response.util.js";
+import schemaValidator from "../utils/schema-validator.util.js";
+import { resetPasswordSchema } from "../utils/yup-schema.util.js";
 
 const resetUserPassword = catchAsync(async (req, res) => {
     // Desc : Reset Password For User

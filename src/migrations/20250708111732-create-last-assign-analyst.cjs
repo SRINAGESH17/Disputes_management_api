@@ -4,13 +4,13 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('staff_assignment_states', {
       id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
-        allowNull: false,
+        allowNull: false
       },
       merchant_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: 'merchants',
@@ -20,23 +20,25 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       last_staff_assigned: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'staff',
+          model: 'analysts',
           key: 'id',
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
       created_at: {
-        allowNull: false,
         type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.fn('NOW'),
       },
       updated_at: {
-        allowNull: false,
         type: Sequelize.DATE,
-      }
+        allowNull: false,
+        defaultValue: Sequelize.fn('NOW'),
+      },
     });
 
     await queryInterface.addIndex('staff_assignment_states', ['merchant_id']);

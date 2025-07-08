@@ -4,10 +4,10 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('managers', {
       id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
-        allowNull: false,
+        allowNull: false
       },
       staff_id: {
         type: Sequelize.STRING,
@@ -17,25 +17,15 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      merchant_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'merchants',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
-      },
-      email: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
       first_name: {
         type: Sequelize.STRING,
         allowNull: false,
       },
       last_name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      email: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -48,8 +38,28 @@ module.exports = {
         allowNull: true,
         defaultValue: 'manager'
       },
+      merchant_id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: 'merchants',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+      },
+      selected_business_Id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: 'staff_business_maps',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+      },
       user_role: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: true,
         references: {
           model: 'user_roles',
@@ -116,6 +126,7 @@ module.exports = {
       unique: true,
       name: 'unique_manager_email',
     });
+    await queryInterface.addIndex('managers', ['selected_business_Id']);
   },
 
   down: async (queryInterface, Sequelize) => {
@@ -126,6 +137,7 @@ module.exports = {
     await queryInterface.removeIndex('managers', ['merchant_id']);
     await queryInterface.removeIndex('managers', ['created_at']);
     await queryInterface.removeIndex('managers', ['first_name', 'last_name']);
+    await queryInterface.removeIndex('managers', ['selected_business_Id']);
 
     await queryInterface.dropTable('managers');
   }

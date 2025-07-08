@@ -4,13 +4,13 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('dispute_history', {
       id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
         allowNull: false
       },
       merchant_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: 'merchants',
@@ -20,7 +20,7 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       dispute_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: 'disputes',
@@ -42,7 +42,7 @@ module.exports = {
         allowNull: false,
       },
       payload_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: true,
         references: {
           model: 'payloads',
@@ -52,13 +52,15 @@ module.exports = {
         onDelete: 'SET NULL',
       },
       created_at: {
-        allowNull: false,
         type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.fn('NOW'),
       },
       updated_at: {
-        allowNull: false,
         type: Sequelize.DATE,
-      }
+        allowNull: false,
+        defaultValue: Sequelize.fn('NOW'),
+      },
     });
 
     await queryInterface.addIndex('dispute_history', ['merchant_id']);

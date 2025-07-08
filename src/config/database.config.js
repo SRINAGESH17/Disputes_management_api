@@ -17,7 +17,7 @@
  * @see {@link https://sequelize.org/master/class/lib/sequelize.js~Sequelize.html|Sequelize Documentation}
  */
 
-import env from "../constants/env.js";
+import env from "../constants/env.constant.js";
 import { Sequelize } from 'sequelize';
 
 const sequelize = new Sequelize(env.DEV_DB_URL, {
