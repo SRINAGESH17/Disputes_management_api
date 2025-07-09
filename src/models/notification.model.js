@@ -7,6 +7,7 @@
  *
  * @typedef {Object} Notification
  * @property {number} id - Primary key, auto-incremented.
+ * @property {number} businessId - ID of the businesses.
  * @property {number} recipientId - ID of the recipient (Staff or Merchant).
  * @property {'STAFF'|'MERCHANT'} recipientType - Type of the recipient.
  * @property {'DISPUTE'|'SYSTEM'|'INFO'|'REMINDER'} type - Type/category of the notification.
@@ -24,7 +25,8 @@
  * @example
  * // Creating a new notification
  * await Notification.create({
- *   recipientId: 1,
+ *   recipientId:  4h4h-nj4j5j5j-6j7k8h3,
+ *   recipientId: 4h4h-nj4j5j5j-6j7k8h,
  *   recipientType: 'STAFF',
  *   type: 'DISPUTE',
  *   title: 'New Dispute Assigned',
@@ -36,12 +38,13 @@
  * @schema
  * {
  *   id: BIGINT (PK, auto-increment),
- *   recipientId: INTEGER (FK to Staff or Merchant, required),
+ *   recipientId: UUID (FK to businesses, required),
+ *   recipientId: UUID (FK to Staff or Merchant, required),
  *   recipientType: ENUM('STAFF', 'MERCHANT') (required),
  *   type: ENUM('DISPUTE', 'SYSTEM', 'INFO', 'REMINDER') (default: 'DISPUTE'),
  *   title: TEXT (required),
  *   message: TEXT (required),
- *   disputeId: INTEGER (nullable, FK to disputes),
+ *   disputeId: UUID (nullable, FK to disputes),
  *   isRead: BOOLEAN (default: false),
  *   readAt: DATE (nullable),
  *   channel: ENUM('EMAIL', 'WEB', 'PUSH') (default: 'WEB'),
@@ -51,6 +54,7 @@
  */
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/database.config.js';
+import enums from '../constants/enums.constant.js';
 
 class Notification extends Model {
     /**
@@ -64,43 +68,46 @@ class Notification extends Model {
      */
     static associate(models) {
 
-        Notification.belongsTo(models.Staff, {
-            foreignKey: 'recipientId',
-            constraints: false,
-            as: 'staffRecipient',
-            scope: {
-                recipientType: 'STAFF'
-            }
+        // Notification belongs to business
+        Notification.belongsTo(models.Business, {
+            foreignKey: 'businessId',
+            as: 'NotificationBusiness',
         });
-        Notification.belongsTo(models.Merchant, {
-            foreignKey: 'recipientId',
-            constraints: false,
-            as: 'merchantRecipient',
-            scope: {
-                recipientType: 'MERCHANT'
-            }
-        });
+
+        // Notification belongs to Dispute
         Notification.belongsTo(models.Dispute, {
             foreignKey: 'disputeId',
-            as: 'dispute'
+            as: 'notificationDispute',
         });
+
     }
 }
 
 Notification.init({
     id: {
-        type: DataTypes.BIGINT,
-        autoIncrement: true,
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
+        allowNull: false
+    },
+    businessId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: {
+            model: 'businesses',
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
     },
 
     recipientId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
     },
 
     recipientType: {
-        type: DataTypes.ENUM('STAFF', 'MERCHANT'),
+        type: DataTypes.ENUM(...enums.userNames),
         allowNull: false,
     },
 
@@ -121,7 +128,7 @@ Notification.init({
     },
 
     disputeId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: true,
         references: {
             model: 'disputes',
@@ -153,10 +160,10 @@ Notification.init({
     timestamps: true,
     indexes: [
         {
-            fields: ['recipient_type']
+            fields: ['recipient_id','created_at']
         },
         {
-            fields: ['recipient_id', 'recipient_type']
+            fields: ['business_id','recipient_id','created_at']
         },
     ]
 

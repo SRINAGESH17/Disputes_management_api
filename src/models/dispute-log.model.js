@@ -52,12 +52,17 @@ import sequelize from '../config/database.config.js';
 
 class DisputeLog extends Model {
     static associate(models) {
+        // Log Belongs to Merchant Business
+        DisputeLog.belongsTo(models.Business, {
+            foreignKey: "businessId",
+            as: "Business"
+        });
+        // Log Belongs to Merchant
         DisputeLog.belongsTo(models.Merchant, {
             foreignKey: "merchantId",
-            constraints: true,
-            // onDelete: 'RESTRICT',
             as: "merchant"
         });
+        // Log Belongs to Payload
         DisputeLog.belongsTo(models.Payload, {
             foreignKey: "payloadId",
             as: "rawPayload",
@@ -67,21 +72,34 @@ class DisputeLog extends Model {
 
 DisputeLog.init({
     id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false
     },
     merchantId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
             model: 'merchants',
             key: 'id',
         },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
         validate: {
             notNull: { msg: 'merchant ID is required' },
             isInt: { msg: 'merchant ID must be an integer' }
         }
+    },
+    businessId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+            model: 'businesses',
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
     },
 
     log: {
@@ -126,13 +144,16 @@ DisputeLog.init({
         allowNull: true,
     },
     payloadId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: true,
         references: {
             model: 'payloads',
             key: 'id',
         },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
     }
+
 
 }, {
     sequelize,
@@ -144,10 +165,13 @@ DisputeLog.init({
             fields: ["merchant_id"]
         },
         {
+            fields: ['merchant_id','business_id','created_at']
+        },
+        {
             fields: ["created_at"]
         },
         {
-            fields: ["gateway"]
+            fields: ["gateway","created_at"]
         }
     ]
 });

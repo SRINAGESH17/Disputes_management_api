@@ -4,18 +4,18 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('user_roles', {
       id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
         allowNull: false,
       },
       userId: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: false,
         field: 'user_id',
       },
       userRef: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM('MERCHANT', 'ANALYST', 'MANAGER'),
         allowNull: false,
         field: 'user_ref'
       },
@@ -24,26 +24,20 @@ module.exports = {
         allowNull: false,
         field: 'firebase_id'
       },
-      staff: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
-      permissions: {
-        type: Sequelize.ARRAY(Sequelize.STRING),
-        allowNull: true,
-        defaultValue: [],
-      },
       merchant: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false,
       },
-      navbarPermissions: {
-        type: Sequelize.ARRAY(Sequelize.STRING),
-        allowNull: true,
-        defaultValue: [],
-        field: 'navbar_permissions'
+      manager: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      analyst: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
       createdAt: {
         allowNull: false,
@@ -58,11 +52,13 @@ module.exports = {
     });
 
     await queryInterface.addIndex('user_roles', ['firebase_id']);
+    await queryInterface.addIndex('user_roles', ['user_id', 'user_ref']);
   },
 
   down: async (queryInterface, Sequelize) => {
 
     await queryInterface.removeIndex('user_roles', ['firebase_id']);
+    await queryInterface.removeIndex('user_roles', ['user_id', 'user_ref']);
 
     await queryInterface.dropTable('user_roles');
   }

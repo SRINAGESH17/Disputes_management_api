@@ -4,13 +4,23 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('payloads', {
       id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
         allowNull: false
       },
       merchant_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: 'merchants',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+      },
+      business_id: {
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: 'merchants',
@@ -38,11 +48,12 @@ module.exports = {
       }
     });
 
-    await queryInterface.addIndex('payloads', ['merchant_id']);
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeIndex('payloads', ['merchant_id']);
+    
     await queryInterface.dropTable('payloads');
+
+    // await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_payloads_payload_type";');
   }
 };
