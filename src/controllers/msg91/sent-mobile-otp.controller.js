@@ -50,18 +50,18 @@
 // start of the sent Mobile OTP Controller
 
 import _ from "lodash";
-import statusCodes from "../../constants/status-codes.js";
-import catchAsync from "../../utils/catch-async.js";
-import { failed_response, success_response } from "../../utils/response.js";
-import AppError from "../../utils/app-error.js";
-import AppErrorCode from "../../constants/app-error-codes.js";
+import statusCodes from "../../constants/status-codes.constant.js";
+import catchAsync from "../../utils/catch-async.util.js";
+import { failed_response, success_response } from "../../utils/response.util.js";
+import AppError from "../../utils/app-error.util.js";
+import AppErrorCode from "../../constants/app-error-codes.constant.js";
 import { FirebaseCheckPhoneExistOrNot } from "../../firebase/firebase-utils.js";
-import { generateOTP, generateReferenceID } from "../../utils/generate-ids.js";
-import { verificationCodes } from "../../constants/verification-codes.js";
-import { fiveMinutesFromNow } from "../../utils/date-handlers.js";
+import { generateOTP, generateReferenceID } from "../../utils/generate-ids.util.js";
+import { verificationCodes } from "../../constants/verification-codes.constant.js";
+import { fiveMinutesFromNow } from "../../utils/date-handlers.util.js";
 import OTP from "../../models/otp.model.js";
 import sentVerifyMobileOTP from "./sent-otp-to-mobile.js";
-import { parsePhoneNumberFromString } from 'libphonenumber-js'
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 export const validatePhoneNumber = (phone) => {
     const phoneRegex = /^\+[1-9]\d{7,14}$/;

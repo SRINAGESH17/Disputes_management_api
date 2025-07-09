@@ -62,21 +62,21 @@
  */
 
 import _ from 'lodash';
-import AppErrorCode from '../../constants/app-error-codes.js';
-import statusCodes from '../../constants/status-codes.js';
+import AppErrorCode from '../../constants/app-error-codes.constant.js';
+import statusCodes from '../../constants/status-codes.constant.js';
 import Merchant from '../../models/merchant.model.js';
-import AppError from '../../utils/app-error.js';
+import AppError from '../../utils/app-error.util.js';
 import { DetectPaymentGateway, generateDisputeNotificationTemplate, OrchestratorGatewayParser } from './webhook-helpers.js';
 import Dispute from '../../models/dispute.model.js';
-import { uniqueDisputeId } from '../../utils/generate-ids.js';
+import { uniqueDisputeId } from '../../utils/generate-ids.util.js';
 import Staff from '../../models/staff.model.js';
 import StaffAssignmentState from '../../models/staff-assign-state.model.js';
-import { normalizePayloadSchema } from '../../utils/yup-schema.js';
+import { normalizePayloadSchema } from '../../utils/yup-schema.util.js';
 import sequelize from '../../config/database.config.js';
 import DisputeLog from '../../models/dispute-log.model.js';
 import Payload from '../../models/payload.model.js';
 import Notification from '../../models/notification.model.js';
-import DisputeNotifyStatus from '../../constants/dispute-notify-status.js';
+import DisputeNotifyStatus from '../../constants/dispute-notify-status.constant.js';
 
 
 // Round Robbin Algorithm to Assign Dispute to Staff
