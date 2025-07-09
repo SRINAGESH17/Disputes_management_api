@@ -1,11 +1,14 @@
 import express from 'express';
-import env from './constants/env.js';
+import env from './constants/env.constant.js';
 import { initializeDB } from './models/index.js';
 import indexRoutes from './routes/index.js';
 import webhookProcessor from './controllers/rabbitmq/process-webhook.class.js';
-
+import cors from 'cors';
 
 const app = express();
+
+
+app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -13,6 +16,8 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
     res.status(200).json({ message: 'Server is running' });
 });
+
+// Entry Point
 app.use('/', indexRoutes);
 
 
@@ -23,7 +28,7 @@ const startServer = async () => {
         await initializeDB();
 
         // Listen Channel To Consume the letters From Queue
-        await webhookProcessor.start();
+        // await webhookProcessor.start();
 
         // Start the Server
         app.listen(env.PORT, () => {

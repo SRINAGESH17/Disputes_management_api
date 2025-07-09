@@ -1,10 +1,10 @@
 import Merchant from "../../../models/merchant.model.js";
 import _ from "lodash";
-import catchAsync from "../../../utils/catch-async.js";
-import AppError from "../../../utils/app-error.js";
-import AppErrorCode from "../../../constants/app-error-codes.js";
-import { failed_response, success_response } from "../../../utils/response.js";
-import statusCodes from "../../../constants/status-codes.js";
+import catchAsync from "../../../utils/catch-async.util.js";
+import AppError from "../../../utils/app-error.util.js";
+import AppErrorCode from "../../../constants/app-error-codes.constant.js";
+import { failed_response, success_response } from "../../../utils/response.util.js";
+import statusCodes from "../../../constants/status-codes.constant.js";
 
 const merchantProfile = catchAsync(async (req, res) => {
   // @desc Fetching the Merchant Dashboard

@@ -10,6 +10,7 @@
  * @typedef {Object} Payload
  * @property {number} id - Primary key, auto-incremented.
  * @property {number} merchantId - Foreign key referencing the merchant.
+ * @property {number} businessId - Foreign key referencing the business.
  * @property {'webhook'|'gstin'} payloadType - Type of the payload. Default is 'webhook'.
  * @property {string} rawPayload - The raw payload data (cannot be empty).
  * @property {Date} createdAt - Timestamp of creation.
@@ -43,17 +44,30 @@ class Payload extends Model {
 
 Payload.init({
     id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false
     },
     merchantId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
             model: 'merchants',
             key: 'id',
         },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+    },
+    businessId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+            model: 'merchants',
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
     },
     payloadType: {
         type: DataTypes.ENUM('webhook', 'gstin'),
@@ -72,11 +86,6 @@ Payload.init({
     modelName: 'Payload',
     tableName: 'payloads',
     timestamps: true,
-    indexes: [
-        {
-            fields: ['merchant_id']
-        },
-    ]
 });
 
 

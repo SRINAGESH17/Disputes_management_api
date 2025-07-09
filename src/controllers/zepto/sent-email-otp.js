@@ -11,9 +11,9 @@
  * @throws {AppError} Throws an error if sending the email fails.
  */
 import { SendMailClient } from "zeptomail";
-import env from "../../constants/env.js";
-import AppError from "../../utils/app-error.js";
-import statusCodes from "../../constants/status-codes.js";
+import env from "../../constants/env.constant.js";
+import AppError from "../../utils/app-error.util.js";
+import statusCodes from "../../constants/status-codes.constant.js";
 
 const sentEmailOTP = async (data) => {
     try {
