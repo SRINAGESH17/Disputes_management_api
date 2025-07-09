@@ -26,11 +26,11 @@
 
 import _ from "lodash";
 import Staff from "../../../models/staff.model.js";
-import AppError from "../../../utils/app-error.js";
-import AppErrorCode from "../../../constants/app-error-codes.js";
-import catchAsync from "../../../utils/catch-async.js";
-import { failed_response, success_response } from "../../../utils/response.js";
-import statusCodes from "../../../constants/status-codes.js";
+import AppError from "../../../utils/app-error.util.js";
+import AppErrorCode from "../../../constants/app-error-codes.constant.js";
+import catchAsync from "../../../utils/catch-async.util.js";
+import { failed_response, success_response } from "../../../utils/response.util.js";
+import statusCodes from "../../../constants/status-codes.constant.js";
 
 
 const updateStaffStatus = catchAsync(async (req, res) => {
@@ -84,7 +84,7 @@ const updateStaffStatus = catchAsync(async (req, res) => {
       );
     }
 
-    // Step 7:  Fetching the Staff Which satisfies the StaffId and the Merchant Id
+    // Step 7:  Fetching the Staff Which satisfied the StaffId and the Merchant Id
     const staff = await Staff.findOne({
       where: { staffId, merchantId: currUser.userId },
       attributes: ["id", "staffId", "merchantId", "status"],

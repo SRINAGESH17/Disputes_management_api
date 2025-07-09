@@ -44,32 +44,34 @@
  */
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database.config.js';
+import enums from '../constants/enums.constant.js';
 
 class UserRole extends Model {
-    static associate(models) {
-        UserRole.hasMany(models.Merchant, { foreignKey: 'userRole', as: 'merchants' });
-
-        UserRole.hasMany(models.Staff, { foreignKey: 'userRole', as: 'staffMembers' });
-    };
+    // static associate(models) {
+    // };
 }
 
 
 UserRole.init({
     id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false
     },
     userId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         validate: {
             notNull: { msg: 'User ID is required' },
-            isInt: { msg: 'User ID must be an integer' }
+            isUUID: {
+                args: 4,
+                msg: 'User ID must be a valid UUID'
+            }
         }
     },
     userRef: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM(...enums.userNames),
         allowNull: false,
         validate: {
             notEmpty: { msg: 'User reference cannot be empty' },
@@ -80,39 +82,20 @@ UserRole.init({
         type: DataTypes.STRING,
         allowNull: false,
     },
-    staff: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-        allowNull: false
-    },
-    permissions: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
-        defaultValue: [],
-        allowNull: true,
-        validate: {
-            isValidPermissions(value) {
-                if (!Array.isArray(value)) {
-                    throw new Error('Permissions must be an array');
-                }
-            }
-        }
-    },
     merchant: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
         allowNull: false
     },
-    navbarPermissions: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
-        defaultValue: [],
-        allowNull: true,
-        validate: {
-            isValidNavbarPermissions(value) {
-                if (!Array.isArray(value)) {
-                    throw new Error('Navbar permissions must be an array');
-                }
-            }
-        }
+    manager: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
+    },
+    analyst: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
     },
 }, {
     sequelize,
@@ -122,6 +105,9 @@ UserRole.init({
     indexes: [
         {
             fields: ['firebase_id']
+        },
+        {
+            fields:['user_id','user_ref']
         }
     ]
 });

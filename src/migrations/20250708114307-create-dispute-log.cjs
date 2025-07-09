@@ -4,16 +4,26 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('dispute_logs', {
       id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
-        allowNull: false,
+        allowNull: false
       },
       merchant_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: 'merchants',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+      },
+      business_id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: 'businesses',
           key: 'id',
         },
         onUpdate: 'CASCADE',
@@ -56,7 +66,7 @@ module.exports = {
         allowNull: true,
       },
       payload_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: true,
         references: {
           model: 'payloads',
@@ -77,14 +87,16 @@ module.exports = {
 
     // Indexes
     await queryInterface.addIndex('dispute_logs', ['merchant_id']);
+    await queryInterface.addIndex('dispute_logs', ['merchant_id','business_id','created_at']);
     await queryInterface.addIndex('dispute_logs', ['created_at']);
-    await queryInterface.addIndex('dispute_logs', ['gateway']);
+    await queryInterface.addIndex('dispute_logs', ['gateway','created_at']);
   },
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.removeIndex('dispute_logs', ['merchant_id']);
+    await queryInterface.removeIndex('dispute_logs', ['merchant_id','business_id','created_at']);
     await queryInterface.removeIndex('dispute_logs', ['created_at']);
-    await queryInterface.removeIndex('dispute_logs', ['gateway']);
+    await queryInterface.removeIndex('dispute_logs', ['gateway','created_at']);
 
     await queryInterface.dropTable('dispute_logs');
   }

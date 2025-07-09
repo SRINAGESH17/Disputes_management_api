@@ -6,7 +6,7 @@
  * 2. Checks if the staff email and mobile number are already registered.
  * 3. Verifies if the email and mobile number are verified via OTP.
  * 4. Creates a staff account in Firebase.
- * 5. Creates a staff record in the database and assigns a role.
+ * 5. Creates a staff record in the database and assigns a role and link to business accounts if exists.
  * 6. Cleans up OTP records for the used email and mobile number.
  *
  * @param {Object} data - Staff details.
@@ -15,16 +15,16 @@
  * @param {string} data.email - Staff's email address.
  * @param {string} data.mobileNumber - Staff's mobile number.
  * @param {string} data.password - Staff's password.
- * @param {string} data.role - Staff's role (optional).
+ * @param {string} data.role - Staff's role.
  * @param {string|number} data.merchantId - Merchant's ID.
  * @returns {Promise<Object>} Created staff details.
  * @throws {AppError} If any validation or creation step fails.
  */
 
 import _ from "lodash";
-import AppErrorCode from "../../constants/app-error-codes.js";
-import statusCodes from "../../constants/status-codes.js";
-import { verificationCodes } from "../../constants/verification-codes.js";
+import AppErrorCode from "../../constants/app-error-codes.constant.js";
+import statusCodes from "../../constants/status-codes.constant.js";
+import { verificationCodes } from "../../constants/verification-codes.constant.js";
 import {
   FirebaseCheckEmailExistOrNot,
   FirebaseCheckPhoneExistOrNot,
@@ -32,14 +32,133 @@ import {
 } from "../../firebase/firebase-utils.js";
 import OTP from "../../models/otp.model.js";
 import Merchant from "../../models/merchant.model.js";
-import AppError from "../../utils/app-error.js";
+import AppError from "../../utils/app-error.util.js";
 import UserRole from "../../models/user-role.model.js";
-import { uniqueStaffId } from "../../utils/generate-ids.js";
+import { uniqueStaffId } from "../../utils/generate-ids.util.js";
 import { Op } from "sequelize";
-import Staff from "../../models/staff.model.js";
 import sequelize from "../../config/database.config.js";
+import Analyst from "../../models/analyst.model.js";
+import Manager from "../../models/manager.model.js";
+import Business from "../../models/business.model.js";
+import StaffBusinessMap from "../../models/staff-business-map.model.js";
+
+
+const addStaffAndLinkToBusinesses = async (data) => {
+  try {
+    const { firstName, lastName, staffId, email, mobileNumber, firebaseId, merchantId, userRole } = data;
+
+    console.log("inside service: ",data)
+    let payload = {
+      firstName,
+      lastName,
+      staffId,
+      email,
+      mobileNumber,
+      firebaseId,
+      merchantId,
+      // staffRole:userRole
+    };
+    let staff;
+
+    // Add Analyst
+    if (userRole === 'analyst') {
+      staff = await Analyst.create(payload);
+      if (_.isEmpty(staff)) {
+        throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.notAbleToCreateField('Business Analyst'));
+      }
+    }
+    console.log("staff Added : ",staff);
+
+    // Add Manager
+    if (userRole === 'manager') {
+      staff = await Manager.create(payload);
+      if (_.isEmpty(staff)) {
+        throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.notAbleToCreateField('Business Manager'));
+      }
+    }
+
+    // staff Role based on the analyst or manager
+
+    // Generate Staff Role payload
+    let staffRole = {
+      userId: staff?.id,
+      userRef: userRole?.toLowerCase() === 'analyst' ? 'ANALYST' : 'MANAGER',
+      firebaseId: staff?.firebaseId,
+    }
+    if (userRole?.toLowerCase() === 'analyst') {
+      staffRole.analyst = true;
+    } else {
+      staffRole.manager = true;
+    }
+
+    // Create Staff role record
+    const role = await UserRole.create(staffRole);
+    if (_.isEmpty(role)) {
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.notAbleToCreateField('Staff Business Role'));
+    }
+
+    staff.userRole = role?.id;
+
+    // Update The Role and Increase Count of staff in merchant
+    const bulkPayload = [];
+
+    if (userRole?.toLowerCase() === 'analyst') {
+      bulkPayload.push(
+        Merchant.update(
+          { totalAnalysts: sequelize.literal('total_analysts + 1') },
+          {
+            where: { id: merchantId },
+          }
+        ),
+      );
+    } else {
+      bulkPayload.push(
+        Merchant.update(
+          { totalManagers: sequelize.literal('total_managers + 1') },
+          {
+            where: { id: merchantId },
+          }
+        ),
+      );
+    }
+
+    bulkPayload.push(
+      staff.save()
+    );
+
+    const businessAccounts = await Business.findAll({ where: { merchantId }, attributes: ['id', 'merchantId'], raw: true });
+    if (!_.isEmpty(businessAccounts)) {
+      const staffBusinessPayloads = businessAccounts?.map((business) => {
+        return {
+          staffId: staff?.id,
+          staffRef: userRole?.toLowerCase() === 'analyst' ? 'ANALYST' : 'MANAGER',
+          merchantId,
+          businessId: business.id,
+          firebaseId: staff?.firebaseId
+        }
+      });
+
+      bulkPayload.push(
+        StaffBusinessMap.bulkCreate(staffBusinessPayloads)
+      );
+    }
+
+    // Execute the updates parallel
+    await Promise.all(bulkPayload);
+
+    return staff;
+
+  } catch (error) {
+    console.log("Error from create Analyst account service: ", error);
+    throw new AppError(
+      error?.statusCode || statusCodes.BAD_REQUEST,
+      error?.message
+    );
+  }
+}
 
 const AddMerchantStaffService = async (data) => {
+  console.log("Add Staff Service: ",data)
   // @desc : Create Merchant Staff service
   try {
     const {
@@ -111,14 +230,14 @@ const AddMerchantStaffService = async (data) => {
     // Step 2 : Check Email and mobileNumber verified or not
 
     // 2.1 : Email is Verified or not
-    if (_.isEmpty(isEmailVerified)) {
-      throw new AppError(statusCodes.BAD_REQUEST, 'Please Verify Email first');
-    }
+    // if (_.isEmpty(isEmailVerified)) {
+    //   throw new AppError(statusCodes.BAD_REQUEST, 'Please Verify Email first');
+    // }
 
-    // 2.2 : mobile Number is Verified or not
-    if (_.isEmpty(isMobileNumberVerified)) {
-      throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
-    }
+    // // 2.2 : mobile Number is Verified or not
+    // if (_.isEmpty(isMobileNumberVerified)) {
+    //   throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
+    // }
 
     // Step 3 : Create Staff Account in firebase
 
@@ -133,15 +252,8 @@ const AddMerchantStaffService = async (data) => {
         displayName: `${firstName} ${lastName}`,
       }),
       // Create Staff unique id
-      uniqueStaffId(mobileDigits),
+      uniqueStaffId(mobileDigits, userRole),
     ]);
-
-    // const isUserCreated = await FirebaseCreateUserAccount({
-    //     email,
-    //     phoneNumber: mobileNumber,
-    //     password,
-    //     displayName: `${firstName} ${lastName}`,
-    // });
 
     if (!isUserCreated.status || _.isEmpty(isUserCreated?.user)) {
       throw new AppError(
@@ -152,10 +264,11 @@ const AddMerchantStaffService = async (data) => {
 
     // Step 4 : Create Staff Account in db
 
-    // 4.1 : Create Staff
-
-    // Create account
-    const staff = await Staff.create({
+    // Create Staff Based on the Roles
+    if (!['analyst', 'manager'].includes(userRole?.toLowerCase())) {
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldValue('Staff Role'));
+    }
+    const staffData = {
       firstName,
       lastName,
       staffId,
@@ -163,46 +276,13 @@ const AddMerchantStaffService = async (data) => {
       mobileNumber,
       firebaseId: isUserCreated?.user?.uid,
       merchantId: merchant?.id,
-      staffRole: userRole || "staff",
-    });
-    if (_.isEmpty(staff)) {
-      throw new AppError(
-        statusCodes.BAD_REQUEST,
-        AppErrorCode.notAbleToCreateField("Staff")
-      );
+      userRole,
     }
-    // 4.2 : Create Staff Role
-    const staffRole = {
-      userId: staff?.id,
-      userRef: "staff",
-      firebaseId: isUserCreated?.user?.uid,
-      staff: true,
-    };
+    // Add staff and link to respective business accounts if exist
+    const staff = await addStaffAndLinkToBusinesses(staffData);
 
-    const role = await UserRole.create(staffRole);
-    if (_.isEmpty(role)) {
-      throw new AppError(
-        statusCodes.BAD_REQUEST,
-        AppErrorCode.notAbleToCreateField("Staff Role")
-      );
-    }
-
-    staff.userRole = role?.id;
-
-    await Promise.all([
-      // Update Merchant Total Disputes Count
-      Merchant.update(
-        { totalStaff: sequelize.literal('total_staff + 1') },
-        {
-          where: { id: merchant.id },
-        }
-      ),
-      // Update staff Data
-      staff.save(),
-
-      // Step 5 : Deleting OTP records of merchant email and mobileNumber
-      OTP.destroy({ where: { verificationValue: { [Op.in]: [email, mobileNumber] } } })
-    ]);
+    // Step 5 : Deleting OTP records of merchant email and mobileNumber
+    // await OTP.destroy({ where: { verificationValue: { [Op.in]: [email, mobileNumber] } } })
 
     return {
       staff: {
