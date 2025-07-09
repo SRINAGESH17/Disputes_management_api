@@ -44,6 +44,18 @@ export default {
         "security/detect-object-injection": "off",
         "eqeqeq": ["error", "always"],
         "curly": "error",
-        "semi": ["error", "always"]
+        "semi": ["error", "always"],
+        "no-restricted-imports": [
+            "warn",
+            {
+                "patterns": [
+                    {
+                        "group": ["*[^a-z0-9\\-./]*"],
+                        "caseSensitive": true,
+                        "message": "Only kebab-case (lowercase letters, numbers, hyphens, dots, and slashes) is allowed in import paths"
+                    }
+                ]
+            }
+        ]
     },
 };

@@ -4,13 +4,14 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('merchants', {
       id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
+        allowNull: false,
       },
       merchant_id: {
         type: Sequelize.STRING,
-        allowNull: true,
+        allowNull: false,
       },
       email: {
         type: Sequelize.STRING,
@@ -28,16 +29,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      gstin: {
-        type: Sequelize.STRING,
-        allowNull: true,
+      total_analysts: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
       },
-      gateways: {
-        type: Sequelize.ARRAY(Sequelize.STRING),
-        allowNull: true,
-        defaultValue: [],
-      },
-      total_staff: {
+      total_managers: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
@@ -49,12 +45,18 @@ module.exports = {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
-      active_disputes: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0,
+      active_business_id: {
+        type: Sequelize.UUID,
+        allowNull: true,
+        // references: {
+        //   model: 'businesses',
+        //   key: 'id',
+        // },
+        // onUpdate: 'CASCADE',
+        // onDelete: 'RESTRICT',
       },
       user_role: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: true,
         references: {
           model: 'user_roles',
@@ -92,6 +94,7 @@ module.exports = {
       unique: true,
       name: 'unique_merchant_firebase',
     });
+    await queryInterface.addIndex('merchants', ['active_business_id']);
   },
 
   down: async (queryInterface, Sequelize) => {
@@ -100,6 +103,7 @@ module.exports = {
     await queryInterface.removeIndex('merchants', 'unique_merchant_mobile');
     await queryInterface.removeIndex('merchants', 'unique_merchant_firebase');
     await queryInterface.removeIndex('merchants', ['created_at']);
+    await queryInterface.removeIndex('merchants', ['active_business_id']);
 
     await queryInterface.dropTable('merchants');
   },

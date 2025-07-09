@@ -11,7 +11,7 @@
  *   // controller logic
  * }));
  */
-import { failed_response } from "./response.js";
+import { failed_response } from "./response.util.js";
 
 const catchAsync =
     (controller) =>

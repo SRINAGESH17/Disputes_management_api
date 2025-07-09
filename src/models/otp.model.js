@@ -32,7 +32,7 @@
  */
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database.config.js';
-import { verificationTypes } from "../constants/verification-codes.js"
+import { verificationTypes } from "../constants/verification-codes.constant.js"
 
 class OTP extends Model {
     // static associate(models) {}
@@ -41,9 +41,10 @@ class OTP extends Model {
 
 OTP.init({
     id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+        type: DataTypes.UUID,
+        defaultValue:DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false
     },
     verificationKey: {
         type: DataTypes.ENUM(...verificationTypes),
@@ -79,7 +80,10 @@ OTP.init({
             fields: ['verification_value']
         },
         {
-            fields: ['otp_reference', 'otp_number']
+            fields: ['verification_key','verification_value']
+        },
+        {
+            fields: ['verification_key','verification_value','otp_reference']
         },
     ]
 });
