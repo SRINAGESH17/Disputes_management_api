@@ -68,18 +68,25 @@ router.get("/staff/:staffId", verifyMerchant, getStaff);
 
 
 
-// **************************** Gateway oR Integration *****************************/
-// 2. Add Gateway
+// **************************** Gateway and Integration *****************************/
+// 1. Add Gateway
 // @route : POST /api/v2/merchant/integration/gateway
 // @desc  : Add Gateway for Merchant
 // @access: Private to Merchant
 router.post('/integration/gateway', verifyMerchant, gatewayController.addGateway)
 
-// 3. fetch Gateways
+// 2. fetch Gateways
 // @route : GET /api/v2/merchant/integration/gateway
 // @desc  : Fetch Gateway for Merchant
 // @access: Private to Merchant
 router.get('/integration/gateway', verifyMerchant, gatewayController.fetchGateways);
+
+
+// 3. fetch Dispute logs of merchant
+// @route : GET /api/v2/merchant/integration/logs
+// @desc  : Fetch Dispute logs for Merchant
+// @access: Private to Merchant
+router.get('/integration/logs', verifyMerchant, gatewayController.fetchDisputeLogs);
 
 
 
