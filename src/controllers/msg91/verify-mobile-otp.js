@@ -9,7 +9,7 @@
  * @throws {Error} If the request to MSG91 fails.
  */
 import axios from "axios";
-import env from "../../constants/env.js";
+import env from "../../constants/env.constant.js";
 
 
 const verifyMobileNumberOTP = async (otp, mobileNumber) => {

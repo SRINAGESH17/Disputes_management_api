@@ -6,7 +6,7 @@
  *
  * @class ProcessWebhook
  */
-import env from '../../constants/env.js';
+import env from '../../constants/env.constant.js';
 import ProcessWebhookPayload from '../webhook/webhook-processor.js';
 import { getChannel } from './rabbitmq.js';
 

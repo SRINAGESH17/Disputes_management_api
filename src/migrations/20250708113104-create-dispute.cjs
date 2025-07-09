@@ -4,13 +4,13 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('disputes', {
       id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
-        allowNull: false,
+        allowNull: false
       },
       merchant_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: 'merchants',
@@ -19,16 +19,37 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      staff_id: {
-        type: Sequelize.INTEGER,
+      business_id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: 'businesses',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+      },
+      analyst_id: {
+        type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: 'staff',
+          model: 'analysts',
           key: 'id',
         },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },
+      manager_id: {
+        type: Sequelize.UUID,
+        allowNull: true,
+        references: {
+          model: 'managers',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+      },
+
       custom_id: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -65,7 +86,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      dispute_status: {
+      status: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -86,27 +107,81 @@ module.exports = {
         type: Sequelize.STRING,
         defaultValue: 'ChargeBack',
       },
-      status: {
+      state: {
         type: Sequelize.STRING,
         defaultValue: 'PENDING',
       },
+
+
+      
+
+      explanation: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      notes: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      contest_reason: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+
+      last_stage: {
+        type: Sequelize.ENUM('PENDING', 'SUBMITTED', 'ACCEPTED', 'REJECTED', 'RESUBMITTED'),
+        allowNull: true,
+      },
+      last_stage_at: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      updated_stage: {
+        type: Sequelize.ENUM('PENDING', 'SUBMITTED', 'ACCEPTED', 'REJECTED', 'RESUBMITTED'),
+        allowNull: true,
+        defaultValue: 'PENDING'
+      },
+      updated_stage_at: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      feedback: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      workflow_stage: {
+        type: Sequelize.ENUM('PENDING', 'SUBMITTED', 'ACCEPTED', 'REJECTED', 'RESUBMITTED'),
+        allowNull: true,
+        defaultValue: 'PENDING'
+      },
+      is_submitted: {
+        type: Sequelize.BOOLEAN,
+        allowNull: true,
+        defaultValue: false
+      },
+
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
+        defaultValue: Sequelize.fn('NOW'),
       },
       updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
+        defaultValue: Sequelize.fn('NOW'),
       },
     });
 
     // Add indexes
     await queryInterface.addIndex('disputes', ['merchant_id']);
-    await queryInterface.addIndex('disputes', ['staff_id']);
+    await queryInterface.addIndex('disputes', ['business_id']);
+    await queryInterface.addIndex('disputes', ['analyst_id']);
+    await queryInterface.addIndex('disputes', ['manager_id']);
     await queryInterface.addIndex('disputes', ['created_at']);
     await queryInterface.addIndex('disputes', ['due_date']);
     await queryInterface.addIndex('disputes', ['gateway']);
-    await queryInterface.addIndex('disputes', ['status']);
+    await queryInterface.addIndex('disputes', ['state']);
+    await queryInterface.addIndex('disputes', ['workflow_stage']);
     await queryInterface.addIndex('disputes', {
       fields: ['custom_id'],
       unique: true,
@@ -124,11 +199,14 @@ module.exports = {
     await queryInterface.removeIndex('disputes', 'unique_custom_id');
     await queryInterface.removeIndex('disputes', 'unique_dispute_id');
     await queryInterface.removeIndex('disputes', ['merchant_id']);
-    await queryInterface.removeIndex('disputes', ['staff_id']);
+    await queryInterface.removeIndex('disputes', ['business_id']);
+    await queryInterface.removeIndex('disputes', ['analyst_id']);
+    await queryInterface.removeIndex('disputes', ['manager_id']);
     await queryInterface.removeIndex('disputes', ['created_at']);
     await queryInterface.removeIndex('disputes', ['due_date']);
     await queryInterface.removeIndex('disputes', ['gateway']);
-    await queryInterface.removeIndex('disputes', ['status']);
+    await queryInterface.removeIndex('disputes', ['state']);
+    await queryInterface.removeIndex('disputes', ['workflow_stage']);
 
     // Drop table
     await queryInterface.dropTable('disputes');

@@ -1,5 +1,5 @@
 import sequelize from '../config/database.config.js';
-import env from "../constants/env.js";
+import env from "../constants/env.constant.js";
 import Dispute from "./dispute.model.js";
 import DisputeHistory from "./dispute-history.model.js";
 import DisputeLog from "./dispute-log.model.js";
@@ -10,6 +10,10 @@ import OTP from "./otp.model.js";
 import StaffAssignmentState from "./staff-assign-state.model.js";
 import Payload from "./payload.model.js";
 import Notification from "./notification.model.js";
+import Analyst from './analyst.model.js';
+import Manager from './manager.model.js';
+import Business from './business.model.js';
+import StaffBusinessMap from './staff-business-map.model.js';
 
 
 
@@ -24,7 +28,11 @@ const db = {
     OTP,
     StaffAssignmentState,
     Payload,
-    Notification
+    Notification,
+    Analyst,
+    Manager,
+    Business,
+    StaffBusinessMap
 };
 
 Object.values(db).forEach(model => {

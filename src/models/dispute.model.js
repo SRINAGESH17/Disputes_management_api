@@ -47,38 +47,54 @@
 
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database.config.js';
+import enums from '../constants/enums.constant.js';
 
 class Dispute extends Model {
     static associate(models) {
+        // Dispute Belongs To Merchant
         Dispute.belongsTo(models.Merchant, {
             foreignKey: "merchantId",
             as: "merchant"
         });
-        Dispute.belongsTo(models.Staff, {
-            foreignKey: "staffId",
-            as: "staff"
+        // Dispute Belongs to Business
+        Dispute.belongsTo(models.Business, {
+            foreignKey: "businessId",
+            as: "DisputeBusiness"
         });
+        // Dispute Belongs to Manager
+        Dispute.belongsTo(models.Manager, {
+            foreignKey: "managerId",
+            as: "DisputeManager"
+        });
+        // Dispute Belongs to Analyst
+        Dispute.belongsTo(models.Analyst, {
+            foreignKey: "analystId",
+            as: "DisputeAnalyst"
+        });
+
+        // Dispute Has Many Notifications
+        Dispute.hasMany(models.Notification, {
+            foreignKey: "disputeId",
+            as: "DisputeNotifications"
+        });
+
+        // Dispute Has Many History Records
         Dispute.hasMany(models.DisputeHistory, {
-            foreignKey: "disputeId", // 
-            constraints: true,
-            // onDelete: 'RESTRICT', // when a dispute is deleted, the history is not deleted
+            foreignKey: "disputeId", 
             as: 'disputeHistories',
-            // as: {
-            //     singular: "disputeHistory",
-            //     plural: "disputeHistories"
-            // },
         });
     };
 }
 
 Dispute.init({
     id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false
     },
     merchantId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
             model: 'merchants',
@@ -89,17 +105,37 @@ Dispute.init({
             isInt: { msg: 'Merchant ID must be an integer' }
         }
     },
-    staffId: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
+    businessId: {
+        type: DataTypes.UUID,
+        allowNull: false,
         references: {
-            model: 'staff',
+            model: 'businesses',
             key: 'id',
         },
-        validate: {
-            isInt: { msg: 'Staff ID must be an integer' }
-        }
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
     },
+    analystId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: {
+            model: 'analysts',
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+    },
+    managerId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: {
+            model: 'managers',
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+    },
+
     customId: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -168,9 +204,9 @@ Dispute.init({
             notEmpty: { msg: 'reason code cannot be empty' },
         }
     },
-    state: {
+    status: {
         type: DataTypes.STRING,
-        defaultValue: "PENDING",
+        allowNull: false,
     },
     event: {
         type: DataTypes.STRING,
@@ -195,11 +231,58 @@ Dispute.init({
         type: DataTypes.STRING,
         defaultValue: "ChargeBack",
     },
-    status: {
+    state: {
         type: DataTypes.STRING,
-        allowNull: false,
+        defaultValue: "PENDING",
     },
 
+
+
+
+    explanation: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    notes: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    contest_reason: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+
+    lastStage: {
+        type: DataTypes.ENUM(...enums.workflowStages),
+        allowNull: true,
+    },
+    lastStageAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    updatedStage: {
+        type: DataTypes.ENUM(...enums.workflowStages),
+        allowNull: true,
+        defaultValue: 'PENDING'
+    },
+    updatedStageAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    feedback: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    workflowStage: {
+        type: DataTypes.ENUM(...enums.workflowStages),
+        allowNull: true,
+        defaultValue: 'PENDING'
+    },
+    isSubmitted: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false
+    },
 }, {
     sequelize,
     modelName: 'Dispute',
@@ -210,17 +293,13 @@ Dispute.init({
             fields: ['merchant_id']
         },
         {
-            unique: true,
-            name: 'unique_custom_id',
-            fields: ['custom_id']
+            fields: ['business_id']
         },
         {
-            fields: ['staff_id']
+            fields: ['analyst_id']
         },
         {
-            unique: true,
-            name: 'unique_dispute_id',
-            fields: ['dispute_id']
+            fields: ['manager_id']
         },
         {
             fields: ['created_at']
@@ -234,7 +313,19 @@ Dispute.init({
         {
             fields: ['state']
         },
-
+        {
+            fields: ['workflow_stage']
+        },
+        {
+            unique: true,
+            name: 'unique_custom_id',
+            fields: ['custom_id']
+        },
+        {
+            unique: true,
+            name: 'unique_dispute_id',
+            fields: ['dispute_id']
+        },
     ]
 
 });

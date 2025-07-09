@@ -1,10 +1,10 @@
 import _ from "lodash";
-import statusCodes from "../../../constants/status-codes.js";
-import catchAsync from "../../../utils/catch-async.js";
-import { failed_response, success_response } from "../../../utils/response.js";
-import AppError from "../../../utils/app-error.js";
-import AppErrorCode from "../../../constants/app-error-codes.js";
-import { uniqueMerchantId } from "../../../utils/generate-ids.js";
+import statusCodes from "../../../constants/status-codes.constant.js";
+import catchAsync from "../../../utils/catch-async.util.js";
+import { failed_response, success_response } from "../../../utils/response.util.js";
+import AppError from "../../../utils/app-error.util.js";
+import AppErrorCode from "../../../constants/app-error-codes.constant.js";
+import { uniqueMerchantId } from "../../../utils/generate-ids.util.js";
 import Merchant from "../../../models/merchant.model.js";
 
 

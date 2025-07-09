@@ -34,13 +34,17 @@ import sequelize from '../config/database.config.js';
 class StaffAssignmentState extends Model {
     // static associate(models) {}
     static associate(models) {
+
+        // Staff Record Belongs to merchant
         StaffAssignmentState.belongsTo(models.Merchant, {
             foreignKey: 'merchantId',
             as: 'merchant'
         });
-        StaffAssignmentState.belongsTo(models.Staff, {
+
+        // Staff Belongs to original Analyst
+        StaffAssignmentState.belongsTo(models.Analyst, {
             foreignKey: 'lastStaffAssigned',
-            as: 'lastStaff'
+            as: 'AssignAnalyst'
         });
     }
 
@@ -48,25 +52,30 @@ class StaffAssignmentState extends Model {
 
 StaffAssignmentState.init({
     id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false
     },
     merchantId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
             model: 'merchants',
             key: 'id',
         },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
     },
     lastStaffAssigned: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
-            model: 'staff',
+            model: 'analysts',
             key: 'id',
         },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
     },
 }, {
     sequelize,

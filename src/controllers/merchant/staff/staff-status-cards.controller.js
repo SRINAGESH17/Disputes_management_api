@@ -25,11 +25,11 @@
 
 import _ from "lodash";
 import Staff from "../../../models/staff.model.js";
-import AppError from "../../../utils/app-error.js";
-import AppErrorCode from "../../../constants/app-error-codes.js";
-import { success_response, failed_response } from "../../../utils/response.js";
-import statusCodes from "../../../constants/status-codes.js";
-import catchAsync from "../../../utils/catch-async.js";
+import AppError from "../../../utils/app-error.util.js";
+import AppErrorCode from "../../../constants/app-error-codes.constant.js";
+import { success_response, failed_response } from "../../../utils/response.util.js";
+import statusCodes from "../../../constants/status-codes.constant.js";
+import catchAsync from "../../../utils/catch-async.util.js";
 
 const staffStatusCards = catchAsync(async (req, res) => {
   // @desc Checking the Different types of status cards
