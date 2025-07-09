@@ -39,7 +39,9 @@ const resetPasswordSchema = yup.object({
 const addingStaffSchema = yup.object({
     firstName: yup.string().required('firstName is required').min(2, 'First Name must contain minimum 1 or 2 characters'),
     lastName: yup.string().required('lastName is required').min(2, 'Last Name must contain minimum 1 or 2 characters'),
-    role: yup.string().required('role is required'),
+    role: yup.string()
+        .required('role is required')
+        .oneOf(['manager', 'analyst'], 'role must be either manager or analyst'),
     email: emailValidate,
     mobileNumber: mobileNumberValidate,
     password: passwordValidate,

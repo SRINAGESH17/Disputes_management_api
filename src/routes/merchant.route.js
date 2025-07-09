@@ -34,7 +34,7 @@ router.get("/profile", verifyMerchant, merchantProfile);
 // @access: Private to merchant Only
 router.post(
   "/staff/:merchantId",
-  verifyMerchant, // To Verify Merchant
+  // verifyMerchant, // To Verify Merchant
   AddMerchantStaff // Add Merchant Staff Controller
 );
 

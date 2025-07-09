@@ -90,14 +90,14 @@ const merchantRegisterService = async (data) => {
     // Step 2 : Check Email and mobileNumber verified or not
 
     // 2.1 : Email is Verified or not
-    if (_.isEmpty(isEmailVerified)) {
-      throw new AppError(statusCodes.BAD_REQUEST, 'Email is Not verified.');
-    }
+    // if (_.isEmpty(isEmailVerified)) {
+    //   throw new AppError(statusCodes.BAD_REQUEST, 'Email is Not verified.');
+    // }
 
     // // 2.2 : mobile Number is Verified or not
-    if (_.isEmpty(isMobileNumberVerified)) {
-      throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
-    }
+    // if (_.isEmpty(isMobileNumberVerified)) {
+    //   throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
+    // }
 
     // Step 3 : Create Merchant Account in firebase
 
@@ -137,7 +137,7 @@ const merchantRegisterService = async (data) => {
     // 4.3 : Create Merchant Role
     const merchantRole = {
       userId: merchant?.id,
-      userRef: "merchant",
+      userRef: "MERCHANT",
       firebaseId: isUserCreated?.user?.uid,
       merchant: true,
     };
@@ -160,9 +160,9 @@ const merchantRegisterService = async (data) => {
       FirebaseGenerateCustomToken(isUserCreated?.user?.uid),
 
       // Step 6 : Deleting OTP records of merchant email and mobileNumber
-      OTP.destroy({
-        where: { verificationValue: { [Op.in]: [email, mobileNumber] } },
-      }),
+      // OTP.destroy({
+      //   where: { verificationValue: { [Op.in]: [email, mobileNumber] } },
+      // }),
     ]);
 
     return {

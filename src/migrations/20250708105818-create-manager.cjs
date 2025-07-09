@@ -48,9 +48,9 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      selected_business_Id: {
+      selected_business_id: {
         type: Sequelize.UUID,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: 'staff_business_maps',
           key: 'id',
@@ -126,7 +126,7 @@ module.exports = {
       unique: true,
       name: 'unique_manager_email',
     });
-    await queryInterface.addIndex('managers', ['selected_business_Id']);
+    await queryInterface.addIndex('managers', ['selected_business_id']);
   },
 
   down: async (queryInterface, Sequelize) => {
@@ -137,7 +137,7 @@ module.exports = {
     await queryInterface.removeIndex('managers', ['merchant_id']);
     await queryInterface.removeIndex('managers', ['created_at']);
     await queryInterface.removeIndex('managers', ['first_name', 'last_name']);
-    await queryInterface.removeIndex('managers', ['selected_business_Id']);
+    await queryInterface.removeIndex('managers', ['selected_business_id']);
 
     await queryInterface.dropTable('managers');
   }

@@ -39,13 +39,13 @@ class Business extends Model {
         });
 
         // Business Has Many Notifications
-        Business.hasMany(models.Dispute, {
+        Business.hasMany(models.Notification, {
             foreignKey: 'businessId',
             as: "businessNotifications"
         });
 
         // Business Has Many Logs
-        Business.hasMany(models.Dispute, {
+        Business.hasMany(models.DisputeLog, {
             foreignKey: 'businessId',
             as: "businessLogs"
         });
@@ -82,6 +82,7 @@ Business.init({
     },
     isActive: {
         type: DataTypes.BOOLEAN,
+        defaultValue: false,
         allowNull: false,
     },
     gstin: {
