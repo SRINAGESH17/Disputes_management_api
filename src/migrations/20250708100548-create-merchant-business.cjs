@@ -11,7 +11,7 @@ module.exports = {
       },
       merchant_id: {
         type: Sequelize.UUID,
-        allowNull: true,
+        allowNull: false,
         references: {
           model: 'merchants',
           key: 'id',
@@ -29,6 +29,7 @@ module.exports = {
       },
       is_active: {
         type: Sequelize.BOOLEAN,
+        defaultValue: false,
         allowNull: false,
       },
       gstin: {

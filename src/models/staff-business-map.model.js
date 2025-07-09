@@ -14,10 +14,11 @@ class StaffBusinessMap extends Model {
         });
 
         // Staff Business Map Belongs to Merchant Business
-        StaffBusinessMap.belongsTo(models.Staff, {
+        StaffBusinessMap.belongsTo(models.Business, {
             foreignKey: 'businessId',
             as: 'StaffMapBusiness'
         });
+        
     }
 
 }

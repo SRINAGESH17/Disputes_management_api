@@ -27,7 +27,7 @@ module.exports = {
                 onUpdate: 'CASCADE',
                 onDelete: 'CASCADE',
             },
-            business_Id: {
+            business_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
                 references: {
@@ -37,7 +37,7 @@ module.exports = {
                 onUpdate: 'CASCADE',
                 onDelete: 'CASCADE',
             },
-            firebaseId: {
+            firebase_id: {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
@@ -54,13 +54,13 @@ module.exports = {
         });
 
         await queryInterface.addIndex('staff_business_maps', ['merchant_id']);
-        await queryInterface.addIndex('staff_business_maps', ['business_Id']);
+        await queryInterface.addIndex('staff_business_maps', ['business_id']);
         await queryInterface.addIndex('staff_business_maps', ['staff_id', 'staff_ref']);
     },
 
     down: async (queryInterface, Sequelize) => {
         await queryInterface.removeIndex('staff_business_maps', ['merchant_id']);
-        await queryInterface.removeIndex('staff_business_maps', ['business_Id']);
+        await queryInterface.removeIndex('staff_business_maps', ['business_id']);
         await queryInterface.removeIndex('staff_business_maps', ['staff_id', 'staff_ref']);
 
         await queryInterface.dropTable('staff_business_maps');

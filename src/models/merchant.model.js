@@ -99,7 +99,7 @@ class Merchant extends Model {
         });
 
         // Merchant has many Manager
-        Merchant.hasMany(models.Analyst, {
+        Merchant.hasMany(models.Manager, {
             foreignKey: "merchantId",
             onDelete: 'RESTRICT',
             as: 'managers',

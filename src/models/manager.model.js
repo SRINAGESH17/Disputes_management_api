@@ -102,7 +102,7 @@ Manager.init(
         },
         selectedBusinessId: {
             type: DataTypes.UUID,
-            allowNull: false,
+            allowNull: true,
             references: {
                 model: 'staff_business_maps',
                 key: 'id',
