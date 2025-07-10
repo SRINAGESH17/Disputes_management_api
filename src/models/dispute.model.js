@@ -102,7 +102,10 @@ Dispute.init({
         },
         validate: {
             notNull: { msg: 'Merchant ID is required' },
-            isInt: { msg: 'Merchant ID must be an integer' }
+            isUUID: {
+                args: 4,
+                msg: 'Merchant ID must be a valid UUIDv4'
+            }
         }
     },
     businessId: {

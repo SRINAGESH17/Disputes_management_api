@@ -23,7 +23,7 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'merchants',
+          model: 'businesses',
           key: 'id',
         },
         onUpdate: 'CASCADE',

@@ -16,7 +16,7 @@ class Analyst extends Model {
         });
 
         // Analyst Has Maps to Multiple Business Of Merchant
-        Analyst.hasMany(models.Business, {
+        Analyst.hasMany(models.StaffBusinessMap, {
             foreignKey: 'staffId',
             constraints: false,
             scope: {
@@ -126,7 +126,7 @@ Analyst.init(
             type: DataTypes.INTEGER,
             defaultValue: 0,
         },
-        approvedDisputes: {
+        acceptedDisputes: {
             type: DataTypes.INTEGER,
             defaultValue: 0,
         },

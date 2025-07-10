@@ -3,12 +3,15 @@ import env from './constants/env.constant.js';
 import { initializeDB } from './models/index.js';
 import indexRoutes from './routes/index.js';
 import webhookProcessor from './controllers/rabbitmq/process-webhook.class.js';
+import cors from 'cors';
+import morgan from 'morgan';
 
 
 const app = express();
 
 
-
+app.use(cors());
+app.use(morgan('dev'));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -28,7 +31,7 @@ const startServer = async () => {
         await initializeDB();
 
         // Listen Channel To Consume the letters From Queue
-        // await webhookProcessor.start();
+        await webhookProcessor.start();
 
         // Start the Server
         app.listen(env.PORT, () => {
