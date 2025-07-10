@@ -73,7 +73,10 @@ DisputeHistory.init({
         },
         validate: {
             notNull: { msg: 'merchant ID is required' },
-            isInt: { msg: 'merchant ID must be an integer' }
+            isUUID: {
+                args: 4,
+                msg: 'Merchant ID must be a valid UUIDv4'
+            }
         }
     },
     disputeId: {
@@ -85,7 +88,10 @@ DisputeHistory.init({
         },
         validate: {
             notNull: { msg: 'dispute ID is required' },
-            isInt: { msg: 'dispute ID must be an integer' }
+            isUUID: {
+                args: 4,
+                msg: 'disputeId ID must be a valid UUIDv4'
+            }
         }
     },
 
