@@ -63,7 +63,7 @@ Payload.init({
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-            model: 'merchants',
+            model: 'businesses',
             key: 'id',
         },
         onUpdate: 'CASCADE',
