@@ -62,13 +62,13 @@ const merchantRegisterService = async (data) => {
     const [
       userEmailRecord,
       userMobileRecord,
-      isEmailVerified,
-      isMobileNumberVerified
+      // isEmailVerified,
+      // isMobileNumberVerified
     ] = await Promise.all([
       FirebaseCheckEmailExistOrNot(email),
       FirebaseCheckPhoneExistOrNot(mobileNumber),
-      OTP.findOne({ where: emailPayload, attributes: ['verificationValue'], raw: true }),
-      OTP.findOne({ where: mobilePayload, attributes: ['verificationValue'], raw: true })
+      // OTP.findOne({ where: emailPayload, attributes: ['verificationValue'], raw: true }),
+      // OTP.findOne({ where: mobilePayload, attributes: ['verificationValue'], raw: true })
     ]);
 
     // 1.1 : Check Email is Exist or not
