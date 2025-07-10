@@ -5,10 +5,10 @@ import { failed_response, success_response } from "../../../utils/response.util.
 import { GatewayNames } from "../../../constants/gateways.constant.js";
 import AppError from "../../../utils/app-error.util.js";
 import AppErrorCode from "../../../constants/app-error-codes.constant.js";
-import Merchant from "../../../models/merchant.model.js";
 import DisputeLog from "../../../models/dispute-log.model.js";
+import Business from "../../../models/business.model.js";
 
-// Controller to add a new gateway for the merchant
+// Controller to add a new gateway for the business
 const addGateway = catchAsync(async (req, res) => {
   // step-1 Destructuring currUser and userRole from request
   const { currUser, userRole } = req;
@@ -41,28 +41,28 @@ const addGateway = catchAsync(async (req, res) => {
       );
     }
 
-    // step-6 Check if the gateway already exists for the merchant
-    const existingMerchantGateway = await Merchant.findOne({
+    // step-6 Check if the gateway already exists in our business
+    const businessGateway = await Business.findOne({
       where: { id: currUser.userId },
       attributes: ["id", "gateways"],
       raw: true,
     });
-    const gatewayArray = existingMerchantGateway.gateways;
+    const existingBusinessGateways = businessGateway.gateways;
 
-    // step-7 checking if the gatewayName includes from merchant gateways
-    if (gatewayArray.includes(gatewayName?.toLowerCase())) {
+    // step-7 checking if the gatewayName includes from business gateways
+    if (existingBusinessGateways.includes(gatewayName?.toLowerCase())) {
       throw new AppError(
         statusCodes.BAD_REQUEST,
-        `${gatewayName} Gateway is Already Added`
+        `${gatewayName} Gateway is Already Exists`
       );
     }
 
-    // step-8 pushing new gateway name into merchant gateway's array
-    gatewayArray.push(gatewayName);
+    // step-8 pushing new gateway name into business gateway's array
+    existingBusinessGateways.push(gatewayName);
 
-    // step-9 Save the updated gateways array to the merchant
-    await Merchant.update(
-      { gateways: gatewayArray },
+    // step-9 Save the updated gateways array to the business
+    await Business.update(
+      { gateways: existingBusinessGateways },
       { where: { id: currUser.userId } }
     );
     // step-10 sending success response
@@ -106,19 +106,20 @@ const fetchGateways = catchAsync(async (req, res) => {
       );
     }
 
-    // step-3 Check if the gateway already exists for the merchant
-    const existingMerchantGateway = await Merchant.findOne({
+    // step-3 Check if the gateway already exists in our business
+    const businessGateway = await Business.findOne({
       where: { id: currUser.userId },
       attributes: ["id", "gateways"],
       raw: true,
     });
+   
 
-    // step-4 throwing an error if gateways not found in merchants
-    if (_.isEmpty(existingMerchantGateway.gateways)) {
+    // step-4 throwing an error if gateways not found in business
+    if (_.isEmpty(businessGateway.gateways)) {
       throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.NoGatewaysFound);
     }
 
-    const merchantGateways = existingMerchantGateway.gateways;
+    const businessGateways = businessGateway.gateways;
 
     // step-5 sending success response
     return res.status(statusCodes.OK).json(
@@ -127,7 +128,7 @@ const fetchGateways = catchAsync(async (req, res) => {
         "Gateways fetched successfully",
         {
           platformGateways: GatewayNames,
-          merchantGateways,
+          businessGateways,
         },
         true
       )
