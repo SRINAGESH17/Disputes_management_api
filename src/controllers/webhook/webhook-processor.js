@@ -28,23 +28,23 @@
  * Processes a webhook payload to create or update a dispute record.
  *
  * Steps:
- * 1. Extract merchant ID, raw payload, headers, and client IP from the message payload.
- * 2. Validate the merchant ID for presence and format.
+ * 1. Extract business ID, raw payload, headers, and client IP from the message payload.
+ * 2. Validate the business ID for presence and format.
  * 3. Verify the merchant exists in the database.
  * 4. Save the incoming payload for record-keeping.
  * 5. Detect the payment gateway from headers and payload.
  * 6. Parse the gateway payload using the orchestrator layer.
  * 7. Normalize the parsed payload to a standard format.
  * 8. Validate the normalized payload schema.
- * 9. Check for duplicate disputes by dispute ID and merchant.
+ * 9. Check for duplicate disputes by dispute ID and businessId.
  * 10. If the dispute exists:
  *     - Update dispute fields and create a history record.
  *     - Assign staff if not already assigned, using round-robin.
- *     - Generate and queue notifications for staff and merchant.
+ *     - Generate and queue notifications for staff and businessId.
  * 11. If the dispute does not exist:
  *     - Create a new dispute and history record.
  *     - Assign staff if available, using round-robin.
- *     - Generate and queue notifications for staff and merchant.
+ *     - Generate and queue notifications for staff and businessId.
  * 12. Bulk create notifications.
  * 13. Commit the transaction if all steps succeed.
  * 14. Log the operation in the dispute log.
@@ -69,7 +69,7 @@ import AppError from '../../utils/app-error.util.js';
 import { DetectPaymentGateway, generateDisputeNotificationTemplate, OrchestratorGatewayParser } from './webhook-helpers.js';
 import Dispute from '../../models/dispute.model.js';
 import { uniqueDisputeId } from '../../utils/generate-ids.util.js';
-import Staff from '../../models/staff.model.js';
+import Analyst from '../../models/analyst.model.js';
 import StaffAssignmentState from '../../models/staff-assign-state.model.js';
 import { normalizePayloadSchema } from '../../utils/yup-schema.util.js';
 import sequelize from '../../config/database.config.js';
@@ -77,6 +77,7 @@ import DisputeLog from '../../models/dispute-log.model.js';
 import Payload from '../../models/payload.model.js';
 import Notification from '../../models/notification.model.js';
 import DisputeNotifyStatus from '../../constants/dispute-notify-status.constant.js';
+import Business from '../../models/business.model.js';
 
 
 // Round Robbin Algorithm to Assign Dispute to Staff
@@ -104,7 +105,7 @@ const AssignedDisputeToStaff = async ({ ids, merchantId, disputeId, staffState, 
         }
         updates.push(
             Dispute.update(
-                { staffId: nextStaffId },
+                { analystId: nextStaffId },
                 {
                     where: { id: disputeId },
                     transaction: t
@@ -136,7 +137,8 @@ const ProcessWebhookPayload = async (msgPayload) => {
     // @desc : Process the Webhook Payload and Store Dispute in DB
     // @param : msgPayload - The payload received from the message queue
     const logPayload = {
-        merchantId: 0,
+        merchantId: "",
+        businessId: "",
         log: "",
         gateway: null,
         ipAddress: null,
@@ -152,9 +154,9 @@ const ProcessWebhookPayload = async (msgPayload) => {
 
     // @desc : Receive Dispute From Payment Gateway and Store It And Notify Merchant or Staff
     try {
-  
+
         // Step 1  : Extract the Gateway Data and MerchantId
-        const merchantId = msgPayload.merchantId;
+        const businessId = msgPayload.businessId;
         const rawPayload = msgPayload.rawPayload;
         const headers = msgPayload?.headers;
         const clientIp = msgPayload?.GatewayIP;
@@ -164,28 +166,34 @@ const ProcessWebhookPayload = async (msgPayload) => {
         // Step 2  : Validate MerchantId is Valid or not
 
         // 2.1 : Check id must not Empty
-        if (_.isEmpty(merchantId)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldIsRequired('merchantId'));
+        if (_.isEmpty(businessId)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldIsRequired('businessId'));
         }
 
         // 2.2 : Check for valid id Format
-        if (merchantId?.length !== 15 || merchantId.slice(0, 3) !== 'MID') {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('MerchantId'))
+        if (businessId?.length !== 15 || businessId.slice(0, 3) !== 'BIZ') {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('BusinessId'))
         }
 
         // 2.3 : Check Merchant is Exist or not
-        const merchant = await Merchant.findOne({ where: { merchantId }, attributes: ['id'], transaction: t, raw: true });
-        if (_.isEmpty(merchant)) {
+        const businessAccount = await Business.findOne({ where: { customBusinessId: businessId }, attributes: ['id', 'merchantId'], transaction: t, raw: true });
+        if (_.isEmpty(businessAccount)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound('Business'));
+        }
+        if (_.isEmpty(businessAccount.merchantId)) {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound('Merchant'));
         }
-        logPayload.merchantId = merchant.id;
+        logPayload.merchantId = businessAccount.merchantId;
+        logPayload.businessId = businessAccount.id;
 
         // Step 3 : Saving incoming payload for Record Update
         const payload = await Payload.create({
-            merchantId: merchant.id,
+            merchantId: businessAccount.merchantId,
+            businessId: businessAccount.id,
             payloadType: 'webhook',
             rawPayload: JSON.stringify({
-                merchantId: merchantId,
+                merchantId: businessAccount.merchantId,
+                businessId: businessAccount.id,
                 ipAddress: clientIp,
                 headers: headers,
                 body: rawPayload
@@ -241,7 +249,7 @@ const ProcessWebhookPayload = async (msgPayload) => {
             throw new AppError(statusCodes.BAD_REQUEST, error?.errors?.[0] || error?.message);
         }
 
-        logPayload.merchantId = merchant.id;
+        logPayload.merchantId = businessAccount.merchantId;
         logPayload.gateway = Gateway;
         logPayload.ipAddress = clientIp;
 
@@ -250,30 +258,30 @@ const ProcessWebhookPayload = async (msgPayload) => {
             logPayload.log = 'Dispute : Failed to Get the Dispute from Gateway';
             throw new AppError(statusCodes.BAD_REQUEST, 'Failed to Get disputeId');
         }
-        const mid = merchantId?.split('D')?.[1]?.slice(0, 2);
+        const bisId = businessId?.split('Z')?.[1]?.slice(0, 2);
 
         let [dispute, customId, staffMembers, staffAssignmentState] = await Promise.all([
             // 1 . Fetch the Dispute Exist Or Not
             Dispute.findOne({
-                where: { disputeId: normalizePayload?.disputeId, merchantId: merchant.id },
-                attributes: ['id', 'staffId', 'customId', 'disputeId', 'paymentId', 'ipAddress', 'status', 'event', 'statusUpdatedAt', 'dueDate', 'type', 'state'],
+                where: { disputeId: normalizePayload?.disputeId, merchantId: businessAccount.merchantId },
+                attributes: ['id', 'analystId', 'customId', 'disputeId', 'paymentId', 'ipAddress', 'status', 'event', 'statusUpdatedAt', 'dueDate', 'type', 'state'],
                 transaction: t
             }),
 
             // 2 . Generate Unique id for Dispute
-            uniqueDisputeId(mid, t),
+            uniqueDisputeId(bisId, t),
 
-            // 3. Fetch Merchant Staff
-            Staff.findAll({
-                where: { merchantId: merchant?.id },
-                attributes: ['id', 'firstName', 'lastName'],
+            // 3. Fetch Merchant Analyst
+            Analyst.findAll({
+                where: { merchantId: businessAccount.merchantId, status:"ACTIVE" },
+                attributes: ['id', 'firstName', 'lastName', 'createdAt'],
                 transaction: t,
                 raw: true,
             }),
 
             // 4. Fetch the State of Staff To Get the Next Staff index to Assign Dispute
             StaffAssignmentState.findOne({
-                where: { merchantId: merchant?.id },
+                where: { merchantId: businessAccount.merchantId },
                 attributes: ['id', 'lastStaffAssigned'],
                 lock: t.LOCK.UPDATE,  // use lock WITHIN parent transaction
                 transaction: t,
@@ -308,7 +316,7 @@ const ProcessWebhookPayload = async (msgPayload) => {
 
                 // 2. Create History record for Dispute
                 dispute.createDisputeHistory({
-                    merchantId: merchant?.id,
+                    merchantId: businessAccount.merchantId,
                     disputeId: dispute?.id,
                     updatedStatus: normalizePayload?.status,
                     updatedEvent: normalizePayload?.event,
@@ -326,18 +334,19 @@ const ProcessWebhookPayload = async (msgPayload) => {
                 throw new AppError(statusCodes.BAD_REQUEST, 'Failed to Update Dispute History Status');
             }
 
-            if (!_.isEmpty(staffMembers) && !dispute?.staffId) {
+            if (!_.isEmpty(staffMembers) && !dispute?.analystId) {
                 // Assign Dispute to Staff Using Round Robbin Algorithm
 
                 // Round Robbin with race condition prevention 
-                let ids = staffMembers?.map((staff) => staff?.id);
-                ids.sort((a, b) => a - b);
+                const analysts = staffMembers.sort((analyst1, analyst2) => new Date(analyst1?.createdAt) - new Date(analyst2?.createdAt));
+                let ids = analysts?.map((staff) => staff?.id);
+                // ids.sort((a, b) => a - b);
                 if (ids.length > 0) {
 
                     // Payload to Assigned Staff
                     const assignedPayload = {
                         ids,
-                        merchantId: merchant?.id,
+                        merchantId: businessAccount.merchantId,
                         disputeId: dispute?.id,
                         staffState: staffAssignmentState,
                         t: t
@@ -348,13 +357,14 @@ const ProcessWebhookPayload = async (msgPayload) => {
 
                     const nextStaff = staffMembers.find((staff) => staff?.id === nextStaffId);
                     const staffName = `${nextStaff?.firstName} ${nextStaff?.lastName}`;
-                    dispute.staffId = nextStaffId;
+                    dispute.analystId = nextStaffId;
 
                     // Generate Notification Templates For Users
                     const { title, message } = generateDisputeNotificationTemplate(customId, DisputeNotifyStatus.ASSIGNED, staffName, {});
                     notify.push({
                         recipientId: nextStaffId,
-                        recipientType: 'STAFF',
+                        recipientType: 'ANALYST',
+                        businessId: businessAccount.id,
                         type: 'DISPUTE',
                         title,
                         message,
@@ -363,10 +373,11 @@ const ProcessWebhookPayload = async (msgPayload) => {
                         channel: 'WEB'
                     });
 
-                    const { title: title2, message: message2 } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED_ASSIGNED_STAFF, staffName, { newStatus: dispute.disputeStatus });
+                    const { title: title2, message: message2 } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED_ASSIGNED_STAFF, staffName, { newStatus: dispute.status });
                     notify.push({
-                        recipientId: merchant?.id,
+                        recipientId: businessAccount.merchantId,
                         recipientType: 'MERCHANT',
+                        businessId: businessAccount.id,
                         type: 'DISPUTE',
                         title: title2,
                         message: message2,
@@ -378,11 +389,12 @@ const ProcessWebhookPayload = async (msgPayload) => {
             }
             else {
                 // If Staff Is Attached to Dispute
-                if (dispute?.staffId) {
-                    const { title, message } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED, '', { newStatus: dispute.disputeStatus });
+                if (dispute?.analystId) {
+                    const { title, message } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED, '', { newStatus: dispute.status });
                     notify.push({
-                        recipientId: dispute?.staffId,
-                        recipientType: 'STAFF',
+                        recipientId: dispute?.analystId,
+                        recipientType: 'ANALYST',
+                        businessId: businessAccount.id,
                         type: 'DISPUTE',
                         title,
                         message,
@@ -390,10 +402,11 @@ const ProcessWebhookPayload = async (msgPayload) => {
                         isRead: false,
                         channel: 'WEB'
                     });
-                    const { title: title2, message: message2 } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED, '', { newStatus: dispute.disputeStatus });
+                    const { title: title2, message: message2 } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED, '', { newStatus: dispute.status });
                     notify.push({
-                        recipientId: merchant?.id,
+                        recipientId: businessAccount.merchantId,
                         recipientType: 'MERCHANT',
+                        businessId: businessAccount.id,
                         type: 'DISPUTE',
                         title: title2,
                         message: message2,
@@ -406,8 +419,9 @@ const ProcessWebhookPayload = async (msgPayload) => {
                     // Notify Merchant For Update Dispute Status With no Staff Assigned to it
                     const { title, message } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.DISPUTE_RECEIVED_UNASSIGNED, '', {});
                     notify.push({
-                        recipientId: merchant?.id,
+                        recipientId: businessAccount.merchantId,
                         recipientType: 'MERCHANT',
+                        businessId: businessAccount.id,
                         type: 'DISPUTE',
                         title,
                         message,
@@ -421,7 +435,8 @@ const ProcessWebhookPayload = async (msgPayload) => {
         else {
             // Create a new Dispute 
             const disputePayload = {
-                merchantId: merchant.id,
+                merchantId: businessAccount.merchantId,
+                businessId: businessAccount?.id,
                 customId,
                 ...normalizePayload
             }
@@ -443,25 +458,47 @@ const ProcessWebhookPayload = async (msgPayload) => {
             //     }
             // }
             //  Create Dispute History Record
-            const historyRecord = await dispute.createDisputeHistory({
-                merchantId: merchant.id,
-                // disputeId: dispute?.id,
-                updatedStatus: dispute?.status,
-                updatedEvent: dispute?.event,
-                statusUpdateAt: dispute?.statusUpdatedAt,
-                payloadId: payload?.id
-            }, {
-                transaction: t
-            });
+            const [historyRecord,] = await Promise.all([
+
+                // Add Dispute History Record
+                dispute.createDisputeHistory({
+                    merchantId: businessAccount.merchantId,
+                    // disputeId: dispute?.id,
+                    updatedStatus: dispute?.status,
+                    updatedEvent: dispute?.event,
+                    statusUpdateAt: dispute?.statusUpdatedAt,
+                    payloadId: payload?.id
+                }, {
+                    transaction: t
+                }),
+                // Increase the dispute count in merchant
+                Merchant.update(
+                    { totalDisputes: sequelize.literal('total_disputes + 1') },
+                    {
+                        where: { id: businessAccount.merchantId },
+                        transaction: t
+                    }
+                )
+            ])
+            // const historyRecord = await dispute.createDisputeHistory({
+            //     merchantId: businessAccount.merchantId,
+            //     // disputeId: dispute?.id,
+            //     updatedStatus: dispute?.status,
+            //     updatedEvent: dispute?.event,
+            //     statusUpdateAt: dispute?.statusUpdatedAt,
+            //     payloadId: payload?.id
+            // }, {
+            //     transaction: t
+            // });
 
             // Update Merchant Total Disputes Count
-            await Merchant.update(
-                { totalDisputes: sequelize.literal('total_disputes + 1') },
-                {
-                    where: { id: merchant.id },
-                    transaction: t
-                }
-            );
+            // await Merchant.update(
+            //     { totalDisputes: sequelize.literal('total_disputes + 1') },
+            //     {
+            //         where: { id: businessAccount.merchantId },
+            //         transaction: t
+            //     }
+            // );
 
             if (_.isEmpty(historyRecord)) {
                 logPayload.log = `Dispute : Failed to Update ${dispute.customId} Status`;
@@ -474,13 +511,13 @@ const ProcessWebhookPayload = async (msgPayload) => {
                 // Assign Dispute to Staff Using Round Robbin Algorithm
 
                 // Round Robbin with race condition prevention 
-                let ids = staffMembers?.map((staff) => staff?.id);
-                ids.sort((a, b) => a - b);
+                const analysts = staffMembers.sort((analyst1, analyst2) => new Date(analyst1?.createdAt) - new Date(analyst2?.createdAt));
+                let ids = analysts?.map((staff) => staff?.id);;
                 if (ids.length > 0) {
                     // Staff Assign Payload
                     const assignedPayload = {
                         ids,
-                        merchantId: merchant?.id,
+                        merchantId: businessAccount.merchantId,
                         disputeId: dispute?.id,
                         staffState: staffAssignmentState,
                         t: t
@@ -489,13 +526,14 @@ const ProcessWebhookPayload = async (msgPayload) => {
                     const nextStaffId = await AssignedDisputeToStaff(assignedPayload);
                     const nextStaff = staffMembers.find((staff) => staff?.id === nextStaffId);
                     const staffName = `${nextStaff?.firstName} ${nextStaff?.lastName}`;
-                    dispute.staffId = nextStaffId;
+                    dispute.analystId = nextStaffId;
 
                     // Generate Notification Template for Users
                     const { title, message } = generateDisputeNotificationTemplate(customId, DisputeNotifyStatus.ASSIGNED, staffName, {});
                     notify.push({
                         recipientId: nextStaffId,
-                        recipientType: 'STAFF',
+                        recipientType: 'ANALYST',
+                        businessId: businessAccount?.id,
                         type: 'DISPUTE',
                         title,
                         message,
@@ -506,8 +544,9 @@ const ProcessWebhookPayload = async (msgPayload) => {
 
                     const { title: title2, message: message2 } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.DISPUTE_RECEIVED_MERCHANT, staffName, {});
                     notify.push({
-                        recipientId: merchant?.id,
+                        recipientId: businessAccount?.merchantId,
                         recipientType: 'MERCHANT',
+                        businessId: businessAccount?.id,
                         type: 'DISPUTE',
                         title: title2,
                         message: message2,
@@ -520,8 +559,9 @@ const ProcessWebhookPayload = async (msgPayload) => {
                 // Notify Merchant about new dispute and no Staff Available to Assign Dispute
                 const { title, message } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.DISPUTE_RECEIVED_UNASSIGNED, '', {});
                 notify.push({
-                    recipientId: merchant?.id,
+                    recipientId: businessAccount?.merchantId,
                     recipientType: 'MERCHANT',
+                    businessId: businessAccount?.id,
                     type: 'DISPUTE',
                     title,
                     message,
@@ -539,11 +579,12 @@ const ProcessWebhookPayload = async (msgPayload) => {
         }
 
         await t.commit(); // commit if everything passes
-        const logMessage = isExist ? `Dispute: ${dispute.customId} status Updated` : `Dispute: New Dispute Added with id -> ${dispute.customId}`;
+        const logMessage = isExist ? `Dispute: ${dispute.customId} status Updated` : `Dispute: New Dispute Added with id : ${dispute.customId}`;
 
         await DisputeLog.create({
             gateway: Gateway,
-            merchantId: merchant.id,
+            merchantId: businessAccount?.merchantId,
+            businessId: businessAccount.id,
             log: logMessage,
             disputeId: dispute.disputeId,
             paymentId: dispute.paymentId,

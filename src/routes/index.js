@@ -43,7 +43,7 @@ router.use('/auth', authRoutes);
     8. Notify Merchant or Staff for the New Dispute or Change of Status
     9. return acknowledgement to the gateway
 */
-router.post('/webhook/merchant/dispute/:merchantId', receiveDisputesWebhook);
+router.post('/webhook/merchant/dispute/:businessId', receiveDisputesWebhook);
 
 
 // 3. Merchant routes

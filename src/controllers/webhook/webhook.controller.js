@@ -33,23 +33,23 @@ const disputeReceiveWebhook = async (req, res) => {
     try {
 
         // Step 1 : Extracted Data Payload From Request
-        const { merchantId } = req.params;
+        const { businessId } = req.params;
         const rawPayload = req.body;
         const headers = req.headers;
 
-    // Step 2  : Validate MerchantId is Valid or not
+        // Step 2  : Validate MerchantId is Valid or not
 
         // 2.1 : Check id must not Empty
-        if (_.isEmpty(merchantId)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldIsRequired('merchantId'));
+        if (_.isEmpty(businessId)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldIsRequired('businessId'));
         }
         if (_.isEmpty(rawPayload)) {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldIsRequired('Gateway Payload'));
         }
 
         // 2.2 : Check for valid id Format
-        if (merchantId?.length !== 15 || merchantId.slice(0, 3) !== 'MID') {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('MerchantId'));
+        if (businessId?.length !== 15 || businessId.slice(0, 3) !== 'BIZ') {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('BusinessId'));
         }
 
         // Step 3  : IP Whitelisting of Gateway -----  Get the Ip Address Of the Sender
@@ -57,7 +57,7 @@ const disputeReceiveWebhook = async (req, res) => {
 
         // Step 4 : Configure Payload For Publish Webhook Service
         const payload = {
-            merchantId: merchantId,
+            businessId,
             GatewayIP: clientIp,
             headers,
             rawPayload: rawPayload
