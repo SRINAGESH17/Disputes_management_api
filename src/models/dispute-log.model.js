@@ -88,7 +88,6 @@ DisputeLog.init({
         onDelete: 'CASCADE',
         validate: {
             notNull: { msg: 'merchant ID is required' },
-            isInt: { msg: 'merchant ID must be an integer' }
         }
     },
     businessId: {

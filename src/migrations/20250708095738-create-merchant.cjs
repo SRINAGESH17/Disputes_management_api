@@ -45,7 +45,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
-      active_business_id: {
+      selected_business_id: {
         type: Sequelize.UUID,
         allowNull: true,
         // references: {
@@ -94,7 +94,7 @@ module.exports = {
       unique: true,
       name: 'unique_merchant_firebase',
     });
-    await queryInterface.addIndex('merchants', ['active_business_id']);
+    await queryInterface.addIndex('merchants', ['selected_business_id']);
   },
 
   down: async (queryInterface, Sequelize) => {
@@ -103,7 +103,7 @@ module.exports = {
     await queryInterface.removeIndex('merchants', 'unique_merchant_mobile');
     await queryInterface.removeIndex('merchants', 'unique_merchant_firebase');
     await queryInterface.removeIndex('merchants', ['created_at']);
-    await queryInterface.removeIndex('merchants', ['active_business_id']);
+    await queryInterface.removeIndex('merchants', ['selected_business_id']);
 
     await queryInterface.dropTable('merchants');
   },
