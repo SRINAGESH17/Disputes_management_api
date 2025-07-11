@@ -9,6 +9,7 @@ import welcomeDashboard from "../controllers/merchant/dashboard/welcome-screen.c
 // import getStaff from "../controllers/merchant/staff/get-staff.controller.js";
 import merchantProfile from "../controllers/merchant/dashboard/merchant-profile.controller.js";
 import businessController from "../controllers/merchant/kyb/business.controller.js";
+import merchantDisputeController from "../controllers/merchant/merchant-disputes.controller.js";
 
 const router = express.Router();
 
@@ -96,6 +97,28 @@ router.post(
   '/kyb/gst',
   verifyMerchant,
   businessController.addNewBusinessAccount
+);
+
+// *********************************************** Merchant Disputes ****************************************/
+
+// 1.Fetch Internal Dispute States
+// @route  : GET /api/v2/merchant/states
+// @desc   : Fetch Internal Disputes States
+// @access : Private to merchant Only !
+router.get(
+  '/states',
+  verifyMerchant,
+  merchantDisputeController.getDisputeStates
+);
+
+// 2.Fetch Disputes List With Filters
+// @route  : GET /api/v2/disputes/list
+// @desc   : Fetch Disputes List with filters
+// @access : Private to merchant Only !
+router.get(
+  '/list',
+  verifyMerchant,
+  merchantDisputeController.getDisputesList
 );
 
 
