@@ -62,13 +62,13 @@ const merchantRegisterService = async (data) => {
     const [
       userEmailRecord,
       userMobileRecord,
-      isEmailVerified,
-      isMobileNumberVerified
+      // isEmailVerified,
+      // isMobileNumberVerified
     ] = await Promise.all([
       FirebaseCheckEmailExistOrNot(email),
       FirebaseCheckPhoneExistOrNot(mobileNumber),
-      OTP.findOne({ where: emailPayload, attributes: ['verificationValue'], raw: true }),
-      OTP.findOne({ where: mobilePayload, attributes: ['verificationValue'], raw: true })
+      // OTP.findOne({ where: emailPayload, attributes: ['verificationValue'], raw: true }),
+      // OTP.findOne({ where: mobilePayload, attributes: ['verificationValue'], raw: true })
     ]);
 
     // 1.1 : Check Email is Exist or not
@@ -94,7 +94,7 @@ const merchantRegisterService = async (data) => {
     //   throw new AppError(statusCodes.BAD_REQUEST, 'Email is Not verified.');
     // }
 
-    // // 2.2 : mobile Number is Verified or not
+    // 2.2 : mobile Number is Verified or not
     // if (_.isEmpty(isMobileNumberVerified)) {
     //   throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
     // }
