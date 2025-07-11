@@ -167,7 +167,7 @@ async function uniqueStaffId(mobileDigits, role) {
 //************************************* For Disputes *************************************88 */
 
 function generateDisputeID(mid) {
-    const prefix = 'DIS';
+    const prefix = 'DSP';
     let numbering = Date.now().toString();
     numbering = numbering.split('').reverse().join('');
     if (numbering.length > 12) {
@@ -195,9 +195,31 @@ async function uniqueDisputeId(mid, t) {
 }
 
 
+// ******************************************** For Business Id ************************************
+
+function generateBusinessID(mobileDigits) {
+ const prefix = 'BIZ';
+    let numbering = Date.now().toString();
+    numbering = numbering.split('').reverse().join('');
+    if (numbering.length > 12) {
+        numbering = numbering.slice(0, 8); // take first 8 after reversal
+    } else if (numbering.length < 12) {
+        const randomPad = Math.floor(Math.random() * Math.pow(10, 12 - numbering.length))
+            .toString()
+            .padStart(8 - numbering.length, '0');
+        numbering = numbering + randomPad;
+        numbering = numbering.split('').reverse().join('');
+        numbering = numbering.slice(0, 8);
+    }
+    return `${prefix}${mobileDigits}${numbering}`;
+}
+
+function uniqueBusinessId(mid) {
+    let id = generateBusinessID(mid);
+    return id;
+}
 
 
 
-export { generateOTP, generateReferenceID, uniqueMerchantId, uniqueDisputeId, uniqueStaffId };
 
-
+export { generateOTP, generateReferenceID, uniqueMerchantId, uniqueDisputeId, uniqueStaffId,uniqueBusinessId };

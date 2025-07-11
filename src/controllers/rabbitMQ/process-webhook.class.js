@@ -71,8 +71,10 @@ class ProcessWebhook {
                 const payload = JSON.parse(msg.content.toString());
 
                 try {
-                    console.log("webhook payload received : ", payload?.merchantId);
+                    // console.log("webhook payload received : ", payload?.merchantId);
+                    console.time("webhook");
                     await ProcessWebhookPayload(payload);
+                    console.timeEnd("webhook");
                     channel.ack(msg);
                 } catch (err) {
                     console.error('Failed to process webhook:', err.message);

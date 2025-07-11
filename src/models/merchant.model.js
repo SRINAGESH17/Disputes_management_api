@@ -240,7 +240,7 @@ Merchant.init({
         type: DataTypes.INTEGER,
         defaultValue: 0,
     },
-    activeBusinessId: {
+    selectedBusinessId: {
         type: DataTypes.UUID,
         allowNull: true,
         references: {

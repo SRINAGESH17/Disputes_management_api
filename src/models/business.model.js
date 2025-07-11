@@ -78,7 +78,6 @@ Business.init({
     customBusinessId: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
     },
     isActive: {
         type: DataTypes.BOOLEAN,
@@ -116,6 +115,11 @@ Business.init({
         },
     ]
 });
+Business.beforeCreate((instance, options) => {
+    console.log('🚨 Debug: inside Business.beforeCreate');
+    console.log('Instance:', JSON.stringify(instance.toJSON(), null, 2));
+    console.log('Options:', JSON.stringify(options, null, 2));
+});
 /*
 
 Authorized Signatory : body.result.authorized_signatory as string[]
@@ -129,5 +133,7 @@ Primary Business Address: body.result.primary_business_address.registered_addres
 currentRegistrationStatus : body.result.current_registration_status as string | 'Active
 
 */
+// Note : 
+// Add index to gstin
 
 export default Business;

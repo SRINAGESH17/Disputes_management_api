@@ -72,7 +72,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
-      approved_disputes: {
+      accepted_disputes: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
