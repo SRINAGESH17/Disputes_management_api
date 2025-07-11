@@ -47,7 +47,6 @@ const addStaffAndLinkToBusinesses = async (data) => {
   try {
     const { firstName, lastName, staffId, email, mobileNumber, firebaseId, merchantId, userRole } = data;
 
-    console.log("inside service: ", data)
     let payload = {
       firstName,
       lastName,
@@ -67,7 +66,6 @@ const addStaffAndLinkToBusinesses = async (data) => {
         throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.notAbleToCreateField('Business Analyst'));
       }
     }
-    console.log("staff Added : ", staff);
 
     // Add Manager
     if (userRole === 'manager') {
@@ -158,7 +156,6 @@ const addStaffAndLinkToBusinesses = async (data) => {
 }
 
 const AddMerchantStaffService = async (data) => {
-  console.log("Add Staff Service: ", data)
   // @desc : Create Merchant Staff service
   try {
     const {

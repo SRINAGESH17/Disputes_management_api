@@ -7,6 +7,7 @@ import updateStaffStatus from "../controllers/merchant/staff/update-staff-status
 import staffStatusCards from "../controllers/merchant/staff/staff-status-cards.controller.js";
 import getStaff from "../controllers/merchant/staff/get-staff.controller.js";
 import merchantProfile from "../controllers/merchant/dashboard/merchant-profile.controller.js";
+import businessController from "../controllers/merchant/kyb/business.controller.js";
 import staffController from '../controllers/merchant/staff/staff.controller.js';
 
 const router = express.Router();
@@ -83,6 +84,19 @@ router.get('/integration/gateway', verifyMerchant, gatewayController.fetchGatewa
 
 
 
+
+
+//*************************************** KYB ( Know Your Business ) *********************************************************/
+
+// 1. Add Business Account By Verifying GSTIN
+// @route : POST /api/v2/merchant/kyb/gst
+// @desc  : Add Business Account by GSTIN Verify
+// @access: Private to Merchant
+router.post(
+  '/kyb/gst',
+  verifyMerchant,
+  businessController.addNewBusinessAccount
+);
 
 
 export default router;

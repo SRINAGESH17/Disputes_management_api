@@ -14,8 +14,8 @@ class Manager extends Model {
             as: 'managerNotification'
         });
 
-        // Manager Has Maps to Multiple Business Of Merchant
-        Manager.hasMany(models.Business, {
+        // Manager Has Maps to Multiple Staff Business Maps Of Merchant
+        Manager.hasMany(models.StaffBusinessMap, {
             foreignKey: 'staffId',
             constraints: false,
             scope: {
