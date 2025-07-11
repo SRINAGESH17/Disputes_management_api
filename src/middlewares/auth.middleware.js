@@ -38,12 +38,60 @@
  * @returns {void}
  */
 
+/**
+ * Middleware to verify if the authenticated user is a manager.
+ * Calls `auth` and `getUserRole` middlewares internally.
+ *
+ * @function verifyManager
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @returns {void}
+ */
+
+/**
+ * Middleware to verify if the authenticated user is an analyst.
+ * Calls `auth` and `getUserRole` middlewares internally.
+ *
+ * @function verifyAnalyst
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @returns {void}
+ */
+
+/**
+ * Middleware to verify if the authenticated user is a merchant or manager.
+ * Calls `auth` and `getUserRole` middlewares internally.
+ *
+ * @function verifyMerchantOrManager
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @returns {void}
+ */
+
+/**
+ * Middleware to verify if the authenticated user is a merchant or analyst.
+ * Calls `auth` and `getUserRole` middlewares internally.
+ *
+ * @function verifyMerchantOrAnalyst
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @returns {void}
+ */
+
+
 import _ from "lodash";
 import { failed_response } from "../utils/response.util.js";
-import statusCodes from "../constants/status-codes.constant.js"
-import AppErrorCodes from "../constants/app-error-codes.constant.js"
+import statusCodes from "../constants/status-codes.constant.js";
+import AppErrorCodes from "../constants/app-error-codes.constant.js";
 import { FirebaseVerifyIdToken } from "../firebase/firebase-utils.js";
 import userRoleModel from '../models/user-role.model.js';
+import Merchant from "../models/merchant.model.js";
+import Manager from "../models/manager.model.js";
+import Analyst from "../models/analyst.model.js";
 
 // GET AUTH TOKEN FROM HEADERS
 const getAuthToken = (req, res, next) => {
@@ -96,7 +144,7 @@ const auth = (req, res, next) => {
 };
 
 
-// To Get User Role or Permissions
+// To Get User Role and business or Permissions
 const getUserRole = async (req, res, next) => {
     const fireBaseId = req.currUser.uid;
     // console.log("firebaseId : ", fireBaseId);
@@ -113,10 +161,10 @@ const getUserRole = async (req, res, next) => {
     }
 
     try {
-        console.time("Find Role!")
+        console.time("Find Role!");
         // Find The User Role
         const Role = await userRoleModel.findOne({ where: { firebaseId: fireBaseId }, raw: true });
-        // console.log("User Role : ", Role)
+
         if (_.isEmpty(Role)) {
             return res.status(statusCodes.NOT_FOUND).json(
                 failed_response(
@@ -130,7 +178,38 @@ const getUserRole = async (req, res, next) => {
 
         req.userRole = Role;
         req.currUser["userId"] = Role.userId;
-        console.timeEnd("Find Role!");
+        req.authId = req.currUser.uid;
+
+        console.time("Find Role!");
+
+        console.time("User BusinessId");
+        // Get Merchant Business Id
+        if (Role?.merchant) {
+            const merchant = await Merchant.findByPk(Role?.userId, {
+                attributes: ['id', 'selectedBusinessId'],
+                raw: true
+            });
+            req.businessId = merchant?.selectedBusinessId;
+        }
+
+        // Get Manager Business Id
+        if (Role?.manager) {
+            const manager = await Manager.findByPk(Role?.userId, {
+                attributes: ['id', 'selectedBusinessId'],
+                raw: true
+            });
+            req.businessId = manager?.selectedBusinessId;
+        }
+
+        // Get Analyst Business Id
+        if (Role?.analyst) {
+            const analyst = await Analyst.findByPk(Role?.userId, {
+                attributes: ['id', 'selectedBusinessId'],
+                raw: true
+            });
+            req.businessId = analyst?.selectedBusinessId;
+        }
+        console.timeEnd("User BusinessId");
         next();
     } catch (error) {
         return res.status(statusCodes.BAD_REQUEST).json(
@@ -168,9 +247,110 @@ const verifyMerchant = (req, res, next) => {
         });
     });
 };
+// To Verify the Manager
+const verifyManager = (req, res, next) => {
+    auth(req, res, async () => {
+        getUserRole(req, res, async () => {
+
+            if (req?.userRole?.manager) {
+                req.authId = req.currUser.uid;
+                console.log("Verified Manager")
+                next();
+            } else {
+                // return res.status(403).json(failed_response(403, "you are not authorized User", {}, false));
+                return res.status(statusCodes.FORBIDDEN).json(
+                    failed_response(
+                        statusCodes.FORBIDDEN,
+                        'You are not authorized to access this resource',
+                        { message: 'Unauthorized user' },
+                        false
+                    )
+                );
+            }
+        });
+    });
+};
+
+// To Verify the Analyst
+const verifyAnalyst = (req, res, next) => {
+    auth(req, res, async () => {
+        getUserRole(req, res, async () => {
+
+            if (req?.userRole?.analyst) {
+                req.authId = req.currUser.uid;
+                console.log("Verified Analyst")
+                next();
+            } else {
+                // return res.status(403).json(failed_response(403, "you are not authorized User", {}, false));
+                return res.status(statusCodes.FORBIDDEN).json(
+                    failed_response(
+                        statusCodes.FORBIDDEN,
+                        'You are not authorized to access this resource',
+                        { message: 'Unauthorized user' },
+                        false
+                    )
+                );
+            }
+        });
+    });
+};
+
+// To Verify the Merchant And Manager
+const verifyMerchantOrManager = (req, res, next) => {
+    auth(req, res, async () => {
+        getUserRole(req, res, async () => {
+
+            if (req?.userRole?.merchant || req?.userRole?.manager) {
+                req.authId = req.currUser.uid;
+                console.log("Verified Merchant or Manager")
+                next();
+            }
+            else {
+                // return res.status(403).json(failed_response(403, "you are not authorized User", {}, false));
+                return res.status(statusCodes.FORBIDDEN).json(
+                    failed_response(
+                        statusCodes.FORBIDDEN,
+                        'You are not authorized to access this resource',
+                        { message: 'Unauthorized user' },
+                        false
+                    )
+                );
+            }
+        });
+    });
+};
+
+// To Verify the Merchant And Analyst
+const verifyMerchantOrAnalyst = (req, res, next) => {
+    auth(req, res, async () => {
+        getUserRole(req, res, async () => {
+
+            if (req?.userRole?.merchant || req?.userRole?.analyst) {
+                req.authId = req.currUser.uid;
+                console.log("Verified Merchant or Analyst")
+                next();
+            }
+            else {
+                // return res.status(403).json(failed_response(403, "you are not authorized User", {}, false));
+                return res.status(statusCodes.FORBIDDEN).json(
+                    failed_response(
+                        statusCodes.FORBIDDEN,
+                        'You are not authorized to access this resource',
+                        { message: 'Unauthorized user' },
+                        false
+                    )
+                );
+            }
+        });
+    });
+};
 
 export {
     auth,
     getUserRole,
-    verifyMerchant
+    verifyMerchant,
+    verifyManager,
+    verifyAnalyst,
+    verifyMerchantOrManager,
+    verifyMerchantOrAnalyst,
 }
