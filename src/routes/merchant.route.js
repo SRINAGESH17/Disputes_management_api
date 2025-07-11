@@ -3,9 +3,6 @@ import AddMerchantStaff from "../controllers/merchant/staff/add-staff.controller
 import gatewayController from '../controllers/merchant/integration/gateway.controller.js';
 import { verifyMerchant } from "../middlewares/auth.middleware.js";
 import welcomeDashboard from "../controllers/merchant/dashboard/welcome-screen.controller.js";
-import updateStaffStatus from "../controllers/merchant/staff/update-staff-status.controller.js";
-import staffStatusCards from "../controllers/merchant/staff/staff-status-cards.controller.js";
-import getStaff from "../controllers/merchant/staff/get-staff.controller.js";
 import merchantProfile from "../controllers/merchant/dashboard/merchant-profile.controller.js";
 import businessController from "../controllers/merchant/kyb/business.controller.js";
 import staffController from '../controllers/merchant/staff/staff.controller.js';
