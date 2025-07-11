@@ -94,7 +94,7 @@ const merchantRegisterService = async (data) => {
     //   throw new AppError(statusCodes.BAD_REQUEST, 'Email is Not verified.');
     // }
 
-    // // 2.2 : mobile Number is Verified or not
+    // 2.2 : mobile Number is Verified or not
     // if (_.isEmpty(isMobileNumberVerified)) {
     //   throw new AppError(statusCodes.BAD_REQUEST, 'Mobile Number is Not verified.');
     // }

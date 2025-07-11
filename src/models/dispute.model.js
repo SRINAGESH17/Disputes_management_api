@@ -238,10 +238,6 @@ Dispute.init({
         type: DataTypes.STRING,
         defaultValue: "PENDING",
     },
-
-
-
-
     explanation: {
         type: DataTypes.TEXT,
         allowNull: true,

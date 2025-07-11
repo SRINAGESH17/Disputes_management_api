@@ -7,7 +7,7 @@ import AppError from "../../utils/app-error.util.js";
 import AppErrorCode from "../../constants/app-error-codes.constant.js";
 import { Op } from "sequelize";
 import Dispute from "../../models/dispute.model.js";
-import Staff from "../../models/staff.model.js";
+import Analyst from "../../models/analyst.model.js";
 
 // 1.Fetch Dispute States
 const getDisputeStates = catchAsync(async (req, res) => {
@@ -96,7 +96,7 @@ const getDisputesList = catchAsync(async (req, res) => {
 
         // Step 3 : Generate a filter payload for disputes
         const filters = {
-            merchantId: currUser?.userId || 2,
+            merchantId: currUser?.userId,
         };
 
         // add Dispute Id filter
@@ -155,17 +155,17 @@ const getDisputesList = catchAsync(async (req, res) => {
             Dispute.count({ where: filters }),
 
             // Fetch Staff 
-            Staff.findAll({ where: { merchantId: 2 }, attributes: ['id', 'firstName', 'lastName'], raw: true })
+            Analyst.findAll({ where: { merchantId: filters.merchantId }, attributes: ['id', 'firstName', 'lastName'], raw: true })
         ]);
 
         const disputesData = disputes.map((dispute) => {
-            const disputeStaff = dispute?.staffId ? staff?.find((st) => st?.id === dispute?.staffId) : null;
+            const disputeStaff = dispute?.analystId ? staff?.find((st) => st?.id === dispute?.analystId) : null;
             const staffName = disputeStaff ? `${disputeStaff?.firstName} ${disputeStaff?.lastName}` : '';
             return {
                 disputeId: dispute?.customId,
                 gatewayDisputeId: dispute?.disputeId,
                 transactionId: dispute?.paymentId,
-                staffId: dispute?.staffId,
+                analystId: dispute?.analystId,
                 staffName,
                 amount: dispute?.amount,
                 ChargeBackDate: dispute?.statusUpdatedAt,
@@ -175,7 +175,8 @@ const getDisputesList = catchAsync(async (req, res) => {
                 state: dispute?.state,
                 gateway: dispute?.gateway,
                 type: dispute?.type,
-                updatedAt: dispute?.updatedAt
+                updatedAt: dispute?.updatedAt,
+                currentStage:dispute?.workflowStage
             }
         })
         // Step 5 : Generate Paginated response payload

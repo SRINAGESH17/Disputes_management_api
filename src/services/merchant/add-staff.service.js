@@ -168,6 +168,7 @@ const AddMerchantStaffService = async (data) => {
       merchantId,
     } = data;
 
+
     // Check Merchant exist or not
     const merchant = await Merchant.findOne({
       where: { id: merchantId },
