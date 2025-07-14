@@ -258,7 +258,7 @@ const ProcessWebhookPayload = async (msgPayload) => {
             logPayload.log = 'Dispute : Failed to Get the Dispute from Gateway';
             throw new AppError(statusCodes.BAD_REQUEST, 'Failed to Get disputeId');
         }
-        const bisId = businessId?.split('Z')?.[1]?.slice(0, 2);
+        const bisId = businessId?.split('Z')?.[1]?.slice(0, 4);
 
         let [dispute, customId, staffMembers, staffAssignmentState] = await Promise.all([
             // 1 . Fetch the Dispute Exist Or Not
