@@ -11,10 +11,18 @@ import Business from "../../../models/business.model.js";
 // Controller to add a new gateway for the business
 const addGateway = catchAsync(async (req, res) => {
   // step-1 Destructuring currUser and userRole from request
-  const { currUser, userRole } = req;
+  const { currUser, userRole, businessId } = req;
   const { gatewayName } = req.body;
+
   try {
-    // step-2 Validate currUser and userRole are authorization
+    // step-2 Validate merchant selected active business account
+    if (!businessId) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.validFieldIsRequired('Business account')
+      );
+    }
+    // Validate currUser and userRole are authorization
     if (!currUser && !userRole?.merchant) {
       throw new AppError(
         statusCodes.UNAUTHORIZED,
@@ -36,24 +44,32 @@ const addGateway = catchAsync(async (req, res) => {
     // step-5 if gateway name exists in GatewayNames throwing error
     if (!isExistingGateway) {
       throw new AppError(
-        statusCodes.BAD_REQUEST,
-        AppErrorCode.InvalidFieldFormat(gatewayName)
+        statusCodes.NOT_FOUND,
+        AppErrorCode.UnAuthorizedField(`gateway ${gatewayName} is exists in our platform`)
       );
     }
 
     // step-6 Check if the gateway already exists in our business
     const businessGateway = await Business.findOne({
-      where: { id: currUser.userId },
-      attributes: ["id", "gateways"],
+      where: { id: businessId },
+      attributes: ["id", "business_name", "gateways"],
       raw: true,
     });
-    const existingBusinessGateways = businessGateway.gateways;
+
+    if (_.isEmpty(businessGateway)) {
+      throw new AppError(
+        statusCodes.NOT_FOUND,
+        AppErrorCode.fieldNotFound(businessGateway.business_name)
+      );
+    }
+
+    const existingBusinessGateways = businessGateway?.gateways || [];
 
     // step-7 checking if the gatewayName includes from business gateways
     if (existingBusinessGateways.includes(gatewayName?.toLowerCase())) {
       throw new AppError(
         statusCodes.BAD_REQUEST,
-        `${gatewayName} Gateway is Already Exists`
+        `${gatewayName} gateway is already exists`
       );
     }
 
@@ -63,8 +79,9 @@ const addGateway = catchAsync(async (req, res) => {
     // step-9 Save the updated gateways array to the business
     await Business.update(
       { gateways: existingBusinessGateways },
-      { where: { id: currUser.userId } }
+      { where: { id: businessId } },
     );
+
     // step-10 sending success response
     return res
       .status(statusCodes.CREATED)
@@ -95,10 +112,18 @@ const addGateway = catchAsync(async (req, res) => {
 // Controller to fetch all available gateways
 const fetchGateways = catchAsync(async (req, res) => {
   // step-1 Destructuring currUser and userRole from request
-  const { currUser, userRole } = req;
+  const { currUser, userRole, businessId } = req;
 
   try {
-    // step-2 Validate currUser and userRole are authorization
+    // step-2 Validate merchant selected active business account
+    if (!businessId) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.validFieldIsRequired('Business account')
+      );
+    }
+
+    //  Validate currUser and userRole are authorization
     if (!currUser && !userRole.merchant) {
       throw new AppError(
         statusCodes.UNAUTHORIZED,
@@ -107,19 +132,17 @@ const fetchGateways = catchAsync(async (req, res) => {
     }
 
     // step-3 Check if the gateway already exists in our business
-    const businessGateway = await Business.findOne({
-      where: { id: currUser.userId },
-      attributes: ["id", "gateways"],
+    const business = await Business.findOne({
+      where: { id: businessId },
+      attributes: ["id", "business_name", "gateways"],
       raw: true,
     });
    
 
     // step-4 throwing an error if gateways not found in business
-    if (_.isEmpty(businessGateway.gateways)) {
+    if (_.isEmpty(business.gateways)) {
       throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.NoGatewaysFound);
     }
-
-    const businessGateways = businessGateway.gateways;
 
     // step-5 sending success response
     return res.status(statusCodes.OK).json(
@@ -128,7 +151,7 @@ const fetchGateways = catchAsync(async (req, res) => {
         "Gateways fetched successfully",
         {
           platformGateways: GatewayNames,
-          businessGateways,
+          business,
         },
         true
       )
@@ -152,11 +175,20 @@ const fetchGateways = catchAsync(async (req, res) => {
 // Controller to fetch all dispute logs
 const fetchDisputeLogs = catchAsync(async (req, res) => {
   // step-1 Destructuring currUser and userRole from request
-  const { currUser, userRole } = req;
-  const { gateway } = req.query
+  const { currUser, userRole, businessId } = req;
+  const { gateway, page = 1, limit = 2  } = req.query
+  // console.log(currUser, userRole, businessId, gateway)
 
   try {
-    // step-2 Validate currUser and userRole are authorization
+    // step-2 Validate merchant selected active business account
+    if (!businessId) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.validFieldIsRequired('Business account')
+      );
+    }
+
+    // Validate currUser and userRole are authorization
     if (!currUser && !userRole.merchant) {
       throw new AppError(
         statusCodes.UNAUTHORIZED,
@@ -165,8 +197,8 @@ const fetchDisputeLogs = catchAsync(async (req, res) => {
     }
 
     // step-3 Where condition payload
-   const whereCondition = {
-      merchantId: currUser.userId,
+    const whereCondition = {
+      businessId: businessId
     };
 
     // step-4 Gateway Query parameter found then adding to where condition
@@ -174,31 +206,71 @@ const fetchDisputeLogs = catchAsync(async (req, res) => {
       whereCondition.gateway = gateway.toLowerCase();
     }
 
+    // Pagination variables
+    const pageNumber = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
+    const pageSize = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 10;
+    const offset = (pageNumber - 1) * pageSize;
 
-    // step-5 fecthing all dispute logs if exists for the merchant
-    const existingDisputeLogs = await DisputeLog.findAll({
+    // step-5 fetching all dispute logs with pagination, count, and sorting (latest first)
+    const { rows: existingDisputeLogs, count: totalLogs } = await DisputeLog.findAndCountAll({
       where: whereCondition,
       attributes: [
-        "createdAt",
-        "gateway",
-        "eventType",
+        "id",
         "disputeId",
         "paymentId",
+        "status",
+         "gateway",
+         "eventType",
+        "createdAt",
         "statusUpdatedAt",
         "dueDate",
-        "status",
       ],
+      order: [['createdAt', 'DESC']],
+      offset,
+      limit: pageSize,
       raw: true,
     });
+
+    const totalPages = Math.ceil(totalLogs / pageSize);
+
+
+    console.log("existingDisputeLogs", existingDisputeLogs)
+    
+   
+    // Handle page out-of-range error
+    if (totalPages > 0 && pageNumber > totalPages) {
+      return res
+      .status(statusCodes.BAD_REQUEST)
+      .json(
+        failed_response(
+          statusCodes.BAD_REQUEST,
+          `Requested page (${pageNumber}) exceeds total pages (${totalPages}).`,
+          {},
+          false
+        )
+      );
+    }
+    
+    if (existingDisputeLogs.length === 0) {
+      return res
+        .status(statusCodes.NOT_FOUND)
+        .json(failed_response(statusCodes.NOT_FOUND, "No dispute logs found.", {}, false));
+    }
 
     // step-6 sending success response
     return res
       .status(statusCodes.OK)
       .json(
-        failed_response(
+        success_response(
           statusCodes.OK,
           "Dispute logs fetched successfully",
-          { logs: existingDisputeLogs },
+           {
+            logs: existingDisputeLogs,
+            totalLogs,
+            totalPages,
+            page: pageNumber,
+            limit: pageSize
+          },
           true
         )
       );

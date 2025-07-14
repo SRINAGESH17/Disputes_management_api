@@ -105,7 +105,6 @@ const getAuthToken = (req, res, next) => {
     next();
 }
 
-
 // AUTH : Verify Auth Token From Headers
 const auth = (req, res, next) => {
     getAuthToken(req, res, async () => {
@@ -142,7 +141,6 @@ const auth = (req, res, next) => {
         }
     });
 };
-
 
 // To Get User Role and business or Permissions
 const getUserRole = async (req, res, next) => {
@@ -223,7 +221,6 @@ const getUserRole = async (req, res, next) => {
     }
 };
 
-
 // To Verify the Merchant
 const verifyMerchant = (req, res, next) => {
     auth(req, res, async () => {
@@ -247,6 +244,7 @@ const verifyMerchant = (req, res, next) => {
         });
     });
 };
+
 // To Verify the Manager
 const verifyManager = (req, res, next) => {
     auth(req, res, async () => {
