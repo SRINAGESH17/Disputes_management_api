@@ -104,7 +104,7 @@ Manager.init(
             type: DataTypes.UUID,
             allowNull: true,
             references: {
-                model: 'staff_business_maps',
+                model: 'businesses',
                 key: 'id',
             },
             onUpdate: 'CASCADE',
