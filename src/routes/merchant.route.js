@@ -103,6 +103,16 @@ router.post(
   businessController.addNewBusinessAccount
 );
 
+// 2. Fetch Merchant Business Accounts
+// @route : GET /api/v2/merchant/kyb/gst-all
+// @desc  : Fetch Business Accounts 
+// @access: Private to Merchant
+router.get(
+  '/kyb/gst-all',
+  verifyMerchant,
+  businessController.fetchMerchantBusinessAccounts
+);
+
 // *********************************************** Merchant Disputes ****************************************/
 
 // 1.Fetch Internal Dispute States
