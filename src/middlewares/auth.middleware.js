@@ -345,6 +345,32 @@ const verifyMerchantOrAnalyst = (req, res, next) => {
     });
 };
 
+
+// Verify Platform User
+const verifyUser = (req, res, next) => {
+    auth(req, res, async () => {
+        getUserRole(req, res, async () => {
+
+            if (req?.userRole?.merchant || req?.userRole?.analyst || req?.userRole?.manager) {
+                req.authId = req.currUser.uid;
+                console.log("Verified Merchant or Analyst or Manager")
+                next();
+            }
+            else {
+                // return res.status(403).json(failed_response(403, "you are not authorized User", {}, false));
+                return res.status(statusCodes.FORBIDDEN).json(
+                    failed_response(
+                        statusCodes.FORBIDDEN,
+                        'You are not authorized to access this resource',
+                        { message: 'Unauthorized user' },
+                        false
+                    )
+                );
+            }
+        });
+    });
+};
+
 export {
     auth,
     getUserRole,
@@ -353,4 +379,5 @@ export {
     verifyAnalyst,
     verifyMerchantOrManager,
     verifyMerchantOrAnalyst,
+    verifyUser
 }
