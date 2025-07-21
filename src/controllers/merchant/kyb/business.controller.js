@@ -9,6 +9,7 @@ import Business from "../../../models/business.model.js";
 import Analyst from "../../../models/analyst.model.js";
 import Manager from "../../../models/manager.model.js";
 import StaffBusinessMap from "../../../models/staff-business-map.model.js";
+import { Op } from "sequelize";
 
 
 
@@ -49,7 +50,15 @@ function getRandomCompanyName() {
         "TechNova Solutions Pvt Ltd",
         "BluePeak Systems LLP",
         "GreenLeaf Enterprises",
-        "QuantumSoft Technologies"
+        "QuantumSoft Technologies",
+        "Microsoft Technologies",
+        "Deloitte Group of Technologies",
+        "Google Private Limited",
+        "Amazon Group Of Services",
+        "Brainwave Labs Private Limited",
+        "DigioSquad Private Limited",
+        "Global IT Services",
+        'Sattva IT Solutions'
     ];
     const randomIndex = Math.floor(Math.random() * companies.length);
     return companies[randomIndex];
@@ -122,16 +131,16 @@ const addNewBusinessAccount = catchAsync(async (req, res) => {
             gstin,
             businessName: getRandomCompanyName()
         }
-  
+
         const [businessAccount, analysts, managers] = await Promise.all([
             // Step 6 : Create Merchant Business Account
             Business.create(businessPayload),
 
             // Fetch Analysts
-            Analyst.findAll({ where: { merchantId: userId }, attributes: ['id', 'firebaseId', 'staffRole'], raw: true }),
+            Analyst.findAll({ where: { merchantId: userId }, attributes: ['id', 'firebaseId', 'staffRole', 'selectedBusinessId'], raw: true }),
 
             // Fetch Managers to Map Business Account
-            Manager.findAll({ where: { merchantId: userId }, attributes: ['id', 'firebaseId', 'staffRole'], raw: true })
+            Manager.findAll({ where: { merchantId: userId }, attributes: ['id', 'firebaseId', 'staffRole', 'selectedBusinessId'], raw: true })
         ]);
         console.log("business: ", businessAccount);
 
@@ -157,6 +166,23 @@ const addNewBusinessAccount = catchAsync(async (req, res) => {
             console.log("After creating :", data);
         }
 
+        // Attach created business account to Staff , who don't have selected business
+        const analystIds = analysts?.filter((analyst) => !analyst?.selectedBusinessId)?.map((analyst) => analyst?.id);
+        const managerIds = managers?.filter((manager) => !manager?.selectedBusinessId)?.map((manager) => manager?.id);
+
+        // Set business as default for the staff if not added
+        if (analystIds.length > 0) {
+            await Analyst.update(
+                { selectedBusinessId: businessAccount.id },
+                { where: { id: { [Op.in]: analystIds } } }
+            );
+        }
+        if (managerIds.length > 0) {
+            await Manager.update(
+                { selectedBusinessId: businessAccount.id },
+                { where: { id: { [Op.in]: managerIds } } }
+            );
+        }
 
         // Step 8 : Return Payload
 

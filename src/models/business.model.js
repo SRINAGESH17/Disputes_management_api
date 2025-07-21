@@ -50,6 +50,12 @@ class Business extends Model {
             as: "businessLogs"
         });
 
+        // Business Has Many Attachments
+        Business.hasMany(models.Attachment, {
+            foreignKey: 'businessId',
+            as: "businessAttachments"
+        });
+
     }
 
 }
