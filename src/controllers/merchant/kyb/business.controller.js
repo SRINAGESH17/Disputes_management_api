@@ -216,9 +216,61 @@ const addNewBusinessAccount = catchAsync(async (req, res) => {
     }
 });
 
+// Controller to fetch merchant business accounts
+const fetchMerchantBusinessAccounts = catchAsync(async (req, res) => {
+    try {
+        // Step-1 Destructuring currUser and userRole from request
+        const { currUser, userRole } = req;
+        
+        // Step-2 Validate currUser and userRole are authorization
+        if (!currUser && !userRole?.merchant) {
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.YouAreNotAuthorized);
+        }
+
+        // Step-3 fetching all Businesses of merchant with merchant id
+        const businesses = await Business.findAll({
+            where: { merchantId: userRole.userId },
+            attributes: ['businessName', 'customBusinessId', 'gstin', 'gateways'],
+            raw: true,
+        });
+
+        // Step-4 Throwing error message if business length is Zero
+        if (_.isEmpty(businesses)) {
+            throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.fieldNotFound('Businesses'));
+        }
+
+        // Step-5 Sending success response
+        return res.status(200).json(
+            success_response(
+                statusCodes.OK,
+                "Fetched Merchant Business Accounts Successfully",
+                {
+                    message: "Business Accounts Successfully",
+                    businesses
+                },
+                true
+            ))
+    } catch (error) {
+        console.log("Error in Fetch Merchant Business Accounts controller : ", error?.message);
+        // Step-6 Sending Error response
+        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR)
+            .json(
+                failed_response(
+                    error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
+                    "Failed to Fetch Merchant Business Accounts",
+                    {
+                        message: error?.message || "Fetch Merchant Business Accounts Failed",
+                    },
+                    false
+                )
+            );
+    }
+});
+
 
 const businessController = {
-    addNewBusinessAccount
+    addNewBusinessAccount,
+    fetchMerchantBusinessAccounts
 }
 
 export default businessController;
