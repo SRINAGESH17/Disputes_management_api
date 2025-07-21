@@ -55,10 +55,13 @@ const AppErrorCode = {
     userRoleNotFound: "User Role Not Found.",
     YouAreNotAuthorized: "You Are Not Authorized.",
     NoGatewaysFound: "No Gateways Found.",
-    
+    DocumentsAlreadyAccepted: "Documents accepted. No further submissions allowed.",
+    disputeCannotAccept: "Cannot Accept — Dispute Is Not in a Valid Phase.",
+    disputeCannotField: (field) => (`Cannot ${field} — Dispute Is Not in a Valid Phase.`),
 
 
-    fieldAlreadyRegistered : (field) => (`${field} Already Registered!`),
+
+    fieldAlreadyRegistered: (field) => (`${field} Already Registered!`),
     validFieldIsRequired: (field) => (`Valid ${field} is required.`),
     InvalidFieldFormat: (field) => (`Invalid ${field} Format.`),
     notAbleToCreateField: (field) => (`Not Able to Create ${field}.`),
@@ -66,11 +69,11 @@ const AppErrorCode = {
     fieldNotExist: (field) => (`${field} Not Exist.`),
     fieldAlreadyExist: (field) => (`${field} Already Exist.`),
     fieldIsRequired: (field) => (`${field} is required.`),
-    fieldNotAuthorized :(field) => (`${field} Not Authorized` ),
-    UnAuthorizedField :(field) => (`UnAuthorized ${field}` ),
-    InvalidField: (field)=> (`Invalid ${field}`),
-    InvalidFieldValue: (field)=> (`Invalid ${field} Value`),
-    InvalidField1MustBeValidField2: (field1,field2)=> (`Invalid ${field1}. Must Be Valid ${field2}`)
+    fieldNotAuthorized: (field) => (`${field} Not Authorized`),
+    UnAuthorizedField: (field) => (`UnAuthorized ${field}`),
+    InvalidField: (field) => (`Invalid ${field}`),
+    InvalidFieldValue: (field) => (`Invalid ${field} Value`),
+    InvalidField1MustBeValidField2: (field1, field2) => (`Invalid ${field1}. Must Be Valid ${field2}`),
 }
 
 export default AppErrorCode;

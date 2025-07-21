@@ -47,6 +47,16 @@ class Analyst extends Model {
             as: 'disputes',
         });
 
+        // Analyst has Many Attachments
+        Analyst.hasMany(models.Attachment, {
+            foreignKey: 'userUploadedId',
+            constraints: false,
+            scope: {
+                user_uploaded_ref: 'ANALYST' // ← matches SQL column name
+            },
+            as: 'analystUploads'
+        });
+
     };
 }
 
