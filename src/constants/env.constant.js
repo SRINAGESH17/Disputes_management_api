@@ -53,6 +53,11 @@ const RABBITMQ_URL = getEnv('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
 const RABBITMQ_EXCHANGE = getEnv('RABBITMQ_EXCHANGE');
 const RABBITMQ_QUEUE_NAME = getEnv('RABBITMQ_QUEUE_NAME');
 const RABBITMQ_WH_ROUTING_KEY = getEnv('RABBITMQ_WH_ROUTING_KEY');
+
+const BUCKET_REGION = getEnv('BUCKET_REGION');
+const BUCKET_ACCESS_ID = getEnv('BUCKET_ACCESS_ID');
+const BUCKET_SECRET_ACCESS_KEY = getEnv('BUCKET_SECRET_ACCESS_KEY');
+
 // just add it
 const env = {
     NODE_ENV,
@@ -76,7 +81,13 @@ const env = {
     RABBITMQ_URL,
     RABBITMQ_EXCHANGE,
     RABBITMQ_QUEUE_NAME,
-    RABBITMQ_WH_ROUTING_KEY
+    RABBITMQ_WH_ROUTING_KEY,
+
+
+    // AWS Bucket
+    BUCKET_REGION,
+    BUCKET_ACCESS_ID,
+    BUCKET_SECRET_ACCESS_KEY
 }
 
 export default env;

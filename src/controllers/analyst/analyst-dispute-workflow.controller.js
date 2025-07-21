@@ -33,7 +33,7 @@ const analystAssignedDisputes = catchAsync(async (req, res) => {
                     {
                         totalPages: 0,
                         totalDisputes: 0,
-                        page: 1,
+                        page: 0,
                         limit: 10,
                         disputes: []
                     },
@@ -190,7 +190,7 @@ const analystProcessedDisputes = catchAsync(async (req, res) => {
                     {
                         totalPages: 0,
                         totalDisputes: 0,
-                        page: 1,
+                        page: 0,
                         limit: 10,
                         disputes: []
                     },

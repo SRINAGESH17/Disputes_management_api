@@ -178,7 +178,7 @@ const getUserRole = async (req, res, next) => {
         req.currUser["userId"] = Role.userId;
         req.authId = req.currUser.uid;
 
-        console.time("Find Role!");
+        console.timeEnd("Find Role!");
 
         console.time("User BusinessId");
         // Get Merchant Business Id
