@@ -1,6 +1,7 @@
 import express from 'express';
-import { verifyAnalyst } from '../middlewares/auth.middleware.js';
+import { verifyAnalyst, verifyMerchant } from '../middlewares/auth.middleware.js';
 import analystDisputeWorkflowController from '../controllers/analyst/analyst-dispute-workflow.controller.js';
+import analystProfileController from '../controllers/analyst/analyst-profile.controller.js';
 
 const router = express.Router();
 
@@ -26,6 +27,17 @@ router.get(
     '/disputes/process/:status',
     verifyAnalyst,
     analystDisputeWorkflowController.analystProcessedDisputes
+);
+
+
+// 8. Fetch Analyst Profile
+// @route  : GET /api/v2/analyst/profile
+// @desc   : Fetch Analyst Profile
+// @access : Private to Analyst Only !
+router.get(
+  '/profile',
+  verifyAnalyst,
+  analystProfileController.getAnalystProfile
 );
 
 
