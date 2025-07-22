@@ -80,10 +80,15 @@ class Dispute extends Model {
 
         // Dispute Has Many History Records
         Dispute.hasMany(models.DisputeHistory, {
-            foreignKey: "disputeId", 
+            foreignKey: "disputeId",
             as: 'disputeHistories',
         });
-        
+
+        // Dispute Has Many Attachments documents
+        Dispute.hasMany(models.Attachment, {
+            foreignKey: "disputeId",
+            as: 'disputeAttachments',
+        });
     };
 }
 
@@ -329,5 +334,12 @@ Dispute.init({
     ]
 
 });
+
+// Requirements
+
+/*
+Indexes
+    1. UpdatedAt - for fetching latest updated disputes
+*/
 
 export default Dispute;
