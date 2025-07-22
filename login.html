@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Login</title>
+  </head>
+  <body class="bg-gray-200 h-screen flex items-center justify-center">
+    <div class="px-4 py-6 rounded-md shadow-lg bg-white w-96 space-y-5">
+      <h1 class="text-gray-700 text-xl text-center font-semibold">
+        Firebase Login
+      </h1>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Email</label>
+          <input
+            aria-label="email-required"
+            type="text"
+            id="email"
+            class="w-full p-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Password</label>
+          <input
+            aria-label="email-register-password"
+            type="password"
+            id="password"
+            class="w-full p-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+        <button
+          onclick="loginUser()"
+          class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
+        >
+          Login
+        </button>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js";
+      import {
+        getAuth,
+        signInWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+      //   import { firebaseConfig } from "http:localhost:5000/firebase";
+
+      // Razzaks
+      // const firebaseConfig = {
+      //   apiKey: "AIzaSyBEQ0mA4IEdUTzKTpb4o5lBOMG5tR0K6p4",
+      //   authDomain: "dispute-management-syste-92e41.firebaseapp.com",
+      //   projectId: "dispute-management-syste-92e41",
+      //   storageBucket: "dispute-management-syste-92e41.firebasestorage.app",
+      //   messagingSenderId: "445717256151",
+      //   appId: "1:445717256151:web:9199ec74f928a6b98f9d92",
+      //   measurementId: "G-T9J2YXG3QM",
+      // };
+
+      // Hari
+      const firebaseConfig = {
+        apiKey: "AIzaSyDKVM1BuuO5oxevDbaDeMhqQg73umAyQHs",
+        authDomain: "tharun-test-project.firebaseapp.com",
+        projectId: "tharun-test-project",
+        storageBucket: "tharun-test-project.firebasestorage.app",
+        messagingSenderId: "1021896335917",
+        appId: "1:1021896335917:web:810f34c1a9cc7ce4d7cea4",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const auth = getAuth(app);
+
+      window.loginUser = async function () {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        try {
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          console.log(
+            "Login Authentication Token",
+            userCredential.user.accessToken
+          );
+          // alert("Login successful! Welcome " + userCredential.user.displayName);
+        } catch (error) {
+          alert("Login failed: " + error.message);
+        }
+      };
+    </script>
+  </body>
+</html>
