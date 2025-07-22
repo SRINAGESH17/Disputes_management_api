@@ -1,5 +1,5 @@
 import express from 'express';
-import { verifyAnalyst, verifyMerchant } from '../middlewares/auth.middleware.js';
+import { verifyAnalyst } from '../middlewares/auth.middleware.js';
 import analystDisputeWorkflowController from '../controllers/analyst/analyst-dispute-workflow.controller.js';
 import analystProfileController from '../controllers/analyst/analyst-profile.controller.js';
 

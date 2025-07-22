@@ -1,4 +1,3 @@
-import _ from "lodash";
 import statusCodes from "../../constants/status-codes.constant.js";
 import catchAsync from "../../utils/catch-async.util.js";
 import { failed_response, success_response } from "../../utils/response.util.js";
