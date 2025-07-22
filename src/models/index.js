@@ -13,6 +13,8 @@ import DisputeHistory from "./dispute-history.model.js";
 import StaffAssignmentState from "./staff-assign-state.model.js";
 import Payload from "./payload.model.js";
 import Notification from "./notification.model.js";
+import Attachment from './attachment.model.js';
+import RejectFeedback from './reject-feedback.model.js';
 
 
 
@@ -31,6 +33,8 @@ const db = {
     StaffAssignmentState,
     Payload,
     Notification,
+    Attachment,
+    RejectFeedback
 };
 
 Object.values(db).forEach(model => {

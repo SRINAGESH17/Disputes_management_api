@@ -131,6 +131,17 @@ class Merchant extends Model {
             foreignKey: "merchantId",
             as: 'merchantLastStaff',
         });
+
+        
+        // Merchant has Many Attachments
+        Merchant.hasMany(models.Attachment, {
+            foreignKey: 'userUploadedId',
+            constraints: false,
+            scope: {
+                user_uploaded_ref: 'MERCHANT' // ← matches SQL column name
+            },
+            as: 'merchantUploads'
+        });
     };
 }
 

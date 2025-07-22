@@ -9,6 +9,7 @@ import Business from "../../../models/business.model.js";
 import Analyst from "../../../models/analyst.model.js";
 import Manager from "../../../models/manager.model.js";
 import StaffBusinessMap from "../../../models/staff-business-map.model.js";
+import { Op } from "sequelize";
 
 
 
@@ -49,7 +50,15 @@ function getRandomCompanyName() {
         "TechNova Solutions Pvt Ltd",
         "BluePeak Systems LLP",
         "GreenLeaf Enterprises",
-        "QuantumSoft Technologies"
+        "QuantumSoft Technologies",
+        "Microsoft Technologies",
+        "Deloitte Group of Technologies",
+        "Google Private Limited",
+        "Amazon Group Of Services",
+        "Brainwave Labs Private Limited",
+        "DigioSquad Private Limited",
+        "Global IT Services",
+        'Sattva IT Solutions'
     ];
     const randomIndex = Math.floor(Math.random() * companies.length);
     return companies[randomIndex];
@@ -122,16 +131,16 @@ const addNewBusinessAccount = catchAsync(async (req, res) => {
             gstin,
             businessName: getRandomCompanyName()
         }
-  
+
         const [businessAccount, analysts, managers] = await Promise.all([
             // Step 6 : Create Merchant Business Account
             Business.create(businessPayload),
 
             // Fetch Analysts
-            Analyst.findAll({ where: { merchantId: userId }, attributes: ['id', 'firebaseId', 'staffRole'], raw: true }),
+            Analyst.findAll({ where: { merchantId: userId }, attributes: ['id', 'firebaseId', 'staffRole', 'selectedBusinessId'], raw: true }),
 
             // Fetch Managers to Map Business Account
-            Manager.findAll({ where: { merchantId: userId }, attributes: ['id', 'firebaseId', 'staffRole'], raw: true })
+            Manager.findAll({ where: { merchantId: userId }, attributes: ['id', 'firebaseId', 'staffRole', 'selectedBusinessId'], raw: true })
         ]);
         console.log("business: ", businessAccount);
 
@@ -157,6 +166,23 @@ const addNewBusinessAccount = catchAsync(async (req, res) => {
             console.log("After creating :", data);
         }
 
+        // Attach created business account to Staff , who don't have selected business
+        const analystIds = analysts?.filter((analyst) => !analyst?.selectedBusinessId)?.map((analyst) => analyst?.id);
+        const managerIds = managers?.filter((manager) => !manager?.selectedBusinessId)?.map((manager) => manager?.id);
+
+        // Set business as default for the staff if not added
+        if (analystIds.length > 0) {
+            await Analyst.update(
+                { selectedBusinessId: businessAccount.id },
+                { where: { id: { [Op.in]: analystIds } } }
+            );
+        }
+        if (managerIds.length > 0) {
+            await Manager.update(
+                { selectedBusinessId: businessAccount.id },
+                { where: { id: { [Op.in]: managerIds } } }
+            );
+        }
 
         // Step 8 : Return Payload
 
@@ -190,9 +216,61 @@ const addNewBusinessAccount = catchAsync(async (req, res) => {
     }
 });
 
+// Controller to fetch merchant business accounts
+const fetchMerchantBusinessAccounts = catchAsync(async (req, res) => {
+    try {
+        // Step-1 Destructuring currUser and userRole from request
+        const { currUser, userRole } = req;
+        
+        // Step-2 Validate currUser and userRole are authorization
+        if (!currUser && !userRole?.merchant) {
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.YouAreNotAuthorized);
+        }
+
+        // Step-3 fetching all Businesses of merchant with merchant id
+        const businesses = await Business.findAll({
+            where: { merchantId: userRole.userId },
+            attributes: ['businessName', 'customBusinessId', 'gstin', 'gateways'],
+            raw: true,
+        });
+
+        // Step-4 Throwing error message if business length is Zero
+        if (_.isEmpty(businesses)) {
+            throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.fieldNotFound('Businesses'));
+        }
+
+        // Step-5 Sending success response
+        return res.status(200).json(
+            success_response(
+                statusCodes.OK,
+                "Fetched Merchant Business Accounts Successfully",
+                {
+                    message: "Business Accounts Successfully",
+                    businesses
+                },
+                true
+            ))
+    } catch (error) {
+        console.log("Error in Fetch Merchant Business Accounts controller : ", error?.message);
+        // Step-6 Sending Error response
+        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR)
+            .json(
+                failed_response(
+                    error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
+                    "Failed to Fetch Merchant Business Accounts",
+                    {
+                        message: error?.message || "Fetch Merchant Business Accounts Failed",
+                    },
+                    false
+                )
+            );
+    }
+});
+
 
 const businessController = {
-    addNewBusinessAccount
+    addNewBusinessAccount,
+    fetchMerchantBusinessAccounts
 }
 
 export default businessController;

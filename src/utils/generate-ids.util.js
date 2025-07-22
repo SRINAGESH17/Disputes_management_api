@@ -120,48 +120,63 @@ async function uniqueMerchantId(mobileDigits) {
 }
 //********************************************* For Staff ***********************************8 */
 
-function generateAnalystID(mobileDigits) {
-    const prefix = 'BZA';
-    let numbering = Date.now().toString();
-    numbering = numbering.split('').reverse().join('');
-    if (numbering.length > 12) {
-        numbering = numbering.slice(0, 8); // take first 8 after reversal
-    } else if (numbering.length < 12) {
-        const randomPad = Math.floor(Math.random() * Math.pow(10, 12 - numbering.length))
-            .toString()
-            .padStart(8 - numbering.length, '0');
-        numbering = numbering + randomPad;
-        numbering = numbering.split('').reverse().join('');
-        numbering = numbering.slice(0, 8);
-    }
-    return `${prefix}${mobileDigits}${numbering}`;
-}
-function generateManagerID(mobileDigits) {
-    const prefix = 'BZM';
-    let numbering = Date.now().toString();
-    numbering = numbering.split('').reverse().join('');
-    if (numbering.length > 12) {
-        numbering = numbering.slice(0, 8); // take first 8 after reversal
-    } else if (numbering.length < 12) {
-        const randomPad = Math.floor(Math.random() * Math.pow(10, 12 - numbering.length))
-            .toString()
-            .padStart(8 - numbering.length, '0');
-        numbering = numbering + randomPad;
-        numbering = numbering.split('').reverse().join('');
-        numbering = numbering.slice(0, 8);
-    }
-    return `${prefix}${mobileDigits}${numbering}`;
-}
+// function generateAnalystID(mobileDigits) {
+//     const prefix = 'BZA';
+//     let numbering = Date.now().toString();
+//     numbering = numbering.split('').reverse().join('');
+//     if (numbering.length > 12) {
+//         numbering = numbering.slice(0, 8); // take first 8 after reversal
+//     } else if (numbering.length < 12) {
+//         const randomPad = Math.floor(Math.random() * Math.pow(10, 12 - numbering.length))
+//             .toString()
+//             .padStart(8 - numbering.length, '0');
+//         numbering = numbering + randomPad;
+//         numbering = numbering.split('').reverse().join('');
+//         numbering = numbering.slice(0, 8);
+//     }
+//     return `${prefix}${mobileDigits}${numbering}`;
+// }
+// function generateManagerID(mobileDigits) {
+//     const prefix = 'BZM';
+//     let numbering = Date.now().toString();
+//     numbering = numbering.split('').reverse().join('');
+//     if (numbering.length > 12) {
+//         numbering = numbering.slice(0, 8); // take first 8 after reversal
+//     } else if (numbering.length < 12) {
+//         const randomPad = Math.floor(Math.random() * Math.pow(10, 12 - numbering.length))
+//             .toString()
+//             .padStart(8 - numbering.length, '0');
+//         numbering = numbering + randomPad;
+//         numbering = numbering.split('').reverse().join('');
+//         numbering = numbering.slice(0, 8);
+//     }
+//     return `${prefix}${mobileDigits}${numbering}`;
+// }
 
 async function uniqueStaffId(mobileDigits, role) {
-    let mid = role?.toLowerCase() === 'analyst' ? generateAnalystID(mobileDigits) : generateManagerID(mobileDigits);
+    // let mid = role?.toLowerCase() === 'analyst' ? generateAnalystID(mobileDigits) : generateManagerID(mobileDigits);
 
     // const isExist = await Staff.findOne({ where: { staffId: mid }, attributes: ['email'], raw: true });
 
     // if (!_.isEmpty(isExist)) {
     //     return uniqueStaffId(mobileDigits);
     // }
-    return mid;
+    // return mid;
+
+    const prefix = role?.toLowerCase() === 'analyst' ? 'BZA' : 'BZM'
+    let numbering = Date.now().toString();
+    numbering = numbering.split('').reverse().join('');
+    if (numbering.length > 12) {
+        numbering = numbering.slice(0, 8); // take first 8 after reversal
+    } else if (numbering.length < 12) {
+        const randomPad = Math.floor(Math.random() * Math.pow(10, 12 - numbering.length))
+            .toString()
+            .padStart(8 - numbering.length, '0');
+        numbering = numbering + randomPad;
+        numbering = numbering.split('').reverse().join('');
+        numbering = numbering.slice(0, 8);
+    }
+    return `${prefix}${mobileDigits}${numbering}`;
 }
 
 //************************************* For Disputes *************************************88 */

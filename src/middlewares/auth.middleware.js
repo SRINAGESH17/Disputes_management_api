@@ -105,7 +105,6 @@ const getAuthToken = (req, res, next) => {
     next();
 }
 
-
 // AUTH : Verify Auth Token From Headers
 const auth = (req, res, next) => {
     getAuthToken(req, res, async () => {
@@ -143,7 +142,6 @@ const auth = (req, res, next) => {
     });
 };
 
-
 // To Get User Role and business or Permissions
 const getUserRole = async (req, res, next) => {
     const fireBaseId = req.currUser.uid;
@@ -180,7 +178,7 @@ const getUserRole = async (req, res, next) => {
         req.currUser["userId"] = Role.userId;
         req.authId = req.currUser.uid;
 
-        console.time("Find Role!");
+        console.timeEnd("Find Role!");
 
         console.time("User BusinessId");
         // Get Merchant Business Id
@@ -223,7 +221,6 @@ const getUserRole = async (req, res, next) => {
     }
 };
 
-
 // To Verify the Merchant
 const verifyMerchant = (req, res, next) => {
     auth(req, res, async () => {
@@ -247,6 +244,7 @@ const verifyMerchant = (req, res, next) => {
         });
     });
 };
+
 // To Verify the Manager
 const verifyManager = (req, res, next) => {
     auth(req, res, async () => {
@@ -345,6 +343,32 @@ const verifyMerchantOrAnalyst = (req, res, next) => {
     });
 };
 // To Verify the User Coming from the Request like Manager or Merchant or Analyst
+const verifyUser = (req, res, next) => {
+    auth(req, res, async () => {
+        getUserRole(req, res, async () => {
+
+            if (req?.userRole?.merchant || req?.userRole?.analyst || req?.userRole?.manager) {
+                req.authId = req.currUser.uid;
+                console.log("Verified Merchant or Analyst or Manager")
+                next();
+            }
+            else {
+                // return res.status(403).json(failed_response(403, "you are not authorized User", {}, false));
+                return res.status(statusCodes.FORBIDDEN).json(
+                    failed_response(
+                        statusCodes.FORBIDDEN,
+                        'You are not authorized to access this resource',
+                        { message: 'Unauthorized user' },
+                        false
+                    )
+                );
+            }
+        });
+    });
+};
+
+
+// Verify Platform User
 const verifyUser = (req, res, next) => {
     auth(req, res, async () => {
         getUserRole(req, res, async () => {
