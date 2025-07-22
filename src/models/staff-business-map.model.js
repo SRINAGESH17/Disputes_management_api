@@ -80,5 +80,9 @@ StaffBusinessMap.init({
     ]
 });
 
+// Requirements for The Model
+// Indexes
+// 1. Combined Index on (business_Id, staff_id)
+
 
 export default StaffBusinessMap;

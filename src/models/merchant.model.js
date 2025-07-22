@@ -302,7 +302,7 @@ Merchant.init({
             fields: ["firebase_id"]
         },
         {
-            fields: ['active_business_id']
+            fields: ['selected_business_id']
         }
     ]
 });
