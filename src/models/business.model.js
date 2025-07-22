@@ -1,5 +1,3 @@
-
-
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database.config.js';
 
@@ -48,6 +46,12 @@ class Business extends Model {
         Business.hasMany(models.DisputeLog, {
             foreignKey: 'businessId',
             as: "businessLogs"
+        });
+
+        // Business Has Many Attachments
+        Business.hasMany(models.Attachment, {
+            foreignKey: 'businessId',
+            as: "businessAttachments"
         });
 
     }

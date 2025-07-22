@@ -5,15 +5,24 @@ import { failed_response, success_response } from "../../../utils/response.util.
 import { GatewayNames } from "../../../constants/gateways.constant.js";
 import AppError from "../../../utils/app-error.util.js";
 import AppErrorCode from "../../../constants/app-error-codes.constant.js";
-import Merchant from "../../../models/merchant.model.js";
+import DisputeLog from "../../../models/dispute-log.model.js";
+import Business from "../../../models/business.model.js";
 
-// Controller to add a new gateway for the merchant
+// Controller to add a new gateway for the business
 const addGateway = catchAsync(async (req, res) => {
   // step-1 Destructuring currUser and userRole from request
-  const { currUser, userRole } = req;
+  const { currUser, userRole, businessId } = req;
   const { gatewayName } = req.body;
+
   try {
-    // step-2 Validate currUser and userRole are authorization
+    // step-2 Validate merchant selected active business account
+    if (!businessId) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.validFieldIsRequired('Business account')
+      );
+    }
+    // Validate currUser and userRole are authorization
     if (!currUser && !userRole?.merchant) {
       throw new AppError(
         statusCodes.UNAUTHORIZED,
@@ -29,41 +38,50 @@ const addGateway = catchAsync(async (req, res) => {
       );
     }
 
-    // step-4 checking if the gatewayName includes in GatewayNames
-      const isExistingGateway = GatewayNames.includes(gatewayName?.toLowerCase());
+    // step-4 checking if the gatewayName includes in our GatewayNames
+    const isExistingGateway = GatewayNames.includes(gatewayName?.toLowerCase());
 
-    // step-5 if gateway name exists in GatewayNames throwing
+    // step-5 if gateway name exists in GatewayNames throwing error
     if (!isExistingGateway) {
       throw new AppError(
-        statusCodes.BAD_REQUEST,
-        AppErrorCode.InvalidFieldFormat(gatewayName)
+        statusCodes.NOT_FOUND,
+        AppErrorCode.UnAuthorizedField(`gateway ${gatewayName} is exists in our platform`)
       );
-      }
+    }
 
-    // step-6 Check if the gateway already exists for the merchant
-    const existingMerchantGateway = await Merchant.findOne({
-      where: { id: currUser.userId },
-      attributes: ["id", "gateways"],
+    // step-6 Check if the gateway already exists in our business
+    const businessGateway = await Business.findOne({
+      where: { id: businessId },
+      attributes: ["id", "business_name", "gateways"],
       raw: true,
     });
-      const gatewayArray = existingMerchantGateway.gateways;
-      
-    // step-7 checking if the gatewayName includes from merchant gateways
-    if (gatewayArray.includes(gatewayName?.toLowerCase())) {
-        throw new AppError(
-            statusCodes.BAD_REQUEST,
-            `${gatewayName} Gateway is Already Added`
-        );
-      }
 
-    // step-8 pushing new gateway name into merchant gateway's array
-    gatewayArray.push(gatewayName);
+    if (_.isEmpty(businessGateway)) {
+      throw new AppError(
+        statusCodes.NOT_FOUND,
+        AppErrorCode.fieldNotFound(businessGateway.business_name)
+      );
+    }
 
-    // step-9 Save the updated gateways array to the merchant
-    await Merchant.update(
-      { gateways: gatewayArray },
-        { where: { id: currUser.userId } }
+    const existingBusinessGateways = businessGateway?.gateways || [];
+
+    // step-7 checking if the gatewayName includes from business gateways
+    if (existingBusinessGateways.includes(gatewayName?.toLowerCase())) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        `${gatewayName} gateway is already exists`
+      );
+    }
+
+    // step-8 pushing new gateway name into business gateway's array
+    existingBusinessGateways.push(gatewayName);
+
+    // step-9 Save the updated gateways array to the business
+    await Business.update(
+      { gateways: existingBusinessGateways },
+      { where: { id: businessId } },
     );
+
     // step-10 sending success response
     return res
       .status(statusCodes.CREATED)
@@ -94,10 +112,18 @@ const addGateway = catchAsync(async (req, res) => {
 // Controller to fetch all available gateways
 const fetchGateways = catchAsync(async (req, res) => {
   // step-1 Destructuring currUser and userRole from request
-  const { currUser, userRole } = req;
+  const { currUser, userRole, businessId } = req;
 
   try {
-    // step-2 Validate currUser and userRole are authorization
+    // step-2 Validate merchant selected active business account
+    if (!businessId) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.validFieldIsRequired('Business account')
+      );
+    }
+
+    //  Validate currUser and userRole are authorization
     if (!currUser && !userRole.merchant) {
       throw new AppError(
         statusCodes.UNAUTHORIZED,
@@ -105,35 +131,31 @@ const fetchGateways = catchAsync(async (req, res) => {
       );
     }
 
-    // step-3 Check if the gateway already exists for the merchant
-    const existingMerchantGateway = await Merchant.findOne({
-      where: { id: currUser.userId },
-      attributes: ["id", "gateways"],
+    // step-3 Check if the gateway already exists in our business
+    const business = await Business.findOne({
+      where: { id: businessId },
+      attributes: ["id", "business_name", "gateways"],
       raw: true,
     });
-      
+   
 
-    // step-4 throwing an error if gateways not found in merchants
-    if (_.isEmpty(existingMerchantGateway.gateways)) {
+    // step-4 throwing an error if gateways not found in business
+    if (_.isEmpty(business.gateways)) {
       throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.NoGatewaysFound);
     }
 
-    const merchantGateways = existingMerchantGateway.gateways;
-
     // step-5 sending success response
-    return res
-      .status(statusCodes.OK)
-      .json(
-        success_response(
-          statusCodes.OK,
-          "Gateways fetched successfully",
-            {
-                platformGateways: GatewayNames,
-                merchantGateways,
-            },
-          true
-        )
-      );
+    return res.status(statusCodes.OK).json(
+      success_response(
+        statusCodes.OK,
+        "Gateways fetched successfully",
+        {
+          platformGateways: GatewayNames,
+          business,
+        },
+        true
+      )
+    );
   } catch (error) {
     // step-6 sending error response
     console.error("Error fetching gateways:", error);
@@ -150,6 +172,124 @@ const fetchGateways = catchAsync(async (req, res) => {
   }
 });
 
-const gatewayController = { addGateway, fetchGateways };
+// Controller to fetch all dispute logs
+const fetchDisputeLogs = catchAsync(async (req, res) => {
+  // step-1 Destructuring currUser and userRole from request
+  const { currUser, userRole, businessId } = req;
+  const { gateway, page = 1, limit = 2  } = req.query
+  // console.log(currUser, userRole, businessId, gateway)
+
+  try {
+    // step-2 Validate merchant selected active business account
+    if (!businessId) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.validFieldIsRequired('Business account')
+      );
+    }
+
+    // Validate currUser and userRole are authorization
+    if (!currUser && !userRole.merchant) {
+      throw new AppError(
+        statusCodes.UNAUTHORIZED,
+        AppErrorCode.YouAreNotAuthorized
+      );
+    }
+
+    // step-3 Where condition payload
+    const whereCondition = {
+      businessId: businessId
+    };
+
+    // step-4 Gateway Query parameter found then adding to where condition
+    if (gateway) {
+      whereCondition.gateway = gateway.toLowerCase();
+    }
+
+    // Pagination variables
+    const pageNumber = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
+    const pageSize = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 10;
+    const offset = (pageNumber - 1) * pageSize;
+
+    // step-5 fetching all dispute logs with pagination, count, and sorting (latest first)
+    const { rows: existingDisputeLogs, count: totalLogs } = await DisputeLog.findAndCountAll({
+      where: whereCondition,
+      attributes: [
+        "id",
+        "disputeId",
+        "paymentId",
+        "status",
+         "gateway",
+         "eventType",
+        "createdAt",
+        "statusUpdatedAt",
+        "dueDate",
+      ],
+      order: [['createdAt', 'DESC']],
+      offset,
+      limit: pageSize,
+      raw: true,
+    });
+
+    const totalPages = Math.ceil(totalLogs / pageSize);
+
+
+    console.log("existingDisputeLogs", existingDisputeLogs)
+    
+   
+    // Handle page out-of-range error
+    if (totalPages > 0 && pageNumber > totalPages) {
+      return res
+      .status(statusCodes.BAD_REQUEST)
+      .json(
+        failed_response(
+          statusCodes.BAD_REQUEST,
+          `Requested page (${pageNumber}) exceeds total pages (${totalPages}).`,
+          {},
+          false
+        )
+      );
+    }
+    
+    if (existingDisputeLogs.length === 0) {
+      return res
+        .status(statusCodes.NOT_FOUND)
+        .json(failed_response(statusCodes.NOT_FOUND, "No dispute logs found.", {}, false));
+    }
+
+    // step-6 sending success response
+    return res
+      .status(statusCodes.OK)
+      .json(
+        success_response(
+          statusCodes.OK,
+          "Dispute logs fetched successfully",
+           {
+            logs: existingDisputeLogs,
+            totalLogs,
+            totalPages,
+            page: pageNumber,
+            limit: pageSize
+          },
+          true
+        )
+      );
+  } catch (error) {
+    // step-7 sending error response
+    console.error("Error fetching dispute logs:", error);
+    return res
+      .status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR)
+      .json(
+        failed_response(
+          error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
+          "Failed to fetch dispute logs",
+          { message: error.message || "An unexpected error occurred" },
+          false
+        )
+      );
+  }
+});
+
+const gatewayController = { addGateway, fetchGateways, fetchDisputeLogs };
 
 export default gatewayController;
