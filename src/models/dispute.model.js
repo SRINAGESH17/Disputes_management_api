@@ -83,6 +83,7 @@ class Dispute extends Model {
             foreignKey: "disputeId", 
             as: 'disputeHistories',
         });
+        
     };
 }
 

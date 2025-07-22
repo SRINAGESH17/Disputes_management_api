@@ -55,8 +55,8 @@ function getRandomCompanyName() {
     return companies[randomIndex];
 }
 
+// @desc 1. Merchant GSTIN Verification Controller
 const addNewBusinessAccount = catchAsync(async (req, res) => {
-    // @desc  : Merchant GSTIN Verification Controller
     // @route : POST /api/v2/merchant/gstin/verify
     // @access: Private to Merchant Only
     try {
@@ -65,8 +65,6 @@ const addNewBusinessAccount = catchAsync(async (req, res) => {
         const { phone_number: mobileNumber } = req.currUser;
         const { userId, merchant, firebaseId } = req.userRole;
         const { gstin } = req.body;
-        console.log("currUser: ", req.currUser);
-        console.log("userRole: ", req.userRole);
 
         // Step 2 : validate gstin and merchantId
         // 2.1 : Validate merchantId
@@ -105,7 +103,7 @@ const addNewBusinessAccount = catchAsync(async (req, res) => {
         console.log("After fetching business account: ", gstinAccount);
 
         //* Step 4 : Verify GSTIN by Third Party Service
-
+        
         // Step 5 : Generate Payload for business account
         const mobileDigits = mobileNumber.slice(-4);
 
@@ -190,8 +188,9 @@ const addNewBusinessAccount = catchAsync(async (req, res) => {
     }
 });
 
-// Controller to fetch merchant business accounts
+// @desc 2. Fetch Merchant Business Accounts
 const fetchMerchantBusinessAccounts = catchAsync(async (req, res) => {
+    // @route : GET /api/v2/merchant/kyb/gst-all
     try {
         // Step-1 Destructuring currUser and userRole from request
         const { currUser, userRole } = req;

@@ -70,7 +70,7 @@ const AppErrorCode = {
     UnAuthorizedField :(field) => (`UnAuthorized ${field}` ),
     InvalidField: (field)=> (`Invalid ${field}`),
     InvalidFieldValue: (field)=> (`Invalid ${field} Value`),
-    InvalidField1MustBeValidField2: (field1,field2)=> (`Invalid ${field1}. Must Be Valid ${field2}`)
+    InvalidField1MustBeValidField2: (field1,field2)=> (`Invalid ${field1}. Must be greater than ${field2}`)
 }
 
 export default AppErrorCode;

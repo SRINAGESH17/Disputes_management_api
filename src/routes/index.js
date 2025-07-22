@@ -48,15 +48,13 @@ router.post('/webhook/merchant/dispute/:businessId', receiveDisputesWebhook);
 
 
 // 3. Merchant routes
-
-router.use('/api/v2/merchant',merchantRoutes);
-
+router.use('/api/v2/merchant', merchantRoutes);
 
 // 4. Disputes Routes
-router.use('/api/v2/disputes',disputeRoutes);
+router.use('/api/v2/disputes', disputeRoutes);
 
 // 5. Analyst Routes
-router.use('/api/v2/analyst',analystRoutes)
+router.use('/api/v2/analyst', analystRoutes)
 
 
 export default router;
