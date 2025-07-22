@@ -28,13 +28,15 @@ import AppError from "../../../utils/app-error.util.js";
 import AppErrorCode from "../../../constants/app-error-codes.constant.js";
 import { failed_response, success_response } from "../../../utils/response.util.js";
 import statusCodes from "../../../constants/status-codes.constant.js";
+import Business from "../../../models/business.model.js";
 
+// @desc Fetching the Merchant Dashboard
 const merchantProfile = catchAsync(async (req, res) => {
-  // @desc Fetching the Merchant Dashboard
+
+  // @route  :GET /api/v2/merchant/profile
   try {
     // Step 1: Extracting the User and Role From the Request
-
-    const { currUser, userRole } = req;
+    const { currUser, userRole, businessId } = req;
 
     // Step 2: validating the User  is Fetched
 
@@ -62,11 +64,35 @@ const merchantProfile = catchAsync(async (req, res) => {
       );
     }
 
+    if (_.isEmpty(businessId)) {
+      return res.status(statusCodes.OK).json(
+        success_response(
+          statusCodes.OK,
+          "Merchant Profile Fetched Successfully!",
+          {
+            user: currUser?.userId,
+            businessId: null,
+            businessName: null,
+            GSTIN: null,
+          },
+          false
+        )
+      )
+    }
+
+
     // Step 5: Fetching the Merchant From the Database
     const merchant = await Merchant.findByPk(currUser?.userId, {
-      attributes: ["merchantId", "name", "mobileNumber", "email", "gstin"],
-      raw: true,
+      attributes: ["id", "merchantId", "name", "mobileNumber", "email",],
+      include: {
+        model: Business,
+        as: 'businessAccounts',
+        attributes: ['id', 'customBusinessId', "gstin", 'businessName', 'createdAt'],
+        required: false
+      },
+      order: [[{ model: Business, as: "businessAccounts" }, "createdAt", "DESC"]]
     });
+
 
     // Step 6: Returning the Response with the Fetched Merchant
     return res
@@ -75,7 +101,7 @@ const merchantProfile = catchAsync(async (req, res) => {
         success_response(
           statusCodes.OK,
           "Merchant Profile Fetched!",
-          { ...merchant },
+          { merchant },
           true
         )
       );

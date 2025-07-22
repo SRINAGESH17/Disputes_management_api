@@ -1,6 +1,3 @@
-
-
-
 /**
  * @module staffController
  * @description Controller for managing merchant staff (Analyst and Manager).
@@ -8,95 +5,95 @@
  * getting staff status cards, and updating staff status.
  */
 
- /**
-    * Fetches all staff (Analyst and Manager) under the current merchant.
-    * 
-    * Steps:
-    * 1. Extracts current user and user role from the request.
-    * 2. Checks for a search query parameter.
-    * 3. Validates incoming request data:
-    *    - Checks if current user exists.
-    *    - Checks if userId exists.
-    *    - Checks if user has merchant role.
-    * 4. Creates a where clause for data retrieval based on merchantId.
-    * 5. If a search query is provided, adds dynamic filters for staff fields.
-    * 6. Fetches all analysts and managers under the merchant.
-    * 7. Combines all staff into a single array.
-    * 8. Applies pagination to the staff list.
-    * 9. Returns the paginated staff list in the response.
-    * 
-    * @function getAllStaff
-    * @async
-    * @param {Object} req - Express request object, expects currUser, userRole, and query params.
-    * @param {Object} res - Express response object.
-    * @returns {Object} JSON response with paginated staff data.
-    */
+/**
+   * Fetches all staff (Analyst and Manager) under the current merchant.
+   * 
+   * Steps:
+   * 1. Extracts current user and user role from the request.
+   * 2. Checks for a search query parameter.
+   * 3. Validates incoming request data:
+   *    - Checks if current user exists.
+   *    - Checks if userId exists.
+   *    - Checks if user has merchant role.
+   * 4. Creates a where clause for data retrieval based on merchantId.
+   * 5. If a search query is provided, adds dynamic filters for staff fields.
+   * 6. Fetches all analysts and managers under the merchant.
+   * 7. Combines all staff into a single array.
+   * 8. Applies pagination to the staff list.
+   * 9. Returns the paginated staff list in the response.
+   * 
+   * @function getAllStaff
+   * @async
+   * @param {Object} req - Express request object, expects currUser, userRole, and query params.
+   * @param {Object} res - Express response object.
+   * @returns {Object} JSON response with paginated staff data.
+   */
 
- /**
-    * Fetches a particular staff member's data by staffId.
-    * 
-    * Steps:
-    * 1. Extracts current user and user role from the request.
-    * 2. Validates incoming request data:
-    *    - Checks if current user exists.
-    *    - Checks if userId exists.
-    *    - Checks if user has merchant role.
-    *    - Checks if staffId is provided and valid.
-    * 3. Creates a where clause to find the staff by merchantId and staffId.
-    * 4. Determines staff role by staffId prefix and fetches the staff.
-    * 5. Returns the staff data in the response.
-    * 
-    * @function getStaff
-    * @async
-    * @param {Object} req - Express request object, expects currUser, userRole, and staffId param.
-    * @param {Object} res - Express response object.
-    * @returns {Object} JSON response with staff data.
-    */
+/**
+   * Fetches a particular staff member's data by staffId.
+   * 
+   * Steps:
+   * 1. Extracts current user and user role from the request.
+   * 2. Validates incoming request data:
+   *    - Checks if current user exists.
+   *    - Checks if userId exists.
+   *    - Checks if user has merchant role.
+   *    - Checks if staffId is provided and valid.
+   * 3. Creates a where clause to find the staff by merchantId and staffId.
+   * 4. Determines staff role by staffId prefix and fetches the staff.
+   * 5. Returns the staff data in the response.
+   * 
+   * @function getStaff
+   * @async
+   * @param {Object} req - Express request object, expects currUser, userRole, and staffId param.
+   * @param {Object} res - Express response object.
+   * @returns {Object} JSON response with staff data.
+   */
 
- /**
-    * Fetches status cards for all staff under the current merchant.
-    * 
-    * Steps:
-    * 1. Extracts current user and user role from the request.
-    * 2. Validates incoming request data:
-    *    - Checks if current user exists.
-    *    - Checks if userId exists.
-    *    - Checks if user has merchant role.
-    * 3. Creates a where clause to fetch staff by merchantId.
-    * 4. Fetches all analysts and managers' statuses.
-    * 5. Combines all staff and counts active/inactive staff.
-    * 6. Returns total staff and status counts in the response.
-    * 
-    * @function getStaffStatusCards
-    * @async
-    * @param {Object} req - Express request object, expects currUser and userRole.
-    * @param {Object} res - Express response object.
-    * @returns {Object} JSON response with staff status cards.
-    */
+/**
+   * Fetches status cards for all staff under the current merchant.
+   * 
+   * Steps:
+   * 1. Extracts current user and user role from the request.
+   * 2. Validates incoming request data:
+   *    - Checks if current user exists.
+   *    - Checks if userId exists.
+   *    - Checks if user has merchant role.
+   * 3. Creates a where clause to fetch staff by merchantId.
+   * 4. Fetches all analysts and managers' statuses.
+   * 5. Combines all staff and counts active/inactive staff.
+   * 6. Returns total staff and status counts in the response.
+   * 
+   * @function getStaffStatusCards
+   * @async
+   * @param {Object} req - Express request object, expects currUser and userRole.
+   * @param {Object} res - Express response object.
+   * @returns {Object} JSON response with staff status cards.
+   */
 
- /**
-    * Updates the status (ACTIVE/INACTIVE) of a staff member.
-    * 
-    * Steps:
-    * 1. Extracts current user and user role from the request.
-    * 2. Validates incoming request data:
-    *    - Checks if current user exists.
-    *    - Checks if userId exists.
-    *    - Checks if user has merchant role.
-    *    - Checks if staffId is provided and valid.
-    * 3. Creates a where clause to find the staff by merchantId and staffId.
-    * 4. Maps staffId prefix to the appropriate model (Analyst/Manager).
-    * 5. Fetches the staff member.
-    * 6. Toggles the staff status.
-    * 7. Updates the staff status in the database.
-    * 8. Returns the staffId in the response.
-    * 
-    * @function staffStatusUpdate
-    * @async
-    * @param {Object} req - Express request object, expects currUser, userRole, and staffId param.
-    * @param {Object} res - Express response object.
-    * @returns {Object} JSON response with updated staffId.
-    */
+/**
+   * Updates the status (ACTIVE/INACTIVE) of a staff member.
+   * 
+   * Steps:
+   * 1. Extracts current user and user role from the request.
+   * 2. Validates incoming request data:
+   *    - Checks if current user exists.
+   *    - Checks if userId exists.
+   *    - Checks if user has merchant role.
+   *    - Checks if staffId is provided and valid.
+   * 3. Creates a where clause to find the staff by merchantId and staffId.
+   * 4. Maps staffId prefix to the appropriate model (Analyst/Manager).
+   * 5. Fetches the staff member.
+   * 6. Toggles the staff status.
+   * 7. Updates the staff status in the database.
+   * 8. Returns the staffId in the response.
+   * 
+   * @function staffStatusUpdate
+   * @async
+   * @param {Object} req - Express request object, expects currUser, userRole, and staffId param.
+   * @param {Object} res - Express response object.
+   * @returns {Object} JSON response with updated staffId.
+   */
 
 
 import Manager from "../../../models/manager.model.js";
@@ -111,14 +108,18 @@ import statusCodes from "../../../constants/status-codes.constant.js";
 
 
 
+// @desc Fetching all the Staff
 const getAllStaff = catchAsync(async (req, res) => {
-    // @desc Fetching all the Staff
+
+    // @route    : GET/api/v2/merchant/staff/all
     try {
         // Step 1 : Extracting the CurrUser and userRole from the Middleware Request
         const { currUser, userRole } = req;
 
         // Step 2: Checking For Search Operation
         const { search } = req.query;
+
+
 
         // Step 3 : Validating the Incoming Request Data
 
@@ -150,15 +151,17 @@ const getAllStaff = catchAsync(async (req, res) => {
         // matching (iLike/iRegexp) to return results containing or matching the search term in any of these fields.
 
 
-        whereClause[Op.or] = [
-            { staffId: { [Op.iRegexp]: search } },
-            { firstName: { [Op.iLike]: `%${search}%` } },
-            { lastName: { [Op.iLike]: `%${search}%` } },
-            { email: { [Op.iLike]: `%${search}%` } },
-            { mobileNumber: { [Op.iRegexp]: search } },
-            { staffId: { [Op.iLike]: `%${search}%` } },
-            { status: { [Op.iLike]: `%${search}%` } },
-        ];
+        if (search) {
+            whereClause[Op.or] = [
+                { staffId: { [Op.iRegexp]: search } },
+                { firstName: { [Op.iLike]: `%${search}%` } },
+                { lastName: { [Op.iLike]: `%${search}%` } },
+                { email: { [Op.iLike]: `%${search}%` } },
+                { mobileNumber: { [Op.iRegexp]: search } },
+                { staffId: { [Op.iLike]: `%${search}%` } },
+                { status: { [Op.iLike]: `%${search}%` } },
+            ];
+        }
 
 
 
@@ -184,23 +187,32 @@ const getAllStaff = catchAsync(async (req, res) => {
 
         ]);
 
+        console.log(manager);
         // Step 7 :  Storing all the Staff in One variable from above Promise 
         const allStaff = [...manager, ...analyst];
 
+        const totalStaff = allStaff.length;
         // Step 8 : Adding Pagination to the Staff while Fetching
-        const page = parseInt((req.query.page)) || 1;
-        const limit = Math.min(parseInt((req.query.limit) || 10), 20);
-
+        const page = parseInt(req.query.page) || 1;
+        const limit = Math.min(parseInt(req.query.limit) || 10, 25);
         const offset = (page - 1) * limit;
 
+
         const paginatedStaff = allStaff.slice(offset, offset + limit);
+        const totalPages = Math.ceil(totalStaff / limit);
 
         // Step 9 : Returning the Response based on the Conditions
         return res.status(statusCodes.OK).json(
             success_response(
                 statusCodes.OK,
                 "Staff Fetched Successfully!",
-                { paginatedStaff },
+                {
+                    totalPages,
+                    totalStaff,
+                    page,
+                    limit,
+                    paginatedStaff
+                },
                 true
             )
         );
@@ -217,9 +229,10 @@ const getAllStaff = catchAsync(async (req, res) => {
     }
 });
 
-
+// @desc Fetching  Particular Staff Data
 const getStaff = catchAsync(async (req, res) => {
-    // desc Fetching  Particular Staff Data
+
+    // @route   : GET /api/v2/merchant/staff/:staffId
     try {
         // Step 1 : Extracting the CurrUser and userRole from the Middleware Request
         const { currUser, userRole } = req;
@@ -304,7 +317,10 @@ const getStaff = catchAsync(async (req, res) => {
 });
 
 
+// @desc   Getting The Staff Status Cards which are Active and InActive
 const getStaffStatusCards = catchAsync(async (req, res) => {
+
+    // @route  : GET / api/v2/merchant/staff/status
     try {
         // Step 1 : Extracting the CurrUser and userRole from the Middleware Request
         const { currUser, userRole } = req;
@@ -378,8 +394,10 @@ const getStaffStatusCards = catchAsync(async (req, res) => {
 })
 
 
-
+// @desc Updating the Staff Status in Merchant Staff Management 
 const staffStatusUpdate = catchAsync(async (req, res) => {
+
+    // @route  : PUT /api/v2/merchant/staff/:staffId
     try {
 
         // Step 1 : Extracting the CurrUser and userRole from the Middleware Request
@@ -411,7 +429,7 @@ const staffStatusUpdate = catchAsync(async (req, res) => {
 
 
         // step 2.5 : Validating the StaffId length and Prefix
-        if (staffId.startsWith("BZA") || staffId.startsWith("BZM") && staffId.length != 15) {
+        if ((staffId.startsWith("BZA") || staffId.startsWith("BZM")) && staffId.length != 15) {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField("staffId"))
         };
 

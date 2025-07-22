@@ -7,6 +7,8 @@ import sentMobileOTP from '../controllers/msg91/sent-mobile-otp.controller.js';
 import sentForgotPasswordEmailOTP from '../controllers/zepto/sent-forgot-password-otp.controller.js';
 import verifyForgotPasswordEmailOTP from '../controllers/zepto/verify-forgot-password-otp.controller.js';
 import resetUserPassword from '../controllers/forgot-password.controller.js';
+import { verifyUser } from '../middlewares/auth.middleware.js';
+import getUserBusinessProfile from '../controllers/merchant/dashboard/get-user-business-profile.controller.js';
 
 const router = express.Router();
 
@@ -74,5 +76,12 @@ router.post('/forgot-password/verify-email-otp/:email', verifyForgotPasswordEmai
 // @access      : Public
 router.post('/forgot-password/reset-password/:email', resetUserPassword);
 
+
+// ************************************* Business Account ********************************************
+// Fetch User Business Navigation Profile
+// @route       : GET /auth/user/business-profile
+// @desc        : Fetching User Business Profile
+// @access      : Public
+router.get('/user/business-profile', verifyUser, getUserBusinessProfile);
 
 export default router;
