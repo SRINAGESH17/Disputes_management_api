@@ -196,7 +196,8 @@ const getManagerDisputeStatusCards = catchAsync(async (req, res) => {
                         reReceivedDispute: 0,
                         pending: 0,
                         submittedToMerchant: 0,
-                    }
+                    },
+                    true
                 )
             )
         };
@@ -216,7 +217,6 @@ const getManagerDisputeStatusCards = catchAsync(async (req, res) => {
             }
             ]
         };
-
 
         // Step 5 : Fetching all the Dispute Status Card Details 
 
@@ -251,7 +251,6 @@ const getManagerDisputeStatusCards = catchAsync(async (req, res) => {
             totalDisputes: ACCEPTED + REJECTED + SUBMITTED + RESUBMITTED,
             submittedToMerchant: ACCEPTED
         };
-
 
         // Step 9 : returning the Response of the Dispute Status Cards
         return res.status(statusCodes.OK).json(
@@ -388,6 +387,8 @@ const getUpcomingDeadlineDisputes = catchAsync(async (req, res) => {
         const { count: totalDisputes, rows: upcomingDeadlineDisputes } = await Dispute.findAndCountAll({
             where: whereClause,
             attributes: ['id', 'disputeId', 'customId', 'paymentId', 'gateway', 'updatedStageAt', 'lastStageAt', 'reason', 'dueDate', 'state', 'workflowStage', 'createdAt', 'feedback', 'updatedAt'],
+            limit: limit,
+            offset: offset,
             include: [
                 {
                     model: Analyst,
@@ -395,8 +396,6 @@ const getUpcomingDeadlineDisputes = catchAsync(async (req, res) => {
                     attributes: ['firstName', 'lastName']
                 }
             ],
-            limit: limit,
-            offset: offset,
             order: [['dueDate', 'ASC']],
             raw: true,
         })

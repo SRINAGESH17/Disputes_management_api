@@ -11,8 +11,10 @@ const getWeeksInAMonth = (year, month) => {
 
   const firstDateOfMonth = new Date(Date.UTC(year, month, 1));
   const lastDateOfMonth = new Date(Date.UTC(year, month + 1, 0));
+   console.log({ firstDateOfMonth, lastDateOfMonth });
 
   let current = new Date(firstDateOfMonth);
+   console.log({ current });
 
   while (current <= lastDateOfMonth) {
     const weekStart = new Date(current);

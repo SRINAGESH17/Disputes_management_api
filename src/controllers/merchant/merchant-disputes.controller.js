@@ -682,8 +682,10 @@ const getDisputesSubmittedAnalystByStage = catchAsync(async (req, res) => {
     const offset = (page - 1) * limit;
 
     // Step-8: Fetch all disputes submitted by analyst by stage wise with pagination, count, and latest first sorting
-    const { count: totalDisputesCount, rows: disputes } = await Dispute.findAndCountAll({
+    const { count: totalDisputesCount, rows: disputesArr } = await Dispute.findAndCountAll({
       where: whereCondition,
+      offset,
+      limit,
       attributes: [
         "id",
         "customId",
@@ -703,33 +705,62 @@ const getDisputesSubmittedAnalystByStage = catchAsync(async (req, res) => {
         "createdAt",
         "updatedAt"
       ],
+      include: [
+        {
+            model: Analyst,
+            as: 'DisputeAnalyst',
+            attributes: ['firstName', 'lastName']
+        }
+      ],
       order: [['updatedAt', 'DESC']],
-      offset,
-      limit,
       raw: true
     });
 
-    // Step-9: Extract unique analystIds from the disputes
-    const analystIds = [...new Set(disputes.map(d => d.analystId).filter(Boolean))];
+    // // Step-9: Extract unique analystIds from the disputes
+    // const analystIds = [...new Set(disputes.map(d => d.analystId).filter(Boolean))];
 
-    // Step-10: Fetch analyst details using extracted IDs
-    const analysts = await Analyst.findAll({
-      where: { id: analystIds },
-      attributes: ['id', 'firstName', 'lastName'],
-      raw: true
+    // // Step-10: Fetch analyst details using extracted IDs
+    // const analysts = await Analyst.findAll({
+    //   where: { id: analystIds },
+    //   attributes: ['id', 'firstName', 'lastName'],
+    //   raw: true
+    // });
+
+    // // Step-11: Create a map of analystId => full name
+    // const analystMap = {};
+    // analysts.forEach(analyst => {
+    //   analystMap[analyst.id] = `${analyst.firstName || ''} ${analyst.lastName || ''}`.trim();
+    // });
+
+    // // Step-12: Append analystName to each dispute based on analystId
+    // const updatedDisputes = disputes.map(dispute => ({
+    //   analystName: analystMap[dispute.analystId] || null,
+    //   ...dispute,
+    // }));
+
+    const disputes = disputesArr.map((dispute) => {
+      return {
+        id: dispute?.id,
+        disputeId: dispute?.customId,
+        paymentId: dispute?.paymentId,
+        analystId: dispute?.analystId,
+        submittedBy: `${dispute['DisputeAnalyst.firstName']} ${dispute['DisputeAnalyst.lastName']}`,
+        paymentGateway: dispute?.gateway,
+        paymentGatewayStatus: dispute?.state,
+        submittedOn: dispute?.updatedStageAt,
+        submitted: dispute?.isSubmitted,
+        reason_for_dispute: dispute?.reason,
+        respondBy: dispute?.dueDate,
+        lastStage: dispute?.lastStage,
+        feedback: dispute?.feedback,
+        updatedStage: dispute?.updatedStage,
+        lastStageAt: dispute?.lastStageAt,
+        updatedStageAt: dispute?.updatedStageAt,
+        currentStage: dispute?.workflowStage,
+        updated: dispute?.updatedAt,
+        created: dispute?.createdAt,
+      }
     });
-
-    // Step-11: Create a map of analystId => full name
-    const analystMap = {};
-    analysts.forEach(analyst => {
-      analystMap[analyst.id] = `${analyst.firstName || ''} ${analyst.lastName || ''}`.trim();
-    });
-
-    // Step-12: Append analystName to each dispute based on analystId
-    const updatedDisputes = disputes.map(dispute => ({
-      analystName: analystMap[dispute.analystId] || null,
-      ...dispute,
-    }));
 
     // Step-13: Send success response with transformed dispute list
     return res
@@ -743,7 +774,7 @@ const getDisputesSubmittedAnalystByStage = catchAsync(async (req, res) => {
             totalPages: Math.ceil(totalDisputesCount / limit),
             page,
             limit,
-            disputes: updatedDisputes,
+            disputes
           },
           true
         )
