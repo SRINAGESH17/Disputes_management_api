@@ -147,6 +147,26 @@ router.get(
   '/dashboard/gateway-disputes',
   verifyMerchant,
   merchantDashboardController.totalGatewayDisputes
-)
+);
+
+// 2. Fetch Merchant dashboard Gateway Dispute Analytics
+// @route     : GET  /api/v2/merchant/dashboard/gateway-analytics
+// @desc      : Fetch Merchant Business Gateway Dispute Analytics
+// @access    : Private to Merchant Only
+router.get(
+  '/dashboard/gateway-analytics',
+  verifyMerchant,
+  merchantDashboardController.gatewayDisputesAnalytics
+);
+
+// 2. Fetch Merchant dashboard Gateway Dispute Financial Lost
+// @route     : GET  /api/v2/merchant/dashboard/financial-loss
+// @desc      : Fetch Merchant Business Gateway Dispute Financial Loss
+// @access    : Private to Merchant Only
+router.get(
+  '/dashboard/financial-loss',
+  verifyMerchant,
+  merchantDashboardController.fetchBusinessFinancialLost
+);
 
 export default router;

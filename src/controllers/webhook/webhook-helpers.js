@@ -205,7 +205,7 @@ function getInternalDisputeStatusForCashfree(rawStatus = 'initiated') {
         },
         {
             suffix: '_MERCHANT_ACCEPTED',
-            internal_status: 'accepted',
+            internal_status: 'lost',
             internal_sub_status: 'accepted_by_merchant',
             description: 'Merchant accepted the dispute.'
         },
