@@ -340,6 +340,7 @@ Dispute.init({
 /*
 Indexes
     1. UpdatedAt - for fetching latest updated disputes
+    2. createdAt,businessId , For Merchant Dashboard Gateway Analytics
 */
 
 export default Dispute;

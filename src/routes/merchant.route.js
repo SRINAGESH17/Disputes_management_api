@@ -7,6 +7,7 @@ import merchantProfile from "../controllers/merchant/dashboard/merchant-profile.
 import businessController from "../controllers/merchant/kyb/business.controller.js";
 import staffController from '../controllers/merchant/staff/staff.controller.js';
 import merchantDisputeController from "../controllers/merchant/merchant-disputes.controller.js";
+import merchantDashboardController from "../controllers/merchant/dashboard/merchant-dashboard.controller.js";
 
 const router = express.Router();
 
@@ -113,7 +114,7 @@ router.get(
 
 // *********************************************** Merchant Disputes ********************************************************/
 
-// 1. Fetch Internal Dispute States
+// 1.Fetch Internal Dispute States
 // @route  : GET /api/v2/merchant/disputes/states
 // @desc   : Fetch Internal Disputes States
 // @access : Private to merchant Only !
@@ -123,7 +124,7 @@ router.get(
   merchantDisputeController.getDisputeStates
 );
 
-// 2. Fetch Disputes List With Filters
+// 2.Fetch Disputes List With Filters
 // @route  : GET /api/v2/merchant/disputes/list
 // @desc   : Fetch Disputes List with filters
 // @access : Private to merchant Only !
@@ -187,5 +188,91 @@ router.put(
 
 
 
+// 3. Fetch Disputes Reviews With Filters
+// @route  : GET /api/v2/merchant/disputes/reviews
+// @desc   : Fetch Disputes Reviews with filters
+// @access : Private to merchant Only !
+router.get(
+  '/disputes/reviews',
+  verifyMerchant,
+  merchantDisputeController.getDisputesReviews
+);
+
+// 4. Fetch Disputes Submitted by Manager With Filters
+// @route  : GET /api/v2/merchant/disputes/manager/submitted
+// @desc   : Fetch Disputes Submitted by Manager with filters
+// @access : Private to merchant Only !
+router.get(
+  '/disputes/manager/submitted',
+  verifyMerchant,
+  merchantDisputeController.getDisputesSubmittedByManager
+);
+
+
+// 5. Fetch Disputes Submitted Analyst By Stage With Filters
+// @route  : GET /api/v2/merchant/disputes/analyst/:stage
+// @desc   : Fetch Disputes Submitted Analyst by Stage with filters
+// @access : Private to merchant Only !
+router.get(
+  '/disputes/analyst/:stage',
+  verifyMerchant,
+  merchantDisputeController.getDisputesSubmittedAnalystByStage
+);
+
+// 6. Fetch Disputes Reviewed History for Merchant
+// @route  : GET /api/v2/merchant/disputes/reviewed/history
+// @desc   : Fetch reviewed disputes history for the merchant with optional filters
+// @access : Private to merchant only
+router.get(
+  '/disputes/reviewed/history',
+  verifyMerchant,
+  merchantDisputeController.getDisputesReviewedHistory
+);
+
+
+// 7. Update Dispute Submit to Payment Gateway
+// @route  : GET /api/v2/merchant/dispute/submit/payment-gateway
+// @desc   : Update Dispute Submit to Payment Gateway
+// @access : Private to merchant Only !
+router.put(
+  '/dispute/:disputeId/submit/payment-gateway',
+  verifyMerchant,
+  merchantDisputeController.updateDisputeSubmitToPaymentGateway
+);
+
+
+
+
+//********************************************** Merchant Dashboard **************************/
+
+// 1. Fetch Merchant Business Gateways Dispute Count
+// @route     : GET  /api/v2/merchant/dashboard/gateway-disputes
+// @desc      : Fetch The Total number Of Disputes Of Each Gateway Of Business Account
+// @access    : Private to Merchant Only
+router.get(
+  '/dashboard/gateway-disputes',
+  verifyMerchant,
+  merchantDashboardController.totalGatewayDisputes
+);
+
+// 2. Fetch Merchant dashboard Gateway Dispute Analytics
+// @route     : GET  /api/v2/merchant/dashboard/gateway-analytics
+// @desc      : Fetch Merchant Business Gateway Dispute Analytics
+// @access    : Private to Merchant Only
+router.get(
+  '/dashboard/gateway-analytics',
+  verifyMerchant,
+  merchantDashboardController.gatewayDisputesAnalytics
+);
+
+// 2. Fetch Merchant dashboard Gateway Dispute Financial Lost
+// @route     : GET  /api/v2/merchant/dashboard/financial-loss
+// @desc      : Fetch Merchant Business Gateway Dispute Financial Loss
+// @access    : Private to Merchant Only
+router.get(
+  '/dashboard/financial-loss',
+  verifyMerchant,
+  merchantDashboardController.fetchBusinessFinancialLost
+);
 
 export default router;

@@ -7,6 +7,7 @@ import receiveDisputesWebhook from '../controllers/webhook/webhook.controller.js
 import disputeRoutes from './dispute.route.js';
 import analystRoutes from './analyst.route.js';
 import managerRoutes from './manager.route.js';
+import businessRoutes from './business.route.js';
 
 // Default route to test API
 const info = {
@@ -55,7 +56,10 @@ router.use('/api/v2/merchant', merchantRoutes);
 router.use('/api/v2/disputes', disputeRoutes);
 
 // 5. Analyst Routes
-router.use('/api/v2/analyst', analystRoutes)
+router.use('/api/v2/analyst', analystRoutes);
+
+// 6. Business Accounts Routes
+router.use('/api/v2/businesses',businessRoutes);
 
 
 // 5. Manager Routes
