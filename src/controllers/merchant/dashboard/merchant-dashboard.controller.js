@@ -275,9 +275,10 @@ const fetchBusinessFinancialLost = catchAsync(async (req, res) => {
             return res.status(statusCodes.OK).json(
                 success_response(
                     statusCodes.OK,
-                    "Gateway Analytics Fetched Successfully",
+                    "Fetched Dispute Financial Loss Successfully",
                     {
-                        gatewaysAnalytics: [],
+                        totalAmountLost: 0,
+                        financialLoss: [],
                     },
                     true
                 )
@@ -291,7 +292,7 @@ const fetchBusinessFinancialLost = catchAsync(async (req, res) => {
 
 
         // Step 5: Fetch the Business gateway Dispute Counts
-        console.time('Fetch Business Gateway Dispute Analytics');
+        console.time('Fetch Business Gateway Dispute Financial Loss Analytics');
         let gatewaysCount = await Dispute.findAll({
             where: { createdAt: { [Op.gte]: startOfMonth, [Op.lte]: endOfMonth }, businessId },
             attributes: [
@@ -315,7 +316,7 @@ const fetchBusinessFinancialLost = catchAsync(async (req, res) => {
             group: ['gateway'],
             raw: true
         });
-        console.timeEnd('Fetch Business Gateway Dispute Analytics');
+        console.timeEnd('Fetch Business Gateway Dispute Financial Loss Analytics');
 
         let totalAmountLost = 0;
         // Format The Payload
@@ -335,7 +336,7 @@ const fetchBusinessFinancialLost = catchAsync(async (req, res) => {
         return res.status(statusCodes.OK).json(
             success_response(
                 statusCodes.OK,
-                "Fetched Dispute Financial Lost Successfully",
+                "Fetched Dispute Financial Loss Successfully",
                 { totalAmountLost, financialLoss: gatewaysCount },
                 true
             )
@@ -360,11 +361,9 @@ const fetchBusinessFinancialLost = catchAsync(async (req, res) => {
 const fetchDisputeCommonReasonAnalytics = catchAsync(async (req, res) => {
     // @route : GET  /api/v2/merchant/dashboard/reason-analytics
     try {
-        const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
-
         // Step 1 : Extract The User Details From Request
         const { userRole, currUser } = req;
-        const { reason, fromDate, toDate } = req.query;
+        const { reason = "unauthorized transactions", fromDate, toDate } = req.query;
 
         const businessId = req.businessId;
 
@@ -399,9 +398,9 @@ const fetchDisputeCommonReasonAnalytics = catchAsync(async (req, res) => {
             return res.status(statusCodes.OK).json(
                 success_response(
                     statusCodes.OK,
-                    "Gateway Analytics Fetched Successfully",
+                    "Successfully Fetched Common Reason analytics",
                     {
-                        gatewaysAnalytics: [],
+                        reasonAnalytics: [],
                     },
                     true
                 )
@@ -413,11 +412,24 @@ const fetchDisputeCommonReasonAnalytics = catchAsync(async (req, res) => {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('BusinessId'));
         }
 
+        let filter = {};
+
+        if (fromDate || toDate) {
+            filter.createdAt = {};
+            if (fromDate) filter.createdAt[Op.gte] = new Date(fromDate);
+            if (toDate) filter.createdAt[Op.lte] = new Date(toDate);
+        }
+        if (businessId) {
+            filter.businessId = businessId;
+        }
+        if (reason) {
+            filter.reason = { [Op.iRegexp]: reason };
+        }
 
         // Step 5: Fetch the Business gateway Dispute Counts
-        console.time('Fetch Business Gateway Dispute Analytics');
+        console.time('Fetch Business Gateway Dispute Common Reason Analytics');
         let gatewaysCount = await Dispute.findAll({
-            where: { createdAt: { [Op.gte]: new Date(), [Op.lte]: new Date() }, businessId },
+            where: filter,
             attributes: [
                 'gateway',
                 [sequelize.fn('COUNT', sequelize.col('id')), 'totalDisputes'],
@@ -439,7 +451,7 @@ const fetchDisputeCommonReasonAnalytics = catchAsync(async (req, res) => {
             group: ['gateway'],
             raw: true
         });
-        console.timeEnd('Fetch Business Gateway Dispute Analytics');
+        console.timeEnd('Fetch Business Gateway Dispute Common Reason Analytics');
 
         let totalAmountLost = 0;
         // Format The Payload
