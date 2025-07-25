@@ -8,13 +8,13 @@ import AppErrorCode from "../../../constants/app-error-codes.constant.js";
 import DisputeLog from "../../../models/dispute-log.model.js";
 import Business from "../../../models/business.model.js";
 
-// Controller to add a new gateway for the business
+// @desc 1. Controller to add a new gateway for the business
 const addGateway = catchAsync(async (req, res) => {
-  // step-1 Destructuring currUser and userRole from request
+  // @route POST /api/v2/merchant/integration/gateway
+  try {
+     // step-1 Destructuring currUser and userRole from request
   const { currUser, userRole, businessId } = req;
   const { gatewayName } = req.body;
-
-  try {
     // step-2 Validate merchant selected active business account
     if (!businessId) {
       throw new AppError(
@@ -109,12 +109,14 @@ const addGateway = catchAsync(async (req, res) => {
   }
 });
 
-// Controller to fetch all available gateways
+// @desc 2. Controller to fetch all available gateways
 const fetchGateways = catchAsync(async (req, res) => {
+  // @route GET /api/v2/merchant/integration/gateway
+
+   try {
   // step-1 Destructuring currUser and userRole from request
   const { currUser, userRole, businessId } = req;
 
-  try {
     // step-2 Validate merchant selected active business account
     if (!businessId) {
       throw new AppError(
@@ -172,14 +174,14 @@ const fetchGateways = catchAsync(async (req, res) => {
   }
 });
 
-// Controller to fetch all dispute logs
+// @desc 3. Controller to fetch all dispute logs
 const fetchDisputeLogs = catchAsync(async (req, res) => {
+  // @route GET /api/v2/merchant/integration/logs
+    try {
   // step-1 Destructuring currUser and userRole from request
   const { currUser, userRole, businessId } = req;
-  const { gateway, page = 1, limit = 2  } = req.query
-  // console.log(currUser, userRole, businessId, gateway)
-
-  try {
+      const { gateway } = req.query
+      
     // step-2 Validate merchant selected active business account
     if (!businessId) {
       throw new AppError(
@@ -207,55 +209,32 @@ const fetchDisputeLogs = catchAsync(async (req, res) => {
     }
 
     // Pagination variables
-    const pageNumber = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
-    const pageSize = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 10;
-    const offset = (pageNumber - 1) * pageSize;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
 
     // step-5 fetching all dispute logs with pagination, count, and sorting (latest first)
-    const { rows: existingDisputeLogs, count: totalLogs } = await DisputeLog.findAndCountAll({
+    const { count: totalLogs, rows: disputeLogs, } = await DisputeLog.findAndCountAll({
       where: whereCondition,
       attributes: [
         "id",
+        "createdAt",
+        "gateway",
+        "eventType",
         "disputeId",
         "paymentId",
-        "status",
-         "gateway",
-         "eventType",
-        "createdAt",
         "statusUpdatedAt",
         "dueDate",
+        "status",
       ],
       order: [['createdAt', 'DESC']],
       offset,
-      limit: pageSize,
+      limit,
       raw: true,
     });
 
-    const totalPages = Math.ceil(totalLogs / pageSize);
+    const totalPages = Math.ceil(totalLogs / limit);    
 
-
-    console.log("existingDisputeLogs", existingDisputeLogs)
-    
-   
-    // Handle page out-of-range error
-    if (totalPages > 0 && pageNumber > totalPages) {
-      return res
-      .status(statusCodes.BAD_REQUEST)
-      .json(
-        failed_response(
-          statusCodes.BAD_REQUEST,
-          `Requested page (${pageNumber}) exceeds total pages (${totalPages}).`,
-          {},
-          false
-        )
-      );
-    }
-    
-    if (existingDisputeLogs.length === 0) {
-      return res
-        .status(statusCodes.NOT_FOUND)
-        .json(failed_response(statusCodes.NOT_FOUND, "No dispute logs found.", {}, false));
-    }
 
     // step-6 sending success response
     return res
@@ -265,11 +244,11 @@ const fetchDisputeLogs = catchAsync(async (req, res) => {
           statusCodes.OK,
           "Dispute logs fetched successfully",
            {
-            logs: existingDisputeLogs,
             totalLogs,
             totalPages,
-            page: pageNumber,
-            limit: pageSize
+            page,
+            limit,
+            logs: disputeLogs,
           },
           true
         )

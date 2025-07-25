@@ -500,12 +500,6 @@ const staffStatusUpdate = catchAsync(async (req, res) => {
 
 
 
-
-
-
-
-
-
 const staffController = { getAllStaff, getStaff, getStaffStatusCards, staffStatusUpdate };
 
 export default staffController;
