@@ -90,8 +90,6 @@ router.get('/integration/logs', verifyMerchant, gatewayController.fetchDisputeLo
 
 
 
-
-
 //*************************************** KYB ( Know Your Business ) *********************************************************/
 
 // 1. Add Business Account By Verifying GSTIN
@@ -114,7 +112,7 @@ router.get(
   businessController.fetchMerchantBusinessAccounts
 );
 
-// *********************************************** Merchant Disputes ****************************************/
+// *********************************************** Merchant Disputes ********************************************************/
 
 // 1.Fetch Internal Dispute States
 // @route  : GET /api/v2/merchant/disputes/states
@@ -131,10 +129,118 @@ router.get(
 // @desc   : Fetch Disputes List with filters
 // @access : Private to merchant Only !
 router.get(
-  '/list',
+  '/disputes/list',
   verifyMerchant,
   merchantDisputeController.getDisputesList
 );
+
+// 3. Fetch Disputes Reviews With Filters
+// @route  : GET /api/v2/merchant/disputes/reviews
+// @desc   : Fetch Disputes Reviews with filters
+// @access : Private to merchant Only !
+router.get(
+  '/disputes/reviews',
+  verifyMerchant,
+  merchantDisputeController.getDisputesReviews
+);
+
+// 4. Fetch Disputes Submitted by Manager With Filters
+// @route  : GET /api/v2/merchant/disputes/manager/submitted
+// @desc   : Fetch Disputes Submitted by Manager with filters
+// @access : Private to merchant Only !
+router.get(
+  '/disputes/manager/submitted',
+  verifyMerchant,
+  merchantDisputeController.getDisputesSubmittedByManager
+);
+
+
+// 5. Fetch Disputes Submitted Analyst By Stage With Filters
+// @route  : GET /api/v2/merchant/disputes/analyst/:stage
+// @desc   : Fetch Disputes Submitted Analyst by Stage with filters
+// @access : Private to merchant Only !
+router.get(
+  '/disputes/analyst/:stage',
+  verifyMerchant,
+  merchantDisputeController.getDisputesSubmittedAnalystByStage
+);
+
+// 6. Fetch Disputes Reviewed History for Merchant
+// @route  : GET /api/v2/merchant/disputes/reviewed/history
+// @desc   : Fetch reviewed disputes history for the merchant with optional filters
+// @access : Private to merchant only
+router.get(
+  '/disputes/reviewed/history',
+  verifyMerchant,
+  merchantDisputeController.getDisputesReviewedHistory
+);
+
+
+// 7. Update Dispute Submit to Payment Gateway
+// @route  : GET /api/v2/merchant/dispute/submit/payment-gateway
+// @desc   : Update Dispute Submit to Payment Gateway
+// @access : Private to merchant Only !
+router.put(
+  '/dispute/:disputeId/submit/payment-gateway',
+  verifyMerchant,
+  merchantDisputeController.updateDisputeSubmitToPaymentGateway
+);
+
+
+
+// 3. Fetch Disputes Reviews With Filters
+// @route  : GET /api/v2/merchant/disputes/reviews
+// @desc   : Fetch Disputes Reviews with filters
+// @access : Private to merchant Only !
+router.get(
+  '/disputes/reviews',
+  verifyMerchant,
+  merchantDisputeController.getDisputesReviews
+);
+
+// 4. Fetch Disputes Submitted by Manager With Filters
+// @route  : GET /api/v2/merchant/disputes/manager/submitted
+// @desc   : Fetch Disputes Submitted by Manager with filters
+// @access : Private to merchant Only !
+router.get(
+  '/disputes/manager/submitted',
+  verifyMerchant,
+  merchantDisputeController.getDisputesSubmittedByManager
+);
+
+
+// 5. Fetch Disputes Submitted Analyst By Stage With Filters
+// @route  : GET /api/v2/merchant/disputes/analyst/:stage
+// @desc   : Fetch Disputes Submitted Analyst by Stage with filters
+// @access : Private to merchant Only !
+router.get(
+  '/disputes/analyst/:stage',
+  verifyMerchant,
+  merchantDisputeController.getDisputesSubmittedAnalystByStage
+);
+
+// 6. Fetch Disputes Reviewed History for Merchant
+// @route  : GET /api/v2/merchant/disputes/reviewed/history
+// @desc   : Fetch reviewed disputes history for the merchant with optional filters
+// @access : Private to merchant only
+router.get(
+  '/disputes/reviewed/history',
+  verifyMerchant,
+  merchantDisputeController.getDisputesReviewedHistory
+);
+
+
+// 7. Update Dispute Submit to Payment Gateway
+// @route  : GET /api/v2/merchant/dispute/submit/payment-gateway
+// @desc   : Update Dispute Submit to Payment Gateway
+// @access : Private to merchant Only !
+router.put(
+  '/dispute/:disputeId/submit/payment-gateway',
+  verifyMerchant,
+  merchantDisputeController.updateDisputeSubmitToPaymentGateway
+);
+
+
 
 
 //********************************************** Merchant Dashboard **************************/
