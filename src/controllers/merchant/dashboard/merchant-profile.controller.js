@@ -29,6 +29,7 @@ import AppErrorCode from "../../../constants/app-error-codes.constant.js";
 import { failed_response, success_response } from "../../../utils/response.util.js";
 import statusCodes from "../../../constants/status-codes.constant.js";
 import Business from "../../../models/business.model.js";
+import helpers from "../../../utils/helpers.util.js";
 
 // @desc Fetching the Merchant Dashboard
 const merchantProfile = catchAsync(async (req, res) => {
@@ -56,6 +57,12 @@ const merchantProfile = catchAsync(async (req, res) => {
       );
     }
 
+
+    // step 3.1 Validating the BusinessId is UUIDV4
+    if (currUser?.userId && !helpers.isValidUUIDv4(currUser?.userId)) {
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("userId"));
+    }
+
     // step 4 : Validating the User is Merchant or Not
     if (!userRole.merchant) {
       throw new AppError(
@@ -64,6 +71,7 @@ const merchantProfile = catchAsync(async (req, res) => {
       );
     }
 
+    // Step 5 : Checking the BusinessId is coming from the request
     if (_.isEmpty(businessId)) {
       return res.status(statusCodes.OK).json(
         success_response(
@@ -80,6 +88,10 @@ const merchantProfile = catchAsync(async (req, res) => {
       )
     }
 
+    // Step 6 : Validating the Incoming businessId is Valid UUIDV4
+    if (businessId && !helpers.isValidUUIDv4(businessId)) {
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("businessId"))
+    }
 
     // Step 5: Fetching the Merchant From the Database
     const merchant = await Merchant.findByPk(currUser?.userId, {

@@ -1,3 +1,21 @@
+import _ from 'lodash';
+import { Op } from 'sequelize';
+import Dispute from '../../models/dispute.model.js';
+import catchAsync from '../../utils/catch-async.util.js';
+import AppError from '../../utils/app-error.util.js';
+import AppErrorCode from '../../constants/app-error-codes.constant.js';
+import statusCodes from '../../constants/status-codes.constant.js';
+import { success_response, failed_response } from '../../utils/response.util.js';
+import Analyst from '../../models/analyst.model.js';
+import { GatewayNames } from '../../constants/gateways.constant.js';
+
+
+const isValidDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
+}
+
+
 /**
  * @function getSubmittedDisputes
  * @description Fetches the list of disputes assigned to the manager that are in the "SUBMITTED" workflow stage.
@@ -29,89 +47,6 @@
  * 3. Constructs a query to fetch submitted disputes assigned to the manager.
  * 4. Returns a paginated list of disputes or an empty list if business ID is missing.
  */
-
-/**
- * @function getDisputesReviewHistory
- * @description Fetches the review history of disputes processed by the manager, including those that are "ACCEPTED" or "REJECTED".
- *
- * @route GET /api/v2/manager/disputes/reviewed
- *
- * @param {Object} req - Express request object
- * @param {Object} req.currUser - The currently authenticated user object
- * @param {Object} req.userRole - The roles associated with the current user
- * @param {string} req.businessId - The business ID associated with the request
- * @param {Object} req.query - Query parameters for filtering and pagination
- * @param {string} [req.query.fromDate] - Optional filter for disputes reviewed after this date
- * @param {string} [req.query.toDate] - Optional filter for disputes reviewed before this date
- * @param {string} [req.query.status] - Optional filter for dispute workflow stage ("ACCEPTED" or "REJECTED")
- * @param {string} [req.query.reason] - Optional filter for dispute reason
- * @param {string} [req.query.gateway] - Optional filter for payment gateway
- * @param {number} [req.query.page=1] - Page number for pagination
- * @param {number} [req.query.limit=10] - Number of records per page (max 25)
- * @param {Object} res - Express response object
- *
- * @returns {Object} 200 - Success response with paginated list of reviewed disputes
- * @returns {Object} 400 - Bad request if user is not authorized or invalid parameters
- * @returns {Object} 500 - Internal server error if fetching fails
- *
- * @throws {AppError} If the current user, user role, or business ID is invalid, or if query parameters are invalid
- *
- * Steps:
- * 1. Extracts and validates the current user, user role, and business ID.
- * 2. Validates and applies filters for date range, status, reason, and gateway.
- * 3. Constructs a query to fetch disputes reviewed by the manager.
- * 4. Returns a paginated list of reviewed disputes or an empty list if business ID is missing.
- */
-
-/**
- * @function getManagerProcessedDisputes
- * @description Fetches the list of disputes processed by the manager, filtered by workflow stage ("ACCEPTED" or "REJECTED").
- *
- * @route GET /api/v2/manager/disputes/processed/:stage
- *
- * @param {Object} req - Express request object
- * @param {Object} req.currUser - The currently authenticated user object
- * @param {Object} req.userRole - The roles associated with the current user
- * @param {string} req.businessId - The business ID associated with the request
- * @param {Object} req.params - Route parameters
- * @param {string} [req.params.stage] - Workflow stage to filter disputes ("ACCEPTED" or "REJECTED")
- * @param {Object} req.query - Query parameters for filtering and pagination
- * @param {string} [req.query.fromDate] - Optional filter for disputes processed after this date
- * @param {string} [req.query.toDate] - Optional filter for disputes processed before this date
- * @param {string} [req.query.gateway] - Optional filter for payment gateway
- * @param {string} [req.query.search] - Optional search string for custom dispute ID
- * @param {number} [req.query.page=1] - Page number for pagination
- * @param {number} [req.query.limit=10] - Number of records per page (max 25)
- * @param {Object} res - Express response object
- *
- * @returns {Object} 200 - Success response with paginated list of processed disputes
- * @returns {Object} 400 - Bad request if user is not authorized or invalid parameters
- * @returns {Object} 500 - Internal server error if fetching fails
- *
- * @throws {AppError} If the current user, user role, business ID, or stage is invalid, or if query parameters are invalid
- *
- * Steps:
- * 1. Extracts and validates the current user, user role, business ID, and stage.
- * 2. Validates and applies filters for date range, gateway, and search.
- * 3. Constructs a query to fetch processed disputes by the manager for the specified stage.
- * 4. Returns a paginated list of processed disputes or an empty list if business ID is missing.
- */
-import _ from 'lodash';
-import { Op } from 'sequelize';
-import Dispute from '../../models/dispute.model.js';
-import catchAsync from '../../utils/catch-async.util.js';
-import AppError from '../../utils/app-error.util.js';
-import AppErrorCode from '../../constants/app-error-codes.constant.js';
-import statusCodes from '../../constants/status-codes.constant.js';
-import { success_response, failed_response } from '../../utils/response.util.js';
-import Analyst from '../../models/analyst.model.js';
-import { GatewayNames } from '../../constants/gateways.constant.js';
-
-
-const isValidDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return !isNaN(date.getTime());
-}
 
 // @desc Fetching the Assigned Disputes of Manager
 const getSubmittedDisputes = catchAsync(async (req, res) => {
@@ -205,7 +140,10 @@ const getSubmittedDisputes = catchAsync(async (req, res) => {
         }
 
         if (gateway) {
-            whereClause.gateway = gateway.toLowerCase();
+            whereClause[Op.or] = [
+                ...(whereClause[Op.or] || []),
+                { gateway: { [Op.iLike]: `%${gateway}%` } },
+            ];
         }
 
         if (search) {
@@ -282,6 +220,39 @@ const getSubmittedDisputes = catchAsync(async (req, res) => {
     }
 });
 
+
+/**
+ * @function getDisputesReviewHistory
+ * @description Fetches the review history of disputes processed by the manager, including those that are "ACCEPTED" or "REJECTED".
+ *
+ * @route GET /api/v2/manager/disputes/reviewed
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} req.currUser - The currently authenticated user object
+ * @param {Object} req.userRole - The roles associated with the current user
+ * @param {string} req.businessId - The business ID associated with the request
+ * @param {Object} req.query - Query parameters for filtering and pagination
+ * @param {string} [req.query.fromDate] - Optional filter for disputes reviewed after this date
+ * @param {string} [req.query.toDate] - Optional filter for disputes reviewed before this date
+ * @param {string} [req.query.status] - Optional filter for dispute workflow stage ("ACCEPTED" or "REJECTED")
+ * @param {string} [req.query.reason] - Optional filter for dispute reason
+ * @param {string} [req.query.gateway] - Optional filter for payment gateway
+ * @param {number} [req.query.page=1] - Page number for pagination
+ * @param {number} [req.query.limit=10] - Number of records per page (max 25)
+ * @param {Object} res - Express response object
+ *
+ * @returns {Object} 200 - Success response with paginated list of reviewed disputes
+ * @returns {Object} 400 - Bad request if user is not authorized or invalid parameters
+ * @returns {Object} 500 - Internal server error if fetching fails
+ *
+ * @throws {AppError} If the current user, user role, or business ID is invalid, or if query parameters are invalid
+ *
+ * Steps:
+ * 1. Extracts and validates the current user, user role, and business ID.
+ * 2. Validates and applies filters for date range, status, reason, and gateway.
+ * 3. Constructs a query to fetch disputes reviewed by the manager.
+ * 4. Returns a paginated list of reviewed disputes or an empty list if business ID is missing.
+ */
 // @desc Fetching Dispute Reviews History which are Accepted and Rejected
 const getDisputesReviewHistory = catchAsync(async (req, res) => {
     // @route   : GET /api/v2/manager/disputes/reviewed
@@ -383,7 +354,10 @@ const getDisputesReviewHistory = catchAsync(async (req, res) => {
         }
 
         if (gateway) {
-            whereClause.gateway = gateway.toLowerCase();
+            whereClause[Op.or] = [
+                ...(whereClause[Op.or] || []),
+                { gateway: { [Op.iLike]: `%${gateway}%` } },
+            ];
         }
 
 
@@ -454,6 +428,41 @@ const getDisputesReviewHistory = catchAsync(async (req, res) => {
         )
     }
 })
+
+
+/**
+ * @function getManagerProcessedDisputes
+ * @description Fetches the list of disputes processed by the manager, filtered by workflow stage ("ACCEPTED" or "REJECTED").
+ *
+ * @route GET /api/v2/manager/disputes/processed/:stage
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} req.currUser - The currently authenticated user object
+ * @param {Object} req.userRole - The roles associated with the current user
+ * @param {string} req.businessId - The business ID associated with the request
+ * @param {Object} req.params - Route parameters
+ * @param {string} [req.params.stage] - Workflow stage to filter disputes ("ACCEPTED" or "REJECTED")
+ * @param {Object} req.query - Query parameters for filtering and pagination
+ * @param {string} [req.query.fromDate] - Optional filter for disputes processed after this date
+ * @param {string} [req.query.toDate] - Optional filter for disputes processed before this date
+ * @param {string} [req.query.gateway] - Optional filter for payment gateway
+ * @param {string} [req.query.search] - Optional search string for custom dispute ID
+ * @param {number} [req.query.page=1] - Page number for pagination
+ * @param {number} [req.query.limit=10] - Number of records per page (max 25)
+ * @param {Object} res - Express response object
+ *
+ * @returns {Object} 200 - Success response with paginated list of processed disputes
+ * @returns {Object} 400 - Bad request if user is not authorized or invalid parameters
+ * @returns {Object} 500 - Internal server error if fetching fails
+ *
+ * @throws {AppError} If the current user, user role, business ID, or stage is invalid, or if query parameters are invalid
+ *
+ * Steps:
+ * 1. Extracts and validates the current user, user role, business ID, and stage.
+ * 2. Validates and applies filters for date range, gateway, and search.
+ * 3. Constructs a query to fetch processed disputes by the manager for the specified stage.
+ * 4. Returns a paginated list of processed disputes or an empty list if business ID is missing.
+ */
 
 // @desc Get Manager Processed Disputes which are Accepted and Rejected Disputes
 const getManagerProcessedDisputes = catchAsync(async (req, res) => {
@@ -558,7 +567,10 @@ const getManagerProcessedDisputes = catchAsync(async (req, res) => {
             };
         }
         if (gateway) {
-            whereClause.gateway = gateway;
+            whereClause[Op.or] = [
+                ...(whereClause[Op.or] || []),
+                { gateway: { [Op.iLike]: `%${gateway}%` } },
+            ];
         }
 
         if (search) {

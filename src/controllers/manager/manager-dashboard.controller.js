@@ -1,128 +1,3 @@
-/**
- * @function getManagerDisputeStatusCards
- * @description Fetches the dispute status card details for the currently authenticated manager, including counts for accepted, rejected, pending, resubmitted, and total disputes.
- *
- * @route GET /api/v2/manager/disputes/requested/status
- *
- * @param {Object} req - Express request object
- * @param {Object} req.currUser - The currently authenticated user object
- * @param {Object} req.userRole - The roles associated with the current user
- * @param {string|number} req.businessId - The business ID associated with the request
- * @param {Object} res - Express response object
- *
- * @returns {Object} 200 - Success response with dispute status card details
- * @returns {Object} 400 - Bad request if user is not authorized or missing required fields
- * @returns {Object} 500 - Internal server error if fetching fails
- *
- * @throws {AppError} If the current user or user role is invalid
- *
- * Steps:
- * 1. Extracts the current user, user role, and business ID from the request.
- * 2. Validates the presence and authorization of the user.
- * 3. If business ID is missing, returns a default response with zeroed counts.
- * 4. Constructs a query to fetch disputes by workflow stage and manager.
- * 5. Aggregates dispute counts by stage and formats the response.
- * 6. Returns the dispute status card data or throws an error if any validation fails.
- */
-
-/**
- * @function getUpcomingDeadlineDisputes
- * @description Fetches disputes with upcoming deadlines for the currently authenticated manager, supporting filtering by date range, gateway, and dispute ID, with pagination.
- *
- * @route GET /api/v2/manager/disputes/deadline
- *
- * @param {Object} req - Express request object
- * @param {Object} req.currUser - The currently authenticated user object
- * @param {Object} req.userRole - The roles associated with the current user
- * @param {string|number} req.businessId - The business ID associated with the request
- * @param {Object} req.query - Query parameters for filtering and pagination
- * @param {string} [req.query.fromDate] - Start date for filtering disputes
- * @param {string} [req.query.toDate] - End date for filtering disputes
- * @param {string} [req.query.gateway] - Payment gateway for filtering disputes
- * @param {string} [req.query.disputeId] - Dispute ID for search
- * @param {number} [req.query.page=1] - Page number for pagination
- * @param {number} [req.query.limit=10] - Number of results per page (max 25)
- * @param {Object} res - Express response object
- *
- * @returns {Object} 200 - Success response with paginated list of upcoming deadline disputes
- * @returns {Object} 400 - Bad request if user is not authorized or invalid query parameters
- * @returns {Object} 500 - Internal server error if fetching fails
- *
- * @throws {AppError} If the current user or user role is invalid or query parameters are invalid
- *
- * Steps:
- * 1. Extracts the current user, user role, business ID, and query parameters from the request.
- * 2. Validates the presence and authorization of the user.
- * 3. Validates date and gateway query parameters.
- * 4. Constructs a query to fetch disputes with upcoming deadlines and applies filters.
- * 5. Paginates the results and formats the response.
- * 6. Returns the paginated disputes or throws an error if any validation fails.
- */
-
-/**
- * @function getWeekWiseAcceptedDisputes
- * @description Fetches the number of disputes accepted per week for a given month and year for the currently authenticated manager.
- *
- * @route GET /api/v2/manager/disputes/analysis/accepted
- *
- * @param {Object} req - Express request object
- * @param {Object} req.currUser - The currently authenticated user object
- * @param {Object} req.userRole - The roles associated with the current user
- * @param {string|number} req.businessId - The business ID associated with the request
- * @param {Object} req.query - Query parameters for month and year
- * @param {string} req.query.month - The month for which to fetch weekly accepted disputes (e.g., "january")
- * @param {number} req.query.year - The year for which to fetch weekly accepted disputes
- * @param {Object} res - Express response object
- *
- * @returns {Object} 200 - Success response with week-wise accepted disputes count
- * @returns {Object} 400 - Bad request if user is not authorized or invalid month/year
- * @returns {Object} 500 - Internal server error if fetching fails
- *
- * @throws {AppError} If the current user or user role is invalid or month/year is invalid
- *
- * Steps:
- * 1. Extracts the current user, user role, business ID, and month/year from the request.
- * 2. Validates the presence and authorization of the user.
- * 3. Validates the month and year parameters.
- * 4. Calculates the weeks in the specified month.
- * 5. Fetches accepted disputes for the given month and year.
- * 6. Aggregates the number of accepted disputes per week.
- * 7. Returns the week-wise accepted disputes data or throws an error if any validation fails.
- */
-
-/**
- * @function getLastSixMonthsRevenueLost
- * @description Fetches the percentage of revenue lost due to disputes in the last six months, grouped by month, for the currently authenticated manager.
- *
- * @route GET /api/v2/manager/disputes/revenue/lost
- *
- * @param {Object} req - Express request object
- * @param {Object} req.currUser - The currently authenticated user object
- * @param {Object} req.userRole - The roles associated with the current user
- * @param {string|number} req.businessId - The business ID associated with the request
- * @param {Object} req.query - Query parameters for month and year
- * @param {string} req.query.month - The reference month for the last six months calculation (e.g., "january")
- * @param {number} req.query.year - The reference year for the last six months calculation
- * @param {Object} res - Express response object
- *
- * @returns {Object} 200 - Success response with revenue lost per month for the last six months
- * @returns {Object} 400 - Bad request if user is not authorized or invalid month/year
- * @returns {Object} 500 - Internal server error if fetching fails
- *
- * @throws {AppError} If the current user or user role is invalid or month/year is invalid
- *
- * Steps:
- * 1. Extracts the current user, user role, business ID, and month/year from the request.
- * 2. Validates the presence and authorization of the user.
- * 3. Validates the month and year parameters.
- * 4. Calculates the last six months based on the provided month and year.
- * 5. Fetches disputes resolved as "won" or "lost" within the last six months.
- * 6. Aggregates the revenue lost percentage per month.
- * 7. Returns the revenue lost data or throws an error if any validation fails.
- */
-
-
-
 import _ from "lodash";
 import { Op, Sequelize } from "sequelize";
 import catchAsync from "../../utils/catch-async.util.js";
@@ -161,6 +36,34 @@ const getKey = (month, year) => {
 
 const months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
 
+
+/**
+ * @function getManagerDisputeStatusCards
+ * @description Fetches the dispute status card details for the currently authenticated manager, including counts for accepted, rejected, pending, resubmitted, and total disputes.
+ *
+ * @route GET /api/v2/manager/disputes/requested/status
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} req.currUser - The currently authenticated user object
+ * @param {Object} req.userRole - The roles associated with the current user
+ * @param {string|number} req.businessId - The business ID associated with the request
+ * @param {Object} res - Express response object
+ *
+ * @returns {Object} 200 - Success response with dispute status card details
+ * @returns {Object} 400 - Bad request if user is not authorized or missing required fields
+ * @returns {Object} 500 - Internal server error if fetching fails
+ *
+ * @throws {AppError} If the current user or user role is invalid
+ *
+ * Steps:
+ * 1. Extracts the current user, user role, and business ID from the request.
+ * 2. Validates the presence and authorization of the user.
+ * 3. If business ID is missing, returns a default response with zeroed counts.
+ * 4. Constructs a query to fetch disputes by workflow stage and manager.
+ * 5. Aggregates dispute counts by stage and formats the response.
+ * 6. Returns the dispute status card data or throws an error if any validation fails.
+ */
+
 // @desc Fetching the Manager Dispute Status Cards
 const getManagerDisputeStatusCards = catchAsync(async (req, res) => {
 
@@ -168,6 +71,8 @@ const getManagerDisputeStatusCards = catchAsync(async (req, res) => {
     try {
         // Step 1 : Extracting the Current User , UserRole and Business Id from the Request
         const { currUser, userRole, businessId } = req;
+
+        const { fromDate, toDate } = req.query;
 
         // Step 2 : Validating the Current User , is Manager and BusinessId from the req
         if (_.isEmpty(currUser)) {
@@ -184,6 +89,8 @@ const getManagerDisputeStatusCards = catchAsync(async (req, res) => {
 
         // Step 3 : If there is not BusinessId from the request Instead of throwing the Error
         //           we are throwing the Object which will replicate the Response of the Api 
+
+
         if (_.isEmpty(businessId)) {
             return res.status(statusCodes.OK).json(
                 success_response(
@@ -196,12 +103,23 @@ const getManagerDisputeStatusCards = catchAsync(async (req, res) => {
                         reReceivedDispute: 0,
                         pending: 0,
                         submittedToMerchant: 0,
-                    }
+                    },
+                    true
                 )
             )
         };
 
+        if (fromDate && !isValidDate(fromDate)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("From Date"));
+        }
 
+        if (toDate && !isValidDate(toDate)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("To Date"));
+        }
+
+        if (isValidDate(fromDate) && isValidDate(toDate) && new Date(fromDate) > new Date(toDate)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField1MustBeValidField2("From Date", "To Date"));
+        }
 
         // Step 4 : Creating a WhereClause To Find the Disputes Based on the Cards
         const whereClause = {
@@ -217,6 +135,19 @@ const getManagerDisputeStatusCards = catchAsync(async (req, res) => {
             ]
         };
 
+        if (fromDate && toDate) {
+            whereClause.updatedStageAt = {
+                [Op.between]: [new Date(fromDate), new Date(toDate).setHours(23, 59, 59, 999)]
+            };
+        } else if (fromDate) {
+            whereClause.updatedStageAt = {
+                [Op.gte]: new Date(fromDate)
+            };
+        } else if (toDate) {
+            whereClause.updatedStageAt = {
+                [Op.lte]: new Date(toDate).setHours(23, 59, 59, 999)
+            };
+        }
 
         // Step 5 : Fetching all the Dispute Status Card Details 
 
@@ -236,9 +167,9 @@ const getManagerDisputeStatusCards = catchAsync(async (req, res) => {
 
         // Step 7 : Destructuring the Dispute by WorkFlowStage
         const {
+            SUBMITTED = 0,
             ACCEPTED = 0,
             REJECTED = 0,
-            SUBMITTED = 0,
             RESUBMITTED = 0
         } = disputeCountsByStage;
 
@@ -277,7 +208,39 @@ const getManagerDisputeStatusCards = catchAsync(async (req, res) => {
     }
 })
 
-
+/**
+ * @function getUpcomingDeadlineDisputes
+ * @description Fetches disputes with upcoming deadlines for the currently authenticated manager, supporting filtering by date range, gateway, and dispute ID, with pagination.
+ *
+ * @route GET /api/v2/manager/disputes/deadline
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} req.currUser - The currently authenticated user object
+ * @param {Object} req.userRole - The roles associated with the current user
+ * @param {string|number} req.businessId - The business ID associated with the request
+ * @param {Object} req.query - Query parameters for filtering and pagination
+ * @param {string} [req.query.fromDate] - Start date for filtering disputes
+ * @param {string} [req.query.toDate] - End date for filtering disputes
+ * @param {string} [req.query.gateway] - Payment gateway for filtering disputes
+ * @param {string} [req.query.disputeId] - Dispute ID for search
+ * @param {number} [req.query.page=1] - Page number for pagination
+ * @param {number} [req.query.limit=10] - Number of results per page (max 25)
+ * @param {Object} res - Express response object
+ *
+ * @returns {Object} 200 - Success response with paginated list of upcoming deadline disputes
+ * @returns {Object} 400 - Bad request if user is not authorized or invalid query parameters
+ * @returns {Object} 500 - Internal server error if fetching fails
+ *
+ * @throws {AppError} If the current user or user role is invalid or query parameters are invalid
+ *
+ * Steps:
+ * 1. Extracts the current user, user role, business ID, and query parameters from the request.
+ * 2. Validates the presence and authorization of the user.
+ * 3. Validates date and gateway query parameters.
+ * 4. Constructs a query to fetch disputes with upcoming deadlines and applies filters.
+ * 5. Paginates the results and formats the response.
+ * 6. Returns the paginated disputes or throws an error if any validation fails.
+ */
 // @desc Fetching the Upcoming Deadline Disputes 
 const getUpcomingDeadlineDisputes = catchAsync(async (req, res) => {
     // @route   : GET /api/v2/manager/disputes/deadline
@@ -353,7 +316,6 @@ const getUpcomingDeadlineDisputes = catchAsync(async (req, res) => {
             dueDate: {
                 [Op.gt]: new Date()
             }
-
         };
 
 
@@ -374,11 +336,16 @@ const getUpcomingDeadlineDisputes = catchAsync(async (req, res) => {
 
 
         if (gateway) {
-            whereClause.gateway = gateway;
-        };
+            whereClause[Op.or] = [
+                ...(whereClause[Op.or] || []),
+                { gateway: { [Op.iLike]: `%${gateway}%` } },
+            ];
+        }
 
         if (disputeId) {
-            whereClause.customId = `%${disputeId}%`;
+            whereClause.customId = {
+                [Op.iLike]: `%${disputeId}%`
+            }
         }
 
 
@@ -387,7 +354,8 @@ const getUpcomingDeadlineDisputes = catchAsync(async (req, res) => {
         // Step 8 : Fetching the Upcoming deadline Disputes based on the where condition and the total count of the disputes 
         const { count: totalDisputes, rows: upcomingDeadlineDisputes } = await Dispute.findAndCountAll({
             where: whereClause,
-            attributes: ['id', 'disputeId', 'customId', 'paymentId', 'gateway', 'updatedStageAt', 'lastStageAt', 'reason', 'dueDate', 'state', 'workflowStage', 'createdAt', 'feedback', 'updatedAt'],
+            attributes: ['id', 'disputeId',
+                "merchantId", 'customId', 'paymentId', 'gateway', 'updatedStageAt', 'lastStageAt', 'reason', 'dueDate', 'state', 'workflowStage', 'createdAt', 'feedback', 'updatedAt'],
             include: [
                 {
                     model: Analyst,
@@ -401,26 +369,53 @@ const getUpcomingDeadlineDisputes = catchAsync(async (req, res) => {
             raw: true,
         })
 
+        const merchantId = upcomingDeadlineDisputes[0].merchantId;
 
-        const totalPages = Math.ceil(totalDisputes / limit);
+        const analysts = await Analyst.findAll({ where: { merchantId, businessId }, attributes: ["firstName", "lastName"], raw: true })
 
+        const analystDetails = [];
+        const disputeAnalysts = disputes.map((dispute) => dispute.analystId);
 
-        //Step 9 : Creating a Custom Payload for the Disputes in Detail
+        const uniqueAnalysts = new Set(disputeAnalysts);
+
+        analysts.forEach((analyst) => {
+            const analystObj = {}
+            if (uniqueAnalysts.has(analyst.id)) {
+                analystObj.analystId = analyst.id;
+                analystObj.analystName = `${analyst.firstName} ${analyst.lastName}`;
+                analystDetails.push(analystObj)
+            }
+        })
+
         const disputes = upcomingDeadlineDisputes.map((dispute) => {
+            const disputeStaff = dispute?.analystId ? analystDetails?.find((analyst) => analyst?.analystId === dispute?.analystId) : null;
+            const staffName = disputeStaff ? `${disputeStaff?.analystName}` : '';
             return {
                 disputeId: dispute?.customId,
                 paymentId: dispute?.paymentId,
-                submittedBy: `${dispute['DisputeAnalyst.firstName']} ${dispute['DisputeAnalyst.lastName']}`,
-                paymentGateway: dispute?.gateway,
-                submittedOn: dispute?.updatedStageAt,
-                reason_For_dispute: dispute?.reason,
-                disputeStatus: dispute?.state,
+                analystId: dispute?.analystId,
+                staffName,
+                amount: dispute?.amount,
+                ChargeBackDate: dispute?.createdAt,
+                reason: dispute?.reason,
                 respondBy: dispute?.dueDate,
-                feedback: dispute?.feedback,
-                currentStage: dispute?.workflowStage,
-                created: dispute?.createdAt,
+                state: dispute?.state,
+                gateway: dispute?.gateway,
+                type: dispute?.type,
+                updatedAt: dispute?.updatedAt,
+                currentStage: dispute?.workflowStage
             }
-        });
+        })
+
+        const totalPages = Math.ceil(totalDisputes / limit);
+
+        const payload = {
+            totalDisputes,
+            totalPages,
+            page,
+            limit,
+            disputes
+        }
 
 
         // Step 10 : returning the Response  of Disputes with the pagination and the total  Count
@@ -429,11 +424,7 @@ const getUpcomingDeadlineDisputes = catchAsync(async (req, res) => {
                 statusCodes.OK,
                 "Dispute with UpComing Deadlines Fetched",
                 {
-                    totalPages,
-                    totalDisputes,
-                    page,
-                    limit,
-                    disputes
+                    payload
                 },
                 true
             )
@@ -452,6 +443,36 @@ const getUpcomingDeadlineDisputes = catchAsync(async (req, res) => {
     }
 });
 
+/**
+ * @function getWeekWiseAcceptedDisputes
+ * @description Fetches the number of disputes accepted per week for a given month and year for the currently authenticated manager.
+ *
+ * @route GET /api/v2/manager/disputes/analysis/accepted
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} req.currUser - The currently authenticated user object
+ * @param {Object} req.userRole - The roles associated with the current user
+ * @param {string|number} req.businessId - The business ID associated with the request
+ * @param {Object} req.query - Query parameters for month and year
+ * @param {string} req.query.month - The month for which to fetch weekly accepted disputes (e.g., "january")
+ * @param {number} req.query.year - The year for which to fetch weekly accepted disputes
+ * @param {Object} res - Express response object
+ *
+ * @returns {Object} 200 - Success response with week-wise accepted disputes count
+ * @returns {Object} 400 - Bad request if user is not authorized or invalid month/year
+ * @returns {Object} 500 - Internal server error if fetching fails
+ *
+ * @throws {AppError} If the current user or user role is invalid or month/year is invalid
+ *
+ * Steps:
+ * 1. Extracts the current user, user role, business ID, and month/year from the request.
+ * 2. Validates the presence and authorization of the user.
+ * 3. Validates the month and year parameters.
+ * 4. Calculates the weeks in the specified month.
+ * 5. Fetches accepted disputes for the given month and year.
+ * 6. Aggregates the number of accepted disputes per week.
+ * 7. Returns the week-wise accepted disputes data or throws an error if any validation fails.
+ */
 // @desc Fetching the Number of Disputes Accepted Weekly Wise in a Month 
 const getWeekWiseAcceptedDisputes = catchAsync(async (req, res) => {
 
@@ -592,6 +613,37 @@ const getWeekWiseAcceptedDisputes = catchAsync(async (req, res) => {
 });
 
 
+
+/**
+ * @function getLastSixMonthsRevenueLost
+ * @description Fetches the percentage of revenue lost due to disputes in the last six months, grouped by month, for the currently authenticated manager.
+ *
+ * @route GET /api/v2/manager/disputes/revenue/lost
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} req.currUser - The currently authenticated user object
+ * @param {Object} req.userRole - The roles associated with the current user
+ * @param {string|number} req.businessId - The business ID associated with the request
+ * @param {Object} req.query - Query parameters for month and year
+ * @param {string} req.query.month - The reference month for the last six months calculation (e.g., "january")
+ * @param {number} req.query.year - The reference year for the last six months calculation
+ * @param {Object} res - Express response object
+ *
+ * @returns {Object} 200 - Success response with revenue lost per month for the last six months
+ * @returns {Object} 400 - Bad request if user is not authorized or invalid month/year
+ * @returns {Object} 500 - Internal server error if fetching fails
+ *
+ * @throws {AppError} If the current user or user role is invalid or month/year is invalid
+ *
+ * Steps:
+ * 1. Extracts the current user, user role, business ID, and month/year from the request.
+ * 2. Validates the presence and authorization of the user.
+ * 3. Validates the month and year parameters.
+ * 4. Calculates the last six months based on the provided month and year.
+ * 5. Fetches disputes resolved as "won" or "lost" within the last six months.
+ * 6. Aggregates the revenue lost percentage per month.
+ * 7. Returns the revenue lost data or throws an error if any validation fails.
+ */
 // @desc  Fetching the Revenue Lost in Last Six Months 
 const getLastSixMonthsRevenueLost = catchAsync(async (req, res) => {
 

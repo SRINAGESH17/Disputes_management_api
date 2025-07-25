@@ -89,14 +89,18 @@ const analystAssignedDisputes = catchAsync(async (req, res) => {
         }
 
         // add dates in filter
-        if (fromDate || toDate) {
-            filters.createdAt = {};
-            if (fromDate) {
-                filters.createdAt[Op.gte] = new Date(fromDate);
-            }
-            if (toDate) {
-                filters.createdAt[Op.lte] = new Date(toDate);
-            }
+        if (fromDate && toDate) {
+            filters.updatedStageAt = {
+                [Op.between]: [new Date(fromDate), new Date(toDate).setHours(23, 59, 59, 999)]
+            };
+        } else if (fromDate) {
+            filters.updatedStageAt = {
+                [Op.gte]: new Date(fromDate)
+            };
+        } else if (toDate) {
+            filters.updatedStageAt = {
+                [Op.lte]: new Date(toDate).setHours(23, 59, 59, 999)
+            };
         }
 
         // Step 3 : Fetch the Disputes Of the Business
@@ -256,15 +260,20 @@ const analystProcessedDisputes = catchAsync(async (req, res) => {
         }
 
         // add dates in filter
-        if (fromDate || toDate) {
-            filters.createdAt = {};
-            if (fromDate) {
-                filters.createdAt[Op.gte] = new Date(fromDate);
-            }
-            if (toDate) {
-                filters.createdAt[Op.lte] = new Date(toDate);
-            }
+        if (fromDate && toDate) {
+            filters.updatedStageAt = {
+                [Op.between]: [new Date(fromDate), new Date(toDate).setHours(23, 59, 59, 999)]
+            };
+        } else if (fromDate) {
+            filters.updatedStageAt = {
+                [Op.gte]: new Date(fromDate)
+            };
+        } else if (toDate) {
+            filters.updatedStageAt = {
+                [Op.lte]: new Date(toDate).setHours(23, 59, 59, 999)
+            };
         }
+
 
         // Step 3 : Fetch the Disputes Of the Business
 

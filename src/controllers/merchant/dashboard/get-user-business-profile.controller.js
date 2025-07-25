@@ -35,6 +35,7 @@ import statusCodes from "../../../constants/status-codes.constant.js";
 import catchAsync from "../../../utils/catch-async.util.js";
 import { failed_response, success_response } from "../../../utils/response.util.js";
 import Business from "../../../models/business.model.js";
+import helpers from "../../../utils/helpers.util.js";
 
 // @desc Fetching User Business Profile
 const getUserBusinessProfile = catchAsync(async (req, res) => {
@@ -54,6 +55,9 @@ const getUserBusinessProfile = catchAsync(async (req, res) => {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.YouAreNotAuthorized("userId"));
         }
 
+        if (userId && !helpers.isValidUUIDv4(userId)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("userId "))
+        }
         // Step 2.2 : Validating the UserRole Reference is Exist or not in the request 
         if (_.isEmpty(userRole)) {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotExist("userRole"));

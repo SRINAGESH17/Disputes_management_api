@@ -66,6 +66,14 @@ router.get("/staff/all", verifyMerchant, staffController.getAllStaff);
 router.get("/staff/:staffId", verifyMerchant, staffController.getStaff);
 
 
+// 6. Fetching the Staff Assigned Disputes
+// @route  : GET /api/v2/merchant/staff/dispute/:staffId
+// @desc   : Fetching the Disputes of Individual Staff
+// @access : Private to Merchant Only
+
+router.get('/staff/dispute/:staffId', verifyMerchant, staffController.getStaffDisputesData);
+
+
 
 // **************************** Gateway and Integration *****************************/
 // 1. Add Gateway
@@ -126,14 +134,19 @@ router.get(
 );
 
 // 2.Fetch Disputes List With Filters
-// @route  : GET /api/v2/disputes/list
+// @route  : GET /api/v2/merchant/list
 // @desc   : Fetch Disputes List with filters
 // @access : Private to merchant Only !
 router.get(
-  '/list',
+  '/disputes/list',
   verifyMerchant,
   merchantDisputeController.getDisputesList
 );
+
+
+
+
+
 
 
 export default router;

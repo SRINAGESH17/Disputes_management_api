@@ -35,6 +35,7 @@ import AppErrorCode from "../../../constants/app-error-codes.constant.js";
 import statusCodes from "../../../constants/status-codes.constant.js";
 import Merchant from "../../../models/merchant.model.js";
 import Business from "../../../models/business.model.js";
+import helpers from "../../../utils/helpers.util.js";
 
 // @desc Fetching MerchantDetails After Login
 const welcomeDashboard = catchAsync(async (req, res) => {
@@ -49,18 +50,29 @@ const welcomeDashboard = catchAsync(async (req, res) => {
       throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
     }
 
-    // Step 3 : Checking For the UserId
+    // Step 2.1 : Checking For the UserId
     if (!currUser?.userId) {
       throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
     }
 
-    // step 4 : Validating the User is Merchant or Not
+    // Step 2.2 : Validating the Incoming userId is UUIDV4
+    if (currUser?.userId && !helpers.isValidUUIDv4(currUser?.userId)) {
+      throw new AppError(statusCodes.BAD_REQUEST,AppErrorCode.InvalidFieldFormat("userId"))
+    }
+
+    // step 3 : Validating the User is Merchant or Not
     if (!userRole?.merchant) {
       throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotAuthorized("merchant"));
     }
 
 
-    // Step 5 : Creating the Merchant Payload Required for the Dashboard
+    // Step 3.1 : validating the businessId is UUIDV4
+    if (businessId && !helpers.isValidUUIDv4(businessId)) {
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("businessId"))
+    }
+
+
+    // Step 4 : Creating the Merchant Payload Required for the Dashboard
     const merchantDetails = {
       name: "",
       customMerchantId: "",
@@ -69,7 +81,7 @@ const welcomeDashboard = catchAsync(async (req, res) => {
       businessPaymentGateways: "",
     }
 
-    // Step 6: Fetching the Merchant Details From the Database ;
+    // Step 5: Fetching the Merchant Details From the Database ;
     const merchant = await Merchant.findOne(
       {
         where: { id: currUser.userId },
@@ -78,24 +90,18 @@ const welcomeDashboard = catchAsync(async (req, res) => {
       },
     );
 
-    // step 7: Validating the Merchants Exist or Not From the Database
-    if (_.isEmpty(merchant)) {
-      throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.fieldNotFound("Merchant"));
-    };
-
-
-    // Step 8: Based on the Fetched Details the Data is Attached to the Merchant Details Payload
+    // Step 6: Based on the Fetched Details the Data is Attached to the Merchant Details Payload
     merchantDetails.name = merchant?.name;
     merchantDetails.customMerchantId = merchant?.merchantId,
       merchantDetails.totalStaff = (merchant?.totalAnalysts || 0) + (merchant?.totalManagers || 0);
 
-    // Step 9: If there is Business Id then we will fetch the Payment Gateways of the Particular Business
+    // Step 7: If there is Business Id then we will fetch the Payment Gateways of the Particular Business
     if (businessId) {
       const businessGateways = await Business.findOne({ where: { id: businessId }, attributes: ['gateways'], raw: true });
       merchantDetails.businessPaymentGateways = businessGateways?.gateways ? true : false;
     };
 
-    // Step 10: Returning the Merchant Details  Payload 
+    // Step 8: Returning the Merchant Details  Payload 
     return res.status(statusCodes.OK).json(
       success_response(
         statusCodes.OK,
