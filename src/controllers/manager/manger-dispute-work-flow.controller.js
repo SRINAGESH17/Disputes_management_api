@@ -155,40 +155,66 @@ const getSubmittedDisputes = catchAsync(async (req, res) => {
 
 
         // Step 10 : Fetching the Dispute that are submitted by the Staff and total Disputes Count 
-        const { count: totalDisputes, rows: SubmittedDisputes } = await
-            Dispute.findAndCountAll({
-                where: whereClause,
-                attributes: ['id', 'disputeId', 'customId', 'paymentId', 'gateway', 'updatedStageAt', 'reason', 'dueDate', 'state', 'workflowStage', 'createdAt', 'updatedAt'],
-                include: [
-                    {
-                        model: Analyst,
-                        as: 'DisputeAnalyst',
-                        attributes: ['firstName', 'lastName']
-                    }
-                ],
-                limit: limit,
-                offset: offset,
-                order: [['createdAt', 'Desc']],
-                raw: true,
-            });
+        const { count: totalDisputes, rows: SubmittedDisputes } = await Dispute.findAndCountAll({
+            where: whereClause,
+            attributes: ['id', 'disputeId', 'customId', 'analystId', 'paymentId', 'gateway', 'updatedStageAt', 'lastStageAt', 'reason', 'dueDate', 'state', 'workflowStage', 'createdAt', 'feedback', 'updatedAt'],
+            limit: limit,
+            offset: offset,
+            order: [['dueDate', 'ASC']],
+            raw: true,
+        })
 
         // Step 11 : Creating a Custom Payload to Send in the response in Detail 
+        const analystDetails = [];
+        const disputeAnalysts = SubmittedDisputes.map((dispute) => dispute.analystId);
+
+        const uniqueAnalysts = new Set(disputeAnalysts);
+
+
+        const analysts = await Analyst.findAll({ where: { id: { [Op.in]: Array.from(uniqueAnalysts) } }, attributes: ["id", "firstName", "lastName"], raw: true })
+
+
+
+        analysts.forEach((analyst) => {
+            const analystObj = {}
+            if (uniqueAnalysts.has(analyst.id)) {
+                analystObj.analystId = analyst.id;
+                analystObj.analystName = `${analyst.firstName} ${analyst.lastName}`;
+                analystDetails.push(analystObj)
+            }
+        })
+
+        console.log(analystDetails);
+
         const disputes = SubmittedDisputes.map((dispute) => {
+            const disputeStaff = dispute?.analystId ? analystDetails?.find((analyst) => analyst?.analystId === dispute?.analystId) : null;
+            const staffName = disputeStaff ? `${disputeStaff?.analystName}` : '';
             return {
                 disputeId: dispute?.customId,
                 paymentId: dispute?.paymentId,
-                submittedBy: `${dispute['DisputeAnalyst.firstName']} ${dispute['DisputeAnalyst.lastName']}`,
-                paymentGateway: dispute?.gateway,
-                submittedOn: dispute?.updatedStageAt,
-                reason_For_dispute: dispute?.reason,
-                disputeStatus: dispute?.state,
+                analystId: dispute?.analystId,
+                staffName,
+                amount: dispute?.amount,
+                ChargeBackDate: dispute?.createdAt,
+                reason: dispute?.reason,
                 respondBy: dispute?.dueDate,
-                currentStage: dispute?.workflowStage,
-                created: dispute?.createdAt,
+                state: dispute?.state,
+                gateway: dispute?.gateway,
+                type: dispute?.type,
+                updatedAt: dispute?.updatedAt,
+                currentStage: dispute?.workflowStage
             }
         })
 
         const totalPages = Math.ceil(totalDisputes / limit);
+
+        const payload = {
+            totalDisputes,
+            totalPages,
+            page,
+            limit,
+            disputes
+        }
 
 
         // Step 12 : returning  the Fetched Dispute Response with the Pagination terms and total Count 
@@ -197,11 +223,7 @@ const getSubmittedDisputes = catchAsync(async (req, res) => {
                 statusCodes.OK,
                 "Successfully Fetched Assigned Disputes",
                 {
-                    totalPages,
-                    totalDisputes,
-                    page,
-                    limit,
-                    disputes
+                    payload
                 },
                 true
             )
@@ -364,40 +386,64 @@ const getDisputesReviewHistory = catchAsync(async (req, res) => {
         // Step 8 : Fetching the count and the disputes based on whereClause object 
         const { count: totalDisputes, rows: reviewedDisputes } = await Dispute.findAndCountAll({
             where: whereClause,
-            attributes: ['id', 'disputeId', 'customId', 'paymentId', 'gateway', 'updatedStageAt', 'lastStageAt', 'reason', 'dueDate', 'state', 'workflowStage', 'createdAt', 'feedback', 'updatedAt'],
-            include: [
-                {
-                    model: Analyst,
-                    as: 'DisputeAnalyst',
-                    attributes: ['firstName', 'lastName']
-                }
-            ],
+            attributes: ['id', 'disputeId', 'customId', 'analystId', 'paymentId', 'gateway', 'updatedStageAt', 'lastStageAt', 'reason', 'dueDate', 'state', 'workflowStage', 'createdAt', 'feedback', 'updatedAt'],
             limit: limit,
             offset: offset,
-            order: [['createdAt', 'Desc']],
+            order: [['dueDate', 'ASC']],
             raw: true,
-        });
+        })
 
 
-        const totalPages = Math.ceil(totalDisputes / limit);
+        const analystDetails = [];
+        const disputeAnalysts = reviewedDisputes.map((dispute) => dispute.analystId);
 
-        // Step 9 : Creating the Custom Payload to send the response in detail
+        const uniqueAnalysts = new Set(disputeAnalysts);
+
+
+        const analysts = await Analyst.findAll({ where: { id: { [Op.in]: Array.from(uniqueAnalysts) } }, attributes: ["id", "firstName", "lastName"], raw: true })
+
+
+
+        analysts.forEach((analyst) => {
+            const analystObj = {}
+            if (uniqueAnalysts.has(analyst.id)) {
+                analystObj.analystId = analyst.id;
+                analystObj.analystName = `${analyst.firstName} ${analyst.lastName}`;
+                analystDetails.push(analystObj)
+            }
+        })
+
+        console.log(analystDetails);
+
         const disputes = reviewedDisputes.map((dispute) => {
+            const disputeStaff = dispute?.analystId ? analystDetails?.find((analyst) => analyst?.analystId === dispute?.analystId) : null;
+            const staffName = disputeStaff ? `${disputeStaff?.analystName}` : '';
             return {
                 disputeId: dispute?.customId,
                 paymentId: dispute?.paymentId,
-                submittedBy: `${dispute['DisputeAnalyst.firstName']} ${dispute['DisputeAnalyst.lastName']}`,
-                paymentGateway: dispute?.gateway,
-                submittedOn: dispute?.lastStageAt,
-                processedOn: dispute?.updatedStageAt,
-                reasonForDispute: dispute?.reason,
-                disputeStatus: dispute?.state,
+                analystId: dispute?.analystId,
+                staffName,
+                amount: dispute?.amount,
+                ChargeBackDate: dispute?.createdAt,
+                reason: dispute?.reason,
                 respondBy: dispute?.dueDate,
-                feedback: dispute?.feedback,
-                currentStage: dispute?.workflowStage,
-                created: dispute?.createdAt,
+                state: dispute?.state,
+                gateway: dispute?.gateway,
+                type: dispute?.type,
+                updatedAt: dispute?.updatedAt,
+                currentStage: dispute?.workflowStage
             }
         })
+
+        const totalPages = Math.ceil(totalDisputes / limit);
+
+        const payload = {
+            totalDisputes,
+            totalPages,
+            page,
+            limit,
+            disputes
+        }
 
 
         // Step 10 : returning  the Fetched Dispute Response with the Pagination terms and total Count 
@@ -405,11 +451,7 @@ const getDisputesReviewHistory = catchAsync(async (req, res) => {
             statusCodes.OK,
             "Dispute Reviewed History Fetched",
             {
-                totalPages,
-                totalDisputes,
-                page,
-                limit,
-                disputes
+                payload
             },
             true,
         ))
@@ -582,48 +624,70 @@ const getManagerProcessedDisputes = catchAsync(async (req, res) => {
         // Step 10 : Fetching the Dispute and Total disputes based on the whereClause Condition
         const { count: totalDisputes, rows: processedDisputes } = await Dispute.findAndCountAll({
             where: whereClause,
-            attributes: ['id', 'customId', 'paymentId', 'gateway', 'updatedStageAt', 'lastStageAt', 'workflowStage', 'reason', 'dueDate', 'state', 'createdAt'],
-            include: [
-                {
-                    model: Analyst,
-                    as: 'DisputeAnalyst',
-                    attributes: ['firstName', 'lastName'],
-                }
-            ],
-            limit,
-            offset,
-            raw: true
+            attributes: ['id', 'disputeId', 'customId', 'analystId', 'paymentId', 'gateway', 'updatedStageAt', 'lastStageAt', 'reason', 'dueDate', 'state', 'workflowStage', 'createdAt', 'feedback', 'updatedAt'],
+            limit: limit,
+            offset: offset,
+            order: [['dueDate', 'ASC']],
+            raw: true,
+        })
+
+        const analystDetails = [];
+        const disputeAnalysts = processedDisputes.map((dispute) => dispute.analystId);
+
+        const uniqueAnalysts = new Set(disputeAnalysts);
+
+
+        const analysts = await Analyst.findAll({ where: { id: { [Op.in]: Array.from(uniqueAnalysts) } }, attributes: ["id", "firstName", "lastName"], raw: true })
+
+
+
+        analysts.forEach((analyst) => {
+            const analystObj = {}
+            if (uniqueAnalysts.has(analyst.id)) {
+                analystObj.analystId = analyst.id;
+                analystObj.analystName = `${analyst.firstName} ${analyst.lastName}`;
+                analystDetails.push(analystObj)
+            }
+        })
+
+        console.log(analystDetails);
+
+        const disputes = processedDisputes.map((dispute) => {
+            const disputeStaff = dispute?.analystId ? analystDetails?.find((analyst) => analyst?.analystId === dispute?.analystId) : null;
+            const staffName = disputeStaff ? `${disputeStaff?.analystName}` : '';
+            return {
+                disputeId: dispute?.customId,
+                paymentId: dispute?.paymentId,
+                analystId: dispute?.analystId,
+                staffName,
+                amount: dispute?.amount,
+                ChargeBackDate: dispute?.createdAt,
+                reason: dispute?.reason,
+                respondBy: dispute?.dueDate,
+                state: dispute?.state,
+                gateway: dispute?.gateway,
+                type: dispute?.type,
+                updatedAt: dispute?.updatedAt,
+                currentStage: dispute?.workflowStage
+            }
         })
 
         const totalPages = Math.ceil(totalDisputes / limit);
 
-        // Step 11 : Creating a custom Payload For Sending the Response in Detail 
-        const disputes = processedDisputes.map((dispute) => {
-            return {
-                disputeId: dispute?.customId,
-                paymentId: dispute?.paymentId,
-                submittedBy: `${dispute['DisputeAnalyst.firstName']} ${dispute['DisputeAnalyst.lastName']}`,
-                paymentGateway: dispute?.gateway,
-                submittedOn: dispute?.lastStageAt,
-                updatedStageAt: dispute?.updatedStageAt,
-                reasonForDispute: dispute?.reason,
-                disputeStatus: dispute?.state,
-                respondBy: dispute?.dueDate,
-                currentStage: dispute?.workflowStage,
-                created: dispute?.createdAt,
-            }
-        })
+        const payload = {
+            totalDisputes,
+            totalPages,
+            page,
+            limit,
+            disputes
+        }
 
         // Step 12 : returning  the Fetched Dispute Response with the Pagination terms and total Count 
         return res.status(statusCodes.OK).json(success_response(
             statusCodes.OK,
             "Processed Disputes Fetched Successfully!",
             {
-                totalPages,
-                totalDisputes,
-                page,
-                limit,
-                disputes,
+                payload
             },
             true
         ))

@@ -354,29 +354,22 @@ const getUpcomingDeadlineDisputes = catchAsync(async (req, res) => {
         // Step 8 : Fetching the Upcoming deadline Disputes based on the where condition and the total count of the disputes 
         const { count: totalDisputes, rows: upcomingDeadlineDisputes } = await Dispute.findAndCountAll({
             where: whereClause,
-            attributes: ['id', 'disputeId',
-                "merchantId", 'customId', 'paymentId', 'gateway', 'updatedStageAt', 'lastStageAt', 'reason', 'dueDate', 'state', 'workflowStage', 'createdAt', 'feedback', 'updatedAt'],
-            include: [
-                {
-                    model: Analyst,
-                    as: 'DisputeAnalyst',
-                    attributes: ['firstName', 'lastName']
-                }
-            ],
+            attributes: ['id', 'disputeId', 'customId', 'analystId', 'paymentId', 'gateway', 'updatedStageAt', 'lastStageAt', 'reason', 'dueDate', 'state', 'workflowStage', 'createdAt', 'feedback', 'updatedAt'],
             limit: limit,
             offset: offset,
             order: [['dueDate', 'ASC']],
             raw: true,
         })
 
-        const merchantId = upcomingDeadlineDisputes[0].merchantId;
-
-        const analysts = await Analyst.findAll({ where: { merchantId, businessId }, attributes: ["firstName", "lastName"], raw: true })
-
         const analystDetails = [];
-        const disputeAnalysts = disputes.map((dispute) => dispute.analystId);
+        const disputeAnalysts = upcomingDeadlineDisputes.map((dispute) => dispute.analystId);
 
         const uniqueAnalysts = new Set(disputeAnalysts);
+
+
+        const analysts = await Analyst.findAll({ where: { id: { [Op.in]: Array.from(uniqueAnalysts) } }, attributes: ["id", "firstName", "lastName"], raw: true })
+
+
 
         analysts.forEach((analyst) => {
             const analystObj = {}
@@ -386,6 +379,8 @@ const getUpcomingDeadlineDisputes = catchAsync(async (req, res) => {
                 analystDetails.push(analystObj)
             }
         })
+
+        console.log(analystDetails);
 
         const disputes = upcomingDeadlineDisputes.map((dispute) => {
             const disputeStaff = dispute?.analystId ? analystDetails?.find((analyst) => analyst?.analystId === dispute?.analystId) : null;
@@ -713,6 +708,7 @@ const getLastSixMonthsRevenueLost = catchAsync(async (req, res) => {
 
         // Step 8 Fetching the Number of Weeks with the start and End day of the weeks
         const lastSixMonths = getLastSixMonthsDetails(year, monthIndex + 1);
+        console.log(lastSixMonths);
 
         const startingDate = lastSixMonths[0].firstDate;
         const endingDate = lastSixMonths[lastSixMonths.length - 1].lastDate;
@@ -742,6 +738,7 @@ const getLastSixMonthsRevenueLost = catchAsync(async (req, res) => {
             raw: true
         });
 
+        console.log(disputes);
 
 
 
@@ -750,16 +747,18 @@ const getLastSixMonthsRevenueLost = catchAsync(async (req, res) => {
         const monthMap = new Map();
 
         lastSixMonths.forEach((month) => {
-            const key = getKey(month.year, month.month);
+            const key = getKey(month.month, month.year);
+            console.log(key);
             monthMap.set(key, { won: 0, lost: 0, revenueLost: 0 })
         });
+
 
 
         // Step 12 : Based on the Matching of the month instead of looping each dispute for 
         // where checking the Key and then Attaching the Values 
 
         disputes.forEach((dispute) => {
-            const key = getKey(dispute.year, dispute.month);
+            const key = getKey(dispute.month, dispute.year);
             const state = dispute.state
             const month = monthMap.get(key);
             if (month) {
@@ -781,6 +780,7 @@ const getLastSixMonthsRevenueLost = catchAsync(async (req, res) => {
             })
 
         })
+
 
         // Step 14 : returning the Response of Individuals Months 
         return res.status(statusCodes.OK).json(

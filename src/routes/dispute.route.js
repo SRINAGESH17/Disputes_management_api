@@ -2,6 +2,7 @@ import express from 'express';
 import { verifyMerchantOrAnalyst, verifyMerchantOrManager, verifyUser } from '../middlewares/auth.middleware.js';
 import disputeController from '../controllers/disputes/dispute.controller.js';
 import upload from '../middlewares/upload.middleware.js';
+import GatewaySubmittedDisputes from '../controllers/disputes/gateway-dispute.controller.js';
 
 const router = express.Router();
 
@@ -127,6 +128,18 @@ router.get(
     disputeController.getUploadedDrive
 );
 
+
+// ******************************** Submitted to Payment Gateway Disputes *****************************
+
+// 1 .Fetching Submitted to Payment Gateway Disputes
+// @route  : GET /api/v2/disputes/submitted/gateway
+// @desc   : Fetching the Disputes Which are Submitted to the Gateway
+// @access : Verified User(Merchant,Manager,Analyst)
+router.get(
+    '/submitted/gateway',
+    verifyUser,
+    GatewaySubmittedDisputes.getSubmittedToGatewayDisputes
+)
 
 
 
