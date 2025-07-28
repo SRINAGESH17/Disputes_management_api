@@ -343,8 +343,6 @@ const verifyMerchantOrAnalyst = (req, res, next) => {
     });
 };
 
-
-
 // Verify Platform User
 const verifyUser = (req, res, next) => {
     auth(req, res, async () => {

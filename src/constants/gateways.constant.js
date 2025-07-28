@@ -14,6 +14,7 @@
 const Gateways = {
     RAZORPAY: 'razorpay',
     CASHFREE: 'cashfree',
+    PAYU:'payu'
 };
 
 // Names
