@@ -56,8 +56,8 @@ const disputeReceiveWebhook = async (req, res) => {
         const clientIp = requestIP.getClientIp(req);
 
         // Step 4 : Configure Payload For Publish Webhook Service
-        const events = ['created', 'under_review', 'action_required', 'won','won','won', 'lost'];
-        for (let i = 0; i < 500; i++) {
+        const events = ['created', 'under_review', 'action_required', 'won', 'won', 'won', 'lost'];
+        for (let i = 0; i < 1000; i++) {
             const randomIdWithBigString = `${Math.random().toString(36).substring(2, 23)}`;
             const randomTransactionId = `pay_${Math.random().toString(36).substring(2, 23)}`;
             const randomAmount = Math.floor(Math.random() * 10000) + 1000; // Random amount between 1000 and 1000000
@@ -196,7 +196,7 @@ const disputeReceiveWebhook = async (req, res) => {
             //             "dispute_id": randomIdWithBigString,
             //             "dispute_type": "CHARGEBACK",
             //             "reason_code": `${Math.floor(Math.random() * 1000000) + 1000}`,
-            //             "reason_description": randomReason,
+            //             "reason_description": randomReason?.split("_")?.map((word)=>word[0]?.toUpperCase()+word.slice(1)).join(" "),
             //             "dispute_amount": randomAmount,
             //             "created_at": new Date(randomPastDate).toISOString(),
             //             "updated_at": new Date(randomPastDate).toISOString(),
@@ -231,7 +231,14 @@ const disputeReceiveWebhook = async (req, res) => {
             }
             await webhookProcessor.publishToExchange(payload);
         }
-
+        
+        // const payload = {
+        //     businessId,
+        //     GatewayIP: clientIp,
+        //     headers,
+        //     rawPayload: rawPayload
+        // }
+        // await webhookProcessor.publishToExchange(payload);
         // Step 5 : return Acknowledgement to Gateways
         return res.status(statusCodes.OK).send('OK');
     } catch (error) {

@@ -265,7 +265,7 @@ router.get(
   merchantDashboardController.gatewayDisputesAnalytics
 );
 
-// 2. Fetch Merchant dashboard Gateway Dispute Financial Lost
+// 3. Fetch Merchant dashboard Gateway Dispute Financial Lost
 // @route     : GET  /api/v2/merchant/dashboard/financial-loss
 // @desc      : Fetch Merchant Business Gateway Dispute Financial Loss
 // @access    : Private to Merchant Only
@@ -273,6 +273,47 @@ router.get(
   '/dashboard/financial-loss',
   verifyMerchant,
   merchantDashboardController.fetchBusinessFinancialLost
+);
+
+// 4. Fetch Dashboard Dispute Common Reason Analytics
+// @route     : GET  /api/v2/merchant/dashboard/reason-analytics
+// @desc      : Fetch Dashboard Dispute Common Reason Analytics based on filters
+// @access    : Private to Merchant Only
+router.get(
+  '/dashboard/reason-analytics',
+  verifyMerchant,
+  merchantDashboardController.fetchDisputeCommonReasonAnalytics
+);
+
+/************************************************* Dashboard Specific Gateway Routes **************************/
+
+// 1. Fetch Dashboard Specific Gateway Dispute Count
+// @route   GET /api/v2/merchant/dashboard/:gateway/counts
+// @desc    Get dashboard Dispute counts for a specific gateway
+// @access  Private to Merchant Only
+router.get(
+  '/dashboard/:gateway/counts',
+  verifyMerchant,
+  merchantDashboardController.fetchBusinessGatewayDisputesCount
+);
+
+// 2. Fetch Business Gateway Dispute Analytics
+// @route   GET /api/v2/merchant/dashboard/:gateway/analytics
+// @desc    Get dashboard Dispute analytics for a specific gateway
+// @access  Private to Merchant Only
+router.get(
+  '/dashboard/:gateway/analytics',
+  verifyMerchant,
+  merchantDashboardController.fetchBusinessGatewayDisputeAnalytics
+);
+// 2. Fetch Business Gateway Dispute Money Lost Stats
+// @route   GET /api/v2/merchant/dashboard/:gateway/money-loss
+// @desc    Get dashboard Dispute money lost analytics for a specific gateway
+// @access  Private to Merchant Only
+router.get(
+  '/dashboard/:gateway/money-loss',
+  verifyMerchant,
+  merchantDashboardController.getGatewayDisputeMoneyLost
 );
 
 export default router;
