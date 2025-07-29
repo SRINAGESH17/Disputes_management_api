@@ -306,7 +306,7 @@ router.get(
   verifyMerchant,
   merchantDashboardController.fetchBusinessGatewayDisputeAnalytics
 );
-// 2. Fetch Business Gateway Dispute Money Lost Stats
+// 3. Fetch Business Gateway Dispute Money Lost Stats
 // @route   GET /api/v2/merchant/dashboard/:gateway/money-loss
 // @desc    Get dashboard Dispute money lost analytics for a specific gateway
 // @access  Private to Merchant Only
@@ -314,6 +314,24 @@ router.get(
   '/dashboard/:gateway/money-loss',
   verifyMerchant,
   merchantDashboardController.getGatewayDisputeMoneyLost
+);
+// 4. Fetch Business Gateway Dispute Overview Stats
+// @route   GET /api/v2/merchant/dashboard/:gateway/stats
+// @desc    Get dashboard Dispute won and lost overview for a specific gateway
+// @access  Private to Merchant Only
+router.get(
+  '/dashboard/:gateway/stats',
+  verifyMerchant,
+  merchantDashboardController.getGatewayWonAndLostOverview
+);
+// 4. Fetch Business Gateway Dispute Common reason Analytics
+// @route   GET /api/v2/merchant/dashboard/:gateway/reason-analytics
+// @desc    Get dashboard Dispute common reason analytics for a specific gateway
+// @access  Private to Merchant Only
+router.get(
+  '/dashboard/:gateway/reason-analytics',
+  verifyMerchant,
+  merchantDashboardController.getBusinessGatewayCommonReasonAnalytics
 );
 
 export default router;

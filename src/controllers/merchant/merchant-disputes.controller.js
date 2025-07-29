@@ -224,9 +224,9 @@ const getDisputesList = catchAsync(async (req, res) => {
 const getDisputesReviews = catchAsync(async (req, res) => {
   // @route GET /api/v2/merchant/disputes/reviews
   try {
-  // step-1 Destructuring currUser and userRole from request
-  const { currUser, userRole, businessId } = req;
-  const { fromDate, toDate, gateway, search } = req.query
+    // step-1 Destructuring currUser and userRole from request
+    const { currUser, userRole, businessId } = req;
+    const { fromDate, toDate, gateway, search } = req.query
 
     // step-2 Validate merchant selected active business account
     if (!businessId) {
@@ -360,9 +360,9 @@ const getDisputesReviews = catchAsync(async (req, res) => {
 const getDisputesSubmittedByManager = catchAsync(async (req, res) => {
   // @route GET /api/v2/merchant/disputes/manager/submitted
   try {
-  // step-1 Destructuring currUser and userRole from request
-  const { currUser, userRole, businessId } = req;
-  const { fromDate, toDate, gateway, search } = req.query
+    // step-1 Destructuring currUser and userRole from request
+    const { currUser, userRole, businessId } = req;
+    const { fromDate, toDate, gateway, search } = req.query
 
     // step-2 Validate merchant selected active business account
     if (!businessId) {
@@ -413,7 +413,7 @@ const getDisputesSubmittedByManager = catchAsync(async (req, res) => {
       };
     }
 
-     if (gateway && typeof gateway === "string") {
+    if (gateway && typeof gateway === "string") {
 
       // step-4 checking if the gateway includes in our GatewayNames
       const isExistingGateway = GatewayNames.includes(gateway?.toLowerCase());
@@ -497,10 +497,10 @@ const getDisputesSubmittedByManager = catchAsync(async (req, res) => {
 const updateDisputeSubmitToPaymentGateway = catchAsync(async (req, res) => {
   // @route PUT /api/v2/merchant/disputes/:disputeId/submit/payment-gateway
 
-   try {
+  try {
     const { currUser, userRole, businessId } = req;
     const { disputeId } = req.params;
-     
+
     // Step-1: Validate business and user
     if (!businessId) {
       throw new AppError(
@@ -512,8 +512,8 @@ const updateDisputeSubmitToPaymentGateway = catchAsync(async (req, res) => {
     // Step-1.1: Validate that the current user is authorized as a merchant
     if (!currUser && !userRole.merchant) {
       throw new AppError(
-      statusCodes.UNAUTHORIZED,
-      AppErrorCode.YouAreNotAuthorized
+        statusCodes.UNAUTHORIZED,
+        AppErrorCode.YouAreNotAuthorized
       );
     }
 
@@ -602,7 +602,7 @@ const getDisputesSubmittedAnalystByStage = catchAsync(async (req, res) => {
       businessId: businessId,
     };
 
-     // Step-6: Validate fromDate and toDate formats
+    // Step-6: Validate fromDate and toDate formats
     if (fromDate && !isValidDate(fromDate)) {
       throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("From Date"));
     }
@@ -640,7 +640,7 @@ const getDisputesSubmittedAnalystByStage = catchAsync(async (req, res) => {
       );
     }
 
-     // If analystId is valid, add it to the where condition for filters based on specific  id
+    // If analystId is valid, add it to the where condition for filters based on specific  id
     if (analystId) {
       whereCondition.analystId = analystId;
     }
@@ -666,7 +666,7 @@ const getDisputesSubmittedAnalystByStage = catchAsync(async (req, res) => {
       whereCondition.customId = { [Op.iLike]: `%${search}%` };
     }
 
-   // Step-3.1: Apply workflowStage filtering logic
+    // Step-3.1: Apply workflowStage filtering logic
     if (stage && stage.toLowerCase() !== "assigned") {
       // If stage is provided and not "assigned", use that stage
       whereCondition.workflowStage = stage.toUpperCase();
@@ -793,9 +793,9 @@ const getDisputesReviewedHistory = catchAsync(async (req, res) => {
     const statusArray = ["ACCEPTED", "REJECTED", "RESUBMITTED"]
     const whereCondition = {
       businessId: businessId,
-      workflowStage: {[Op.in]: statusArray}
+      workflowStage: { [Op.in]: statusArray }
     };
-  
+
     // Step-6: Validate fromDate and toDate formats
     if (fromDate && !isValidDate(fromDate)) {
       throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("From Date"));
@@ -840,16 +840,16 @@ const getDisputesReviewedHistory = catchAsync(async (req, res) => {
       }
     }
 
-     // Step-3.1: Apply workflowStage filtering logic
+    // Step-3.1: Apply workflowStage filtering logic
     if (status) {
       if (statusArray.includes(status?.toUpperCase())) {
-      whereCondition.workflowStage = status?.toUpperCase();
-    } else {
-      throw new AppError(
-        statusCodes.BAD_REQUEST,
-        AppErrorCode.fieldNotExist(status)
-      );
-    }
+        whereCondition.workflowStage = status?.toUpperCase();
+      } else {
+        throw new AppError(
+          statusCodes.BAD_REQUEST,
+          AppErrorCode.fieldNotExist(status)
+        );
+      }
     }
 
     // Step-5: Add search filter for dispute customId (if provided)
@@ -900,7 +900,7 @@ const getDisputesReviewedHistory = catchAsync(async (req, res) => {
             totalPages: Math.ceil(totalDisputesCount / limit),
             page,
             limit,
-            disputes, 
+            disputes,
           },
           true
         )

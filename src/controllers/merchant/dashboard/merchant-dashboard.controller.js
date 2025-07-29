@@ -11,6 +11,277 @@ import { Op } from "sequelize";
 import { GatewayNames } from "../../../constants/gateways.constant.js";
 
 
+// Fetch Specific Gateway Dispute Won and Lost Overview
+const getGatewayWonAndLostOverview = catchAsync(async (req, res) => {
+    // @route : GET  /api/v2/merchant/dashboard/:gateway/stats
+    try {
+        // Step 1 : Extract The User Details From Request
+        const { userRole, currUser } = req;
+        const { gateway } = req.params;
+        const range = req.query.range || "6m"; // "1m", "6m", "1y"
+        const businessId = req.businessId;
+
+        // Step 2 : Validate The Merchant Details and BusinessId
+        if (_.isEmpty(userRole)) {
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User Role'));
+        }
+        if (_.isEmpty(currUser?.uid)) {
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User'));
+        }
+        if (userRole?.userRef !== "MERCHANT") {
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User'));
+        }
+
+
+
+        // Validate range is valid one
+        if (range && !['1m', '6m', '1y'].includes(range)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldValue('Range'));
+        }
+        // Check is the Valid Gateway
+        if (!GatewayNames.includes(gateway?.toLowerCase())) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldIsRequired('Valid Gateway'));
+        }
+
+        // Step 3 : Return payload if no business account linked
+        if (_.isEmpty(businessId)) {
+
+            return res.status(statusCodes.OK).json(
+                success_response(
+                    statusCodes.OK,
+                    "Fetched Gateway Stats Successfully",
+                    {
+                        gateway,
+                        stats: [],
+                    },
+                    true
+                )
+            );
+        }
+
+        // Step 4 : validate businessId is UUIDv4
+        if (!helpers.isValidUUIDv4(businessId)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('BusinessId'));
+        }
+
+        // Set The Range Filter For Analytics
+        let startDate = null;
+        const now = new Date();
+        switch (range) {
+            case '1m':
+                startDate = new Date(now.setMonth(now.getMonth() - 1));
+                break;
+            case '6m':
+                startDate = new Date(now.setMonth(now.getMonth() - 6));
+                break;
+            case '1y':
+                startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+                break;
+            default:
+                throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldValue('Range'));
+        }
+
+        // Step 5: Fetch the Business gateway Dispute Counts
+        console.time(`Fetch Business ${gateway} Gateway Dispute stats`);
+        const gatewayData = await Dispute.findAll({
+            where: {
+                createdAt: { [Op.gte]: startDate },
+                businessId,
+                gateway
+            },
+            attributes: [
+                [sequelize.fn('DATE_TRUNC', 'month', sequelize.col('created_at')), 'month'],
+                [sequelize.fn('COUNT', sequelize.col('id')), 'totalDisputes'],
+                [
+                    sequelize.fn(
+                        'SUM',
+                        sequelize.literal(`CASE WHEN state = 'Lost' THEN 1 ELSE 0 END`)
+                    ),
+                    'lostDisputes'
+                ],
+                [
+                    sequelize.fn(
+                        'SUM',
+                        sequelize.literal(`CASE WHEN state = 'Won' THEN 1 ELSE 0 END`)
+                    ),
+                    'wonDisputes'
+                ],
+            ],
+            group: [sequelize.fn('DATE_TRUNC', 'month', sequelize.col('created_at'))],
+            order: [[sequelize.fn('DATE_TRUNC', 'month', sequelize.col('created_at')), 'ASC']],
+            raw: true
+        });
+
+        console.timeEnd(`Fetch Business ${gateway} Gateway Dispute stats`);
+
+        console.log("dates : ", startDate);
+
+
+        const stats = gatewayData?.map((record) => {
+            const total = parseInt(record?.totalDisputes);
+            const lost = parseInt(record?.lostDisputes);
+            const won = parseInt(record?.wonDisputes);
+            return {
+                monthDate: record?.month,
+                total,
+                won,
+                lost,
+            }
+        });
+
+
+        return res.status(statusCodes.OK).json(
+            success_response(
+                statusCodes.OK,
+                "Fetched Gateway Stats Successfully",
+                {
+                    gateway,
+                    stats,
+                },
+                true
+            )
+        );
+    } catch (error) {
+        console.log("Error in Fetching Merchant Business Gateway Disputes Stats : ", error?.message);
+        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
+            failed_response(
+                error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
+                "Failed to Fetch Business Gateway Stats",
+                {
+                    message: error?.message
+                },
+                false
+            )
+        )
+    }
+});
+
+// Fetch Dashboard Dispute Common Reason Analytics
+const getBusinessGatewayCommonReasonAnalytics = catchAsync(async (req, res) => {
+    // @route : GET  /api/v2/merchant/dashboard/:gateway/reason-analytics
+    try {
+        // Step 1 : Extract The User Details From Request
+        const { userRole, currUser } = req;
+        const { gateway } = req.params;
+        const { fromDate, toDate } = req.query;
+
+        const businessId = req.businessId;
+
+        // Step 2 : Validate The Merchant Details and BusinessId
+        if (_.isEmpty(userRole)) {
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User Role'));
+        }
+        if (_.isEmpty(currUser?.uid)) {
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User'));
+        }
+        if (userRole?.userRef !== "MERCHANT") {
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User'));
+        }
+
+        // Validate Date filter
+        if (fromDate && isNaN(Date.parse(fromDate))) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField1MustBeValidField2("fromDate", 'Date String'));
+        }
+        if (toDate && isNaN(Date.parse(toDate))) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField1MustBeValidField2("toDate", 'Date String'));
+        }
+        if (fromDate && toDate) {
+            if (new Date(fromDate).getMilliseconds() > new Date(toDate).getMilliseconds()) {
+                throw new AppError(statusCodes.BAD_REQUEST, "Invalid Dates. fromDate Must be Less Then toDate");
+            }
+        }
+        // Check is the Valid Gateway
+        if (!GatewayNames.includes(gateway?.toLowerCase())) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldIsRequired('Valid Gateway'));
+        }
+
+
+        // Step 3 : Return payload if no business account linked
+        if (_.isEmpty(businessId)) {
+
+            return res.status(statusCodes.OK).json(
+                success_response(
+                    statusCodes.OK,
+                    "Successfully Fetched Common Reason analytics",
+                    {
+                        gateway,
+                        reasonAnalytics: [],
+                    },
+                    true
+                )
+            );
+        }
+
+        // Step 4 : validate businessId is UUIDv4
+        if (!helpers.isValidUUIDv4(businessId)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('BusinessId'));
+        }
+
+        let filter = {};
+
+        if (fromDate || toDate) {
+            filter.createdAt = {};
+            if (fromDate) filter.createdAt[Op.gte] = new Date(fromDate);
+            if (toDate) filter.createdAt[Op.lte] = new Date(toDate);
+        }
+        if (businessId) {
+            filter.businessId = businessId;
+            filter.gateway = gateway?.toLowerCase();
+        }
+
+        // Step 5: Fetch the Business gateway Dispute Counts
+        console.time(`Fetch Business ${gateway} Gateway Dispute Common Reason Analytics`);
+        let gatewaysCount = await Dispute.findAll({
+            where: filter,
+            attributes: [
+                'reason',
+                [sequelize.fn('COUNT', sequelize.col('id')), 'totalDisputes'],
+            ],
+            group: ['reason'],
+            limit: 15,
+            raw: true
+        });
+        console.timeEnd(`Fetch Business ${gateway} Gateway Dispute Common Reason Analytics`);
+        const totalDisputes = gatewaysCount?.reduce((acc, record) => acc += parseInt(record?.totalDisputes), 0);
+        gatewaysCount = gatewaysCount?.map((record) => {
+            const total = +record?.totalDisputes;
+            const percentage = +((total / totalDisputes) * 100).toFixed(2);
+            return {
+                reason: record?.reason,
+                totalDisputes: total,
+                percentage,
+            }
+        });
+
+        gatewaysCount.sort((a, b) => b?.totalDisputes - a?.totalDisputes);
+
+        return res.status(statusCodes.OK).json(
+            success_response(
+                statusCodes.OK,
+                "Successfully Fetched Common Reason analytics",
+                {
+                    gateway,
+                    reasonAnalytics: gatewaysCount,
+                },
+                true
+            )
+        );
+    } catch (error) {
+        console.log("Error in Fetching Merchant Business Specific Gateway Disputes Common reason Analytics : ", error?.message);
+        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
+            failed_response(
+                error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
+                "Failed to Fetch Business Gateway Common reason Analytics",
+                {
+                    message: error?.message
+                },
+                false
+            )
+        )
+    }
+});
+
+
 // Fetch Merchant Business Gateways Dispute Count
 const totalGatewayDisputes = catchAsync(async (req, res) => {
     // @route : GET  /api/v2/merchant/dashboard/gateway-disputes
@@ -891,12 +1162,31 @@ const getGatewayDisputeMoneyLost = catchAsync(async (req, res) => {
 
         console.log("dates : ", startDate);
 
+        let totalAmountLost = 0;
+
+        const lostDisputeData = gatewayData?.map((record) => {
+            const total = parseInt(record?.totalDisputes);
+            const lost = parseInt(record?.lostDisputes);
+            const amount = parseInt(record?.lostAmount);
+            totalAmountLost += amount;
+            return {
+                monthDate: record?.month,
+                total,
+                lost,
+                lostAmount: amount,
+                percentage: +((lost / total) * 100).toFixed(2),
+            }
+        })
+
 
         return res.status(statusCodes.OK).json(
             success_response(
                 statusCodes.OK,
-                "Fetched Dispute Financial Loss Successfully",
-                { gatewayData },
+                "Fetched Dispute Money Loss Successfully",
+                {
+                    totalAmountLost,
+                    moneyLost: lostDisputeData,
+                },
                 true
             )
         );
@@ -905,7 +1195,7 @@ const getGatewayDisputeMoneyLost = catchAsync(async (req, res) => {
         return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
                 error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
-                "Failed to Fetch Business Gateways Money Lost",
+                "Failed to Fetch Business Gateway Money Lost",
                 {
                     message: error?.message
                 },
@@ -916,6 +1206,8 @@ const getGatewayDisputeMoneyLost = catchAsync(async (req, res) => {
 });
 
 const merchantDashboardController = {
+    getGatewayWonAndLostOverview,
+    getBusinessGatewayCommonReasonAnalytics,
     totalGatewayDisputes,
     gatewayDisputesAnalytics,
     fetchBusinessFinancialLost,

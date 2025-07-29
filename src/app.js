@@ -29,7 +29,7 @@ const startServer = async () => {
         await initializeDB();
 
         // Listen Channel To Consume the letters From Queue
-        // await webhookProcessor.start();
+        await webhookProcessor.start();
 
         // Start the Server
         app.listen(env.PORT, () => {
