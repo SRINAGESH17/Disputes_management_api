@@ -7,7 +7,6 @@ import merchantProfile from "../controllers/merchant/dashboard/merchant-profile.
 import businessController from "../controllers/merchant/kyb/business.controller.js";
 import staffController from '../controllers/merchant/staff/staff.controller.js';
 import merchantDisputeController from "../controllers/merchant/merchant-disputes.controller.js";
-import merchantDashboardController from "../controllers/merchant/dashboard/merchant-dashboard.controller.js";
 
 const router = express.Router();
 
@@ -240,98 +239,5 @@ router.put(
   merchantDisputeController.updateDisputeSubmitToPaymentGateway
 );
 
-
-
-
-//********************************************** Merchant Dashboard **************************/
-
-// 1. Fetch Merchant Business Gateways Dispute Count
-// @route     : GET  /api/v2/merchant/dashboard/gateway-disputes
-// @desc      : Fetch The Total number Of Disputes Of Each Gateway Of Business Account
-// @access    : Private to Merchant Only
-router.get(
-  '/dashboard/gateway-disputes',
-  verifyMerchant,
-  merchantDashboardController.totalGatewayDisputes
-);
-
-// 2. Fetch Merchant dashboard Gateway Dispute Analytics
-// @route     : GET  /api/v2/merchant/dashboard/gateway-analytics
-// @desc      : Fetch Merchant Business Gateway Dispute Analytics
-// @access    : Private to Merchant Only
-router.get(
-  '/dashboard/gateway-analytics',
-  verifyMerchant,
-  merchantDashboardController.gatewayDisputesAnalytics
-);
-
-// 3. Fetch Merchant dashboard Gateway Dispute Financial Lost
-// @route     : GET  /api/v2/merchant/dashboard/financial-loss
-// @desc      : Fetch Merchant Business Gateway Dispute Financial Loss
-// @access    : Private to Merchant Only
-router.get(
-  '/dashboard/financial-loss',
-  verifyMerchant,
-  merchantDashboardController.fetchBusinessFinancialLost
-);
-
-// 4. Fetch Dashboard Dispute Common Reason Analytics
-// @route     : GET  /api/v2/merchant/dashboard/reason-analytics
-// @desc      : Fetch Dashboard Dispute Common Reason Analytics based on filters
-// @access    : Private to Merchant Only
-router.get(
-  '/dashboard/reason-analytics',
-  verifyMerchant,
-  merchantDashboardController.fetchDisputeCommonReasonAnalytics
-);
-
-/************************************************* Dashboard Specific Gateway Routes **************************/
-
-// 1. Fetch Dashboard Specific Gateway Dispute Count
-// @route   GET /api/v2/merchant/dashboard/:gateway/counts
-// @desc    Get dashboard Dispute counts for a specific gateway
-// @access  Private to Merchant Only
-router.get(
-  '/dashboard/:gateway/counts',
-  verifyMerchant,
-  merchantDashboardController.fetchBusinessGatewayDisputesCount
-);
-
-// 2. Fetch Business Gateway Dispute Analytics
-// @route   GET /api/v2/merchant/dashboard/:gateway/analytics
-// @desc    Get dashboard Dispute analytics for a specific gateway
-// @access  Private to Merchant Only
-router.get(
-  '/dashboard/:gateway/analytics',
-  verifyMerchant,
-  merchantDashboardController.fetchBusinessGatewayDisputeAnalytics
-);
-// 3. Fetch Business Gateway Dispute Money Lost Stats
-// @route   GET /api/v2/merchant/dashboard/:gateway/money-loss
-// @desc    Get dashboard Dispute money lost analytics for a specific gateway
-// @access  Private to Merchant Only
-router.get(
-  '/dashboard/:gateway/money-loss',
-  verifyMerchant,
-  merchantDashboardController.getGatewayDisputeMoneyLost
-);
-// 4. Fetch Business Gateway Dispute Overview Stats
-// @route   GET /api/v2/merchant/dashboard/:gateway/stats
-// @desc    Get dashboard Dispute won and lost overview for a specific gateway
-// @access  Private to Merchant Only
-router.get(
-  '/dashboard/:gateway/stats',
-  verifyMerchant,
-  merchantDashboardController.getGatewayWonAndLostOverview
-);
-// 4. Fetch Business Gateway Dispute Common reason Analytics
-// @route   GET /api/v2/merchant/dashboard/:gateway/reason-analytics
-// @desc    Get dashboard Dispute common reason analytics for a specific gateway
-// @access  Private to Merchant Only
-router.get(
-  '/dashboard/:gateway/reason-analytics',
-  verifyMerchant,
-  merchantDashboardController.getBusinessGatewayCommonReasonAnalytics
-);
 
 export default router;
