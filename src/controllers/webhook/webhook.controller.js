@@ -56,8 +56,8 @@ const disputeReceiveWebhook = async (req, res) => {
         const clientIp = requestIP.getClientIp(req);
 
         // Step 4 : Configure Payload For Publish Webhook Service
-        const events = ['created', 'under_review', 'action_required', 'won','won','won', 'lost'];
-        for (let i = 0; i < 500; i++) {
+        const events = ['created', 'under_review', 'action_required', 'won', 'won', 'won', 'lost'];
+        for (let i = 0; i < 1000; i++) {
             const randomIdWithBigString = `${Math.random().toString(36).substring(2, 23)}`;
             const randomTransactionId = `pay_${Math.random().toString(36).substring(2, 23)}`;
             const randomAmount = Math.floor(Math.random() * 10000) + 1000; // Random amount between 1000 and 1000000
@@ -110,119 +110,119 @@ const disputeReceiveWebhook = async (req, res) => {
             const disputeEvent = ['DISPUTE_CREATED', 'DISPUTE_UPDATED', 'DISPUTE_CLOSED'];
             const randomCFEvent = disputeEvent[Math.floor(Math.random() * disputeEvent.length)];
 
-            const payload1 = {
-                "entity": "event",
-                "account_id": "acc_CFvOKjkTwf3GQy",
-                "event": `payment.dispute.${randomEvent}`,
-                "contains": [
-                    "payment",
-                    "dispute"
-                ],
-                "payload": {
-                    "payment": {
-                        "entity": {
-                            "id": "pay_EFtmUsbwpXwBHI",
-                            "entity": "payment",
-                            "amount": 5297600,
-                            "currency": "INR",
-                            "base_amount": 5297600,
-                            "status": "captured",
-                            "order_id": "order_EFtkA6f5jdkfug",
-                            "invoice_id": null,
-                            "international": false,
-                            "method": "card",
-                            "amount_refunded": 700000,
-                            "amount_transferred": 0,
-                            "refund_status": "partial",
-                            "captured": true,
-                            "description": null,
-                            "card_id": "card_EADblPSDnnk5ZG",
-                            "bank": "HDFC",
-                            "wallet": null,
-                            "vpa": null,
-                            "email": "gaurav.kumar@example.com",
-                            "contact": "+919900000000",
-                            "notes": [],
-                            "fee": 0,
-                            "tax": 0,
-                            "error_code": null,
-                            "error_description": null,
-                            "error_source": null,
-                            "error_step": null,
-                            "error_reason": null,
-                            "acquirer_data": {},
-                            "created_at": 1581525157
-                        }
-                    },
-                    "dispute": {
-                        "entity": {
-                            "id": `disp_${randomIdWithBigString}`,
-                            "entity": "dispute",
-                            "payment_id": `pay_${randomTransactionId}`,
-                            "amount": randomAmount,
-                            "currency": "INR",
-                            "amount_deducted": 0,
-                            "reason_code": randomReason,
-                            "respond_by": randomDueDateGreaterThanPastTime,
-                            "status": randomEvent,
-                            "evidence": {
-                                "amount": 39000,
-                                "summary": null,
-                                "shipping_proof": null,
-                                "billing_proof": null,
-                                "cancellation_proof": null,
-                                "customer_communication": null,
-                                "proof_of_service": null,
-                                "explanation_letter": null,
-                                "refund_confirmation": null,
-                                "access_activity_log": null,
-                                "refund_cancellation_policy": null,
-                                "term_and_conditions": null,
-                                "others": null,
-                                "submitted_at": null
-                            },
-                            "phase": "chargeback",
-                            "created_at": randomPastTime
-                        }
-                    }
-                },
-                "created_at": randomPastTime
-            }
-
-
             // const payload1 = {
-            //     "data": {
+            //     "entity": "event",
+            //     "account_id": "acc_CFvOKjkTwf3GQy",
+            //     "event": `payment.dispute.${randomEvent}`,
+            //     "contains": [
+            //         "payment",
+            //         "dispute"
+            //     ],
+            //     "payload": {
+            //         "payment": {
+            //             "entity": {
+            //                 "id": "pay_EFtmUsbwpXwBHI",
+            //                 "entity": "payment",
+            //                 "amount": 5297600,
+            //                 "currency": "INR",
+            //                 "base_amount": 5297600,
+            //                 "status": "captured",
+            //                 "order_id": "order_EFtkA6f5jdkfug",
+            //                 "invoice_id": null,
+            //                 "international": false,
+            //                 "method": "card",
+            //                 "amount_refunded": 700000,
+            //                 "amount_transferred": 0,
+            //                 "refund_status": "partial",
+            //                 "captured": true,
+            //                 "description": null,
+            //                 "card_id": "card_EADblPSDnnk5ZG",
+            //                 "bank": "HDFC",
+            //                 "wallet": null,
+            //                 "vpa": null,
+            //                 "email": "gaurav.kumar@example.com",
+            //                 "contact": "+919900000000",
+            //                 "notes": [],
+            //                 "fee": 0,
+            //                 "tax": 0,
+            //                 "error_code": null,
+            //                 "error_description": null,
+            //                 "error_source": null,
+            //                 "error_step": null,
+            //                 "error_reason": null,
+            //                 "acquirer_data": {},
+            //                 "created_at": 1581525157
+            //             }
+            //         },
             //         "dispute": {
-            //             "dispute_id": randomIdWithBigString,
-            //             "dispute_type": "CHARGEBACK",
-            //             "reason_code": `${Math.floor(Math.random() * 1000000) + 1000}`,
-            //             "reason_description": randomReason,
-            //             "dispute_amount": randomAmount,
-            //             "created_at": new Date(randomPastDate).toISOString(),
-            //             "updated_at": new Date(randomPastDate).toISOString(),
-            //             "respond_by": new Date(randomDueDateGreaterThanPastTime * 1000).toISOString(),
-            //             "dispute_status": randomDisputeStatus,
-            //             "cf_dispute_remarks": "Dispute is created, please take action",
-            //             "dispute_action_on": "MERCHANT",
-            //             "dispute_amount_currency": "INR"
-            //         },
-            //         "order_details": {
-            //             "order_id": "order_1944392DR1kMTFYdIf8bI2awAcC3i9FTa",
-            //             "order_amount": randomAmount,
-            //             "order_currency": "INR",
-            //             "cf_payment_id": randomTransactionId,
-            //             "payment_amount": randomAmount,
-            //             "payment_currency": "INR"
-            //         },
-            //         "customer_details": {
-            //             "customer_name": "Dileep Kumar s",
-            //             "customer_phone": "8000000000",
-            //             "customer_email": "dileep@gmail.com"
+            //             "entity": {
+            //                 "id": `disp_${randomIdWithBigString}`,
+            //                 "entity": "dispute",
+            //                 "payment_id": `pay_${randomTransactionId}`,
+            //                 "amount": randomAmount,
+            //                 "currency": "INR",
+            //                 "amount_deducted": 0,
+            //                 "reason_code": randomReason,
+            //                 "respond_by": randomDueDateGreaterThanPastTime,
+            //                 "status": randomEvent,
+            //                 "evidence": {
+            //                     "amount": 39000,
+            //                     "summary": null,
+            //                     "shipping_proof": null,
+            //                     "billing_proof": null,
+            //                     "cancellation_proof": null,
+            //                     "customer_communication": null,
+            //                     "proof_of_service": null,
+            //                     "explanation_letter": null,
+            //                     "refund_confirmation": null,
+            //                     "access_activity_log": null,
+            //                     "refund_cancellation_policy": null,
+            //                     "term_and_conditions": null,
+            //                     "others": null,
+            //                     "submitted_at": null
+            //                 },
+            //                 "phase": "chargeback",
+            //                 "created_at": randomPastTime
+            //             }
             //         }
             //     },
-            //     "event_time": new Date(randomPastDate).toISOString(),
-            //     "type": randomCFEvent
+            //     "created_at": randomPastTime
             // }
+
+
+            const payload1 = {
+                "data": {
+                    "dispute": {
+                        "dispute_id": randomIdWithBigString,
+                        "dispute_type": "CHARGEBACK",
+                        "reason_code": `${Math.floor(Math.random() * 1000000) + 1000}`,
+                        "reason_description": randomReason?.split("_")?.map((word)=>word[0]?.toUpperCase()+word.slice(1)).join(" "),
+                        "dispute_amount": randomAmount,
+                        "created_at": new Date(randomPastDate).toISOString(),
+                        "updated_at": new Date(randomPastDate).toISOString(),
+                        "respond_by": new Date(randomDueDateGreaterThanPastTime * 1000).toISOString(),
+                        "dispute_status": randomDisputeStatus,
+                        "cf_dispute_remarks": "Dispute is created, please take action",
+                        "dispute_action_on": "MERCHANT",
+                        "dispute_amount_currency": "INR"
+                    },
+                    "order_details": {
+                        "order_id": "order_1944392DR1kMTFYdIf8bI2awAcC3i9FTa",
+                        "order_amount": randomAmount,
+                        "order_currency": "INR",
+                        "cf_payment_id": randomTransactionId,
+                        "payment_amount": randomAmount,
+                        "payment_currency": "INR"
+                    },
+                    "customer_details": {
+                        "customer_name": "Dileep Kumar s",
+                        "customer_phone": "8000000000",
+                        "customer_email": "dileep@gmail.com"
+                    }
+                },
+                "event_time": new Date(randomPastDate).toISOString(),
+                "type": randomCFEvent
+            }
             const payload = {
                 businessId,
                 GatewayIP: clientIp,
@@ -231,7 +231,14 @@ const disputeReceiveWebhook = async (req, res) => {
             }
             await webhookProcessor.publishToExchange(payload);
         }
-
+        
+        // const payload = {
+        //     businessId,
+        //     GatewayIP: clientIp,
+        //     headers,
+        //     rawPayload: rawPayload
+        // }
+        // await webhookProcessor.publishToExchange(payload);
         // Step 5 : return Acknowledgement to Gateways
         return res.status(statusCodes.OK).send('OK');
     } catch (error) {
