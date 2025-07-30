@@ -7,7 +7,6 @@ import merchantProfile from "../controllers/merchant/dashboard/merchant-profile.
 import businessController from "../controllers/merchant/kyb/business.controller.js";
 import staffController from '../controllers/merchant/staff/staff.controller.js';
 import merchantDisputeController from "../controllers/merchant/merchant-disputes.controller.js";
-import merchantDashboardController from "../controllers/merchant/dashboard/merchant-dashboard.controller.js";
 
 const router = express.Router();
 
@@ -240,39 +239,5 @@ router.put(
   merchantDisputeController.updateDisputeSubmitToPaymentGateway
 );
 
-
-
-
-//********************************************** Merchant Dashboard **************************/
-
-// 1. Fetch Merchant Business Gateways Dispute Count
-// @route     : GET  /api/v2/merchant/dashboard/gateway-disputes
-// @desc      : Fetch The Total number Of Disputes Of Each Gateway Of Business Account
-// @access    : Private to Merchant Only
-router.get(
-  '/dashboard/gateway-disputes',
-  verifyMerchant,
-  merchantDashboardController.totalGatewayDisputes
-);
-
-// 2. Fetch Merchant dashboard Gateway Dispute Analytics
-// @route     : GET  /api/v2/merchant/dashboard/gateway-analytics
-// @desc      : Fetch Merchant Business Gateway Dispute Analytics
-// @access    : Private to Merchant Only
-router.get(
-  '/dashboard/gateway-analytics',
-  verifyMerchant,
-  merchantDashboardController.gatewayDisputesAnalytics
-);
-
-// 2. Fetch Merchant dashboard Gateway Dispute Financial Lost
-// @route     : GET  /api/v2/merchant/dashboard/financial-loss
-// @desc      : Fetch Merchant Business Gateway Dispute Financial Loss
-// @access    : Private to Merchant Only
-router.get(
-  '/dashboard/financial-loss',
-  verifyMerchant,
-  merchantDashboardController.fetchBusinessFinancialLost
-);
 
 export default router;
