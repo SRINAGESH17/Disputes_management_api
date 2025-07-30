@@ -222,9 +222,9 @@ const fetchDisputeTransaction = catchAsync(async (req, res) => {
         const { disputeId } = req.params;
 
         // Step 2 : Validate the Dispute Id
-        if (!helpers.isValidCustomId(disputeId, 'DSP')) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('dispute Id'));
-        }
+        // if (!helpers.isValidCustomId(disputeId, 'DSP')) {
+        //     throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('dispute Id'));
+        // }
 
         // Step 3 : Call the dispute model
         let dispute = await Dispute.findOne({
@@ -656,7 +656,8 @@ const acceptAnalystSubmittedDispute = catchAsync(async (req, res) => {
     try {
         const { userRef } = req.userRole;
 
-        if (!['MERCHANT', 'MANAGER'].includes(userRef)) {
+        console.log(req.params);
+        if (!['MERCHANT', 'ANALYST'].includes(userRef)) {
             throw new AppError(statusCodes.FORBIDDEN, AppErrorCode.YouAreNotAuthorized);
         }
 
@@ -668,6 +669,8 @@ const acceptAnalystSubmittedDispute = catchAsync(async (req, res) => {
         if (!helpers.isValidCustomId(disputeId, 'DSP')) {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('dispute Id'));
         }
+
+
 
 
         // Step 2 : Check Dispute is Exist Or not
@@ -682,7 +685,7 @@ const acceptAnalystSubmittedDispute = catchAsync(async (req, res) => {
 
 
         // Throw Error when the dispute stage is not in Valid phase to accept or reject
-        if (['PENDING', 'ACCEPTED', 'REJECTED'].includes(dispute?.workflowStage)) {
+        if (['SUBMITTED', 'ACCEPTED', 'REJECTED', 'RESUBMITTED'].includes(dispute?.workflowStage)) {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.disputeCannotAccept)
         }
 
@@ -1138,6 +1141,166 @@ const getUploadedDrive = catchAsync(async (req, res) => {
 });
 
 
+// @desc : Accepting the Dispute 
+const acceptDisputeProcess = catchAsync(async (req, res) => {
+
+    // @route    : PATCH /api/v2/disputes/process/:disputeId/accept
+    try {
+        const { userRef } = req.userRole;
+
+        console.log(req.params);
+        if (!['MERCHANT', 'ANALYST'].includes(userRef)) {
+            throw new AppError(statusCodes.FORBIDDEN, AppErrorCode.YouAreNotAuthorized);
+        }
+
+
+        // Step 1 : Extract the dispute id and phase from request params
+        const { disputeId } = req.params;
+
+        // Validate Dispute Id
+        if (!helpers.isValidCustomId(disputeId, 'DSP')) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('dispute Id'));
+        }
+
+
+        // Step 2 : Check Dispute is Exist Or not
+        const dispute = await Dispute.findOne({
+            where: { customId: disputeId },
+            attributes: ['id', 'lastStage', 'lastStageAt', 'updatedStage', 'updatedStageAt', 'workflowStage'],
+            raw: true
+        });
+        if (_.isEmpty(dispute)) {
+            throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.fieldNotFound('Dispute'));
+        }
+
+
+        // Throw Error when the dispute stage is not in Valid phase to accept or reject
+        if (['SUBMITTED', 'ACCEPTED', 'REJECTED', 'RESUBMITTED'].includes(dispute?.workflowStage)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.disputeCannotAccept)
+        }
+
+        // Step 3 : Creating a Updating Dispute Payload for Accepting the Dispute
+        const updateDisputePayload = {};
+
+        updateDisputePayload.lastStage = dispute.updatedStage;
+        updateDisputePayload.lastStageAt = new Date(dispute?.updatedStageAt);
+        updateDisputePayload.updatedStage = 'ACCEPTED';
+        updateDisputePayload.updatedStageAt = new Date(new Date()?.toISOString());
+
+        updateDisputePayload.workflowStage = 'ACCEPTED';
+        updateDisputePayload.state = "accepted";
+
+
+        // Step 4 : Updating the Dispute based on the updated payload object  
+        await Dispute.update(
+            updateDisputePayload,
+            { where: { customId: disputeId } }
+        );
+
+        // Step 5 : Returning the Response with the new Stage and the Dispute Id 
+        return res.status(statusCodes.OK).json(
+            success_response(
+                statusCodes.OK,
+                'Dispute accepted successfully',
+                {
+                    disputeId,
+                    newStage: updateDisputePayload.workflowStage
+                },
+                true
+            )
+        );
+
+    } catch (error) {
+        console.log(error?.message || "Error While Accepting the Dispute");
+        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
+            failed_response(
+                statusCodes.INTERNAL_SERVER_ERROR,
+                "Failed to Accept the Dispute",
+                { message: error?.message || "Accepting process of Dispute Failed" },
+                false,
+            )
+        )
+    }
+})
+
+//  @desc: Contesting the Dispute 
+const contestDisputeProcess = (async (req, res) => {
+
+    // @route    : PATCH /api/v2/disputes/process/:disputeId/accept
+    try {
+        const { userRef } = req.userRole;
+
+        if (!['MERCHANT', 'ANALYST'].includes(userRef)) {
+            throw new AppError(statusCodes.FORBIDDEN, AppErrorCode.YouAreNotAuthorized);
+        }
+
+
+        // Step 1 : Extract the dispute id and phase from request params
+        const { disputeId } = req.params;
+
+        // Validate Dispute Id
+        if (!helpers.isValidCustomId(disputeId, 'DSP')) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('dispute Id'));
+        }
+
+        // Step 2 : Check Dispute is Exist Or not
+        const dispute = await Dispute.findOne({
+            where: { customId: disputeId },
+            attributes: ['id', 'lastStage', 'lastStageAt', 'updatedStage', 'updatedStageAt', 'workflowStage'],
+            raw: true
+        });
+        if (_.isEmpty(dispute)) {
+            throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.fieldNotFound('Dispute'));
+        }
+
+
+        // Throw Error when the dispute stage is not in Valid phase to accept or reject
+        if (['SUBMITTED', 'ACCEPTED', 'REJECTED', 'RESUBMITTED'].includes(dispute?.workflowStage)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.disputeCannotAccept)
+        }
+
+        // Step 3 : Creating a Updating Dispute Payload for Accepting the Dispute
+        const updateDisputePayload = {};
+
+        updateDisputePayload.lastStage = dispute.updatedStage;
+        updateDisputePayload.lastStageAt = new Date(dispute?.updatedStageAt);
+        updateDisputePayload.updatedStage = 'ACCEPTED';
+        updateDisputePayload.updatedStageAt = new Date(new Date()?.toISOString());
+
+        updateDisputePayload.workflowStage = 'ACCEPTED';
+
+        // Step 4 : Updating the Dispute based on the updated payload object  
+        await Dispute.update(
+            updateDisputePayload,
+            { where: { customId: disputeId } }
+        );
+
+        // Step 5 : Returning the Response with the new Stage and the Dispute Id 
+        return res.status(statusCodes.OK).json(
+            success_response(
+                statusCodes.OK,
+                'Dispute accepted successfully',
+                {
+                    disputeId,
+                    newStage: updateDisputePayload.workflowStage
+                },
+                true
+            )
+        );
+    } catch (error) {
+        console.log(error?.message || "Error While Contesting the Dispute");
+        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
+            failed_response(
+                statusCodes.INTERNAL_SERVER_ERROR,
+                "Failed to Contest the Dispute",
+                { message: error?.message || "Contesting process of Dispute Failed" },
+                false,
+            )
+        )
+    }
+})
+
+
 const disputeController = {
     fetchDisputeOverview,
     fetchDisputeDetails,
@@ -1149,7 +1312,9 @@ const disputeController = {
     acceptAnalystSubmittedDispute,
     rejectAnalystSubmittedDispute,
     fetchRejectedDisputeFeedback,
-    getUploadedDrive
+    getUploadedDrive,
+    acceptDisputeProcess,
+    contestDisputeProcess
 };
 
 

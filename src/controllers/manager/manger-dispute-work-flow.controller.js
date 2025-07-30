@@ -331,7 +331,7 @@ const getDisputesReviewHistory = catchAsync(async (req, res) => {
         }
 
         if (isValidDate(fromDate) && isValidDate(toDate) && new Date(fromDate) > new Date(toDate)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField1MustBeValidField2("From Date", "To Date"));
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField1MustBeValidField2("From n", "To Date"));
         }
 
         // Step 7 : Validating the Payment Gateway

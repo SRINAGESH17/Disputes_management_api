@@ -2,7 +2,8 @@ import express from 'express';
 import { verifyMerchantOrAnalyst, verifyMerchantOrManager, verifyUser } from '../middlewares/auth.middleware.js';
 import disputeController from '../controllers/disputes/dispute.controller.js';
 import upload from '../middlewares/upload.middleware.js';
-import GatewaySubmittedDisputes from '../controllers/disputes/gateway-dispute.controller.js';
+import managedDisputeController from '../controllers/disputes/gateway-dispute.controller.js';
+import getDisputesHistory from '../controllers/disputes/dispute-review-history.controller.js';
 
 const router = express.Router();
 
@@ -94,7 +95,7 @@ router.patch(
 // @access  : Verified User ( Merchant, Manager )
 router.patch(
     '/:disputeId/accept',
-    verifyMerchantOrManager,
+    verifyUser,
     disputeController.acceptAnalystSubmittedDispute
 );
 
@@ -136,11 +137,45 @@ router.get(
 // @desc   : Fetching the Disputes Which are Submitted to the Gateway
 // @access : Verified User(Merchant,Manager,Analyst)
 router.get(
-    '/submitted/gateway',
+    '/processed/:status',
     verifyUser,
-    GatewaySubmittedDisputes.getSubmittedToGatewayDisputes
+    managedDisputeController.getProcessedDisputes
 )
 
+
+
+/// ********************** Get Dispute Review History ************************************************
+
+// 1. Fetching the Dispute History Of the User
+//  @route  : GET/ api/v2/disputes/review/history
+//  @desc   : Fetching the Dispute Review History
+//  @access : Verified User(Merchant,Manager,Analyst)
+router.get("/review/history", verifyUser, getDisputesHistory.getDisputesReviewedHistory);
+
+
+
+// ****************************** Updated Accepted and Contested Disputes  ************************
+
+
+// 1. Accepting Process of a Dispute
+//  @route   : PATCH /api/v2/disputes/process/:disputeId/accept
+//  @desc    : Accepting the Dispute
+//  @access  : Verified User(Merchant,Manager,Analyst)
+router.patch(
+    '/process/:disputeId/accept',
+    verifyUser,
+    disputeController.acceptDisputeProcess
+);
+
+// 2.  Contest process of Dispute
+//  @route   : PATCH /api/v2/disputes/process/:disputeId/contest
+//  @desc    : Contesting the Dispute
+//  @access  : Verified User(Merchant,Manager,Analyst)
+router.patch(
+    '/process/:disputeId/contest',
+    verifyUser,
+    disputeController.contestDisputeProcess
+)
 
 
 export default router;

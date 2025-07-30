@@ -19,9 +19,6 @@ const isValidDate = (dateStr) => {
 
 
 
-
-
-
 // @desc 1.Fetch Dispute States
 const getDisputeStates = catchAsync(async (req, res) => {
   // @description : Fetch Internal Disputes States
@@ -58,14 +55,15 @@ const getDisputeStates = catchAsync(async (req, res) => {
 
 //2  @desc Fetching all the Dispute List of A Particular Business 
 const getDisputesList = catchAsync(async (req, res) => {
-    // route  : GET   /api/v2/merchant/list
-    try {
-        // Step 1 : Extract the filter fields from query and user details from request
-        const { currUser, userRole, businessId } = req;
-        const { disputeId, paymentId, state, fromDate, toDate, assigned } = req.query;
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * limit;
+
+  // route  : GET   /api/v2/merchant/list
+  try {
+    // Step 1 : Extract the filter fields from query and user details from request
+    const { currUser, userRole, businessId } = req;
+    const { disputeId, paymentId, state, fromDate, toDate, assigned } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
     // Step 2 : Validate filter fields if exist and request user
     // 2.1: Validate User is Merchant or not
@@ -84,69 +82,69 @@ const getDisputesList = catchAsync(async (req, res) => {
       );
     }
 
-        // 2.3 Validating the Incoming userId is UUIDV4
-        if (currUser?.userId && !helpers.isValidUUIDv4(currUser?.userId)) {
-            throw new AppError(statusCodes.BAD_REQUEST,AppErrorCode.InvalidFieldFormat("userId"))
-        }
+    // 2.3 Validating the Incoming userId is UUIDV4
+    if (currUser?.userId && !helpers.isValidUUIDv4(currUser?.userId)) {
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("userId"))
+    }
 
-        // 2.4 : Validating the User is Merchant or Not
-        if (!userRole.merchant) {
-            throw new AppError(
-                statusCodes.BAD_REQUEST,
-                AppErrorCode.UnAuthorizedField("merchant")
-            );
-        }
+    // 2.4 : Validating the User is Merchant or Not
+    if (!userRole.merchant) {
+      throw new AppError(
+        statusCodes.BAD_REQUEST,
+        AppErrorCode.UnAuthorizedField("merchant")
+      );
+    }
 
-        // 2.5 validating the Incoming Business Id
-        if (_.isEmpty(businessId)) {
-            return res.status(statusCodes.OK).json(
-                success_response(
-                    statusCodes.OK,
-                    "Dispute List Fetched SuccessFully!",
-                    {
-                        totalPages: 0,
-                        totalDisputes: 0,
-                        limit: 0,
-                        page: 0,
-                        disputes: []
-                    },
-                    true
-                )
-            )
-        }
+    // 2.5 validating the Incoming Business Id
+    if (_.isEmpty(businessId)) {
+      return res.status(statusCodes.OK).json(
+        success_response(
+          statusCodes.OK,
+          "Dispute List Fetched SuccessFully!",
+          {
+            totalPages: 0,
+            totalDisputes: 0,
+            limit: 0,
+            page: 0,
+            disputes: []
+          },
+          true
+        )
+      )
+    }
 
-        // 2.6 Validating the BusinessId and it should be Valid UUIDV4 Format 
-        if (businessId && !helpers.isValidUUIDv4(businessId)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("businessId"));
-        }
+    // 2.6 Validating the BusinessId and it should be Valid UUIDV4 Format 
+    if (businessId && !helpers.isValidUUIDv4(businessId)) {
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("businessId"));
+    }
 
-        // 2.7 : Validate Internal State
-        if (state) {
-            const disputeState = state?.toUpperCase()?.split(' ')?.join('_');
-            if (!disputeStatesArray.includes(disputeState)) {
-                throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldValue("state"));
-            }
-        }
-        
-        // 2.8 : Validate fromDate and toDate String fields
-        if (fromDate && !isValidDate(fromDate)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField1MustBeValidField2("fromDate", 'Date String'));
-        }
+    // 2.7 : Validate Internal State
+    if (state) {
+      const disputeState = state?.toUpperCase()?.split(' ')?.join('_');
+      if (!disputeStatesArray.includes(disputeState)) {
+        throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldValue("state"));
+      }
+    }
 
-        if (toDate && !isValidDate(toDate)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField1MustBeValidField2("toDate", 'Date String'));
-        }
+    // 2.8 : Validate fromDate and toDate String fields
+    if (fromDate && !isValidDate(fromDate)) {
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField1MustBeValidField2("fromDate", 'Date String'));
+    }
 
-        if (isValidDate(fromDate) && isValidDate(toDate) && new Date(fromDate) > new Date(toDate)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField1MustBeValidField2("From Date", "To Date"))
-        }
+    if (toDate && !isValidDate(toDate)) {
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField1MustBeValidField2("toDate", 'Date String'));
+    }
+
+    if (isValidDate(fromDate) && isValidDate(toDate) && new Date(fromDate) > new Date(toDate)) {
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField1MustBeValidField2("From Date", "To Date"))
+    }
 
 
-        // Step 3 : Generate a filter payload for disputes
-        const filters = {
-            merchantId: currUser?.userId,
-            businessId
-        };
+    // Step 3 : Generate a filter payload for disputes
+    const filters = {
+      merchantId: currUser?.userId,
+      businessId
+    };
 
     // add Dispute Id filter
     if (disputeId) {
@@ -164,135 +162,143 @@ const getDisputesList = catchAsync(async (req, res) => {
       ];
     }
 
-        // add state filter
-        if (state) {
-            filters[Op.or] = [
-                ...(filters[Op.or] || []),
-                { state: { [Op.iRegexp]: state } },
-            ];
-        }
-        // add dates in filter
-        if (fromDate && toDate) {
-            filters.updatedStageAt = {
-                [Op.between]: [new Date(fromDate), new Date(toDate).setHours(23, 59, 59, 999)]
-            };
-        } else if (fromDate) {
-            filters.updatedStageAt = {
-                [Op.gte]: new Date(fromDate)
-            };
-        } else if (toDate) {
-            filters.updatedStageAt = {
-                [Op.lte]: new Date(toDate).setHours(23, 59, 59, 999)
-            };
-        }
-
-        // added the Merchant and analyst Disputes Filter
-        if (assigned) {
-            if (assigned.toLowerCase() === "merchant") {
-                filters.analystId = null;
-            } else if (assigned.toLowerCase() === "analyst") {
-                filters.analystId = { [Op.ne]: null };
-            }
-        }
-
-
-        // Step 4 : Fetch the disputes with filters
-        const [{ count: totalDisputes, rows: disputes }, analysts] = await Promise.all([
-            Dispute.findAndCountAll({
-                where: filters,
-                attributes:
-                    ["id", "customId", "paymentId", "amount", "analystId", "dueDate", "gateway", "state", "createdAt", "reason"],
-                limit: limit,
-                offset: skip,
-                order: [["createdAt", "DESC"]],
-                raw: true
-            }),
-            Analyst.findAll({ where: { merchantId: currUser?.userId }, attributes: ['id', "firstName", "lastName"], raw: true })
-        ]);
-
-        // Step 5 : Fetching the Analyst Id and finding the Unique Id 
-        const analystDetails = [];
-        const disputeAnalysts = disputes.map((dispute) => dispute.analystId);
-
-        const uniqueAnalysts = new Set(disputeAnalysts);
-
-        // Step 6 : Creating an Object of Analyst with the Analyst Id and Name 
-        analysts.forEach((analyst) => {
-            const analystObj = {}
-            if (uniqueAnalysts.has(analyst.id)) {
-                analystObj.analystId = analyst.id;
-                analystObj.analystName = `${analyst.firstName} ${analyst.lastName}`;
-                analystDetails.push(analystObj)
-            }
-        })
-
-        // Step 7 : Mapping the Dispute with the Name of the Analyst from Above Analyst Details Array 
-        const disputesData = disputes.map((dispute) => {
-            const disputeStaff = dispute?.analystId ? analystDetails?.find((analyst) => analyst?.analystId === dispute?.analystId) : null;
-            const staffName = disputeStaff ? `${disputeStaff?.analystName}` : '';
-            return {
-                disputeId: dispute?.customId,
-                paymentId: dispute?.paymentId,
-                analystId: dispute?.analystId,
-                staffName,
-                amount: dispute?.amount,
-                ChargeBackDate: dispute?.createdAt,
-                reason: dispute?.reason,
-                respondBy: dispute?.dueDate,
-                state: dispute?.state,
-                gateway: dispute?.gateway,
-                type: dispute?.type,
-                updatedAt: dispute?.updatedAt,
-                currentStage: dispute?.workflowStage
-            }
-        })
-
-
-        // Step 8 : Creating a Custom payload To generate the Response
-        const payload = {
-            totalDisputes,
-            totalPages: Math.ceil((totalDisputes || 0) / limit),
-            page,
-            limit,
-            disputes: disputesData
-        }
-
-
-        // Step 9 : Returning the Customized Payload 
-        return res.status(statusCodes.OK).json(
-            success_response(
-                statusCodes.OK,
-                "Dispute List Fetched Successfully!",
-                {
-                    payload
-                },
-                true
-            )
-        )
-
-    } catch (error) {
-        console.log("Error in fetching disputes controller : ", error?.message);
-        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR)
-            .json(
-                failed_response(
-                    error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
-                    "Failed To Fetch Disputes List",
-                    {
-                        message: error?.message || "Disputes List Fetching Failed",
-                    },
-                    false
-                )
-            );
+    // add state filter
+    if (state) {
+      filters[Op.or] = [
+        ...(filters[Op.or] || []),
+        { state: { [Op.iRegexp]: state } },
+      ];
     }
+    // add dates in filter
+    if (fromDate && toDate) {
+      filters.updatedStageAt = {
+        [Op.between]: [new Date(fromDate), new Date(toDate).setHours(23, 59, 59, 999)]
+      };
+    } else if (fromDate) {
+      filters.updatedStageAt = {
+        [Op.gte]: new Date(fromDate)
+      };
+    } else if (toDate) {
+      filters.updatedStageAt = {
+        [Op.lte]: new Date(toDate).setHours(23, 59, 59, 999)
+      };
+    }
+
+    // added the Merchant and analyst Disputes Filter
+    if (assigned) {
+      if (assigned.toLowerCase() === "merchant") {
+        filters.analystId = null;
+      } else if (assigned.toLowerCase() === "analyst") {
+        filters.analystId = { [Op.ne]: null };
+      }
+    }
+
+
+    // Step 4 : Fetch the disputes with filters
+    const { count: totalDisputes, rows: disputes } = await Dispute.findAndCountAll({
+      where: filters,
+      attributes:
+        ["id", "customId", "paymentId", "amount", "analystId", "dueDate", "gateway", "state", "createdAt", "reason"],
+      limit: limit,
+      offset: skip,
+      order: [["createdAt", "DESC"]],
+      raw: true
+    });
+
+    // Step 5 : Fetching the Analyst Id and finding the Unique Id 
+    const analystDetails = [];
+    const disputeAnalysts = disputes.map((dispute) => dispute.analystId);
+
+    const uniqueAnalysts = new Set(disputeAnalysts);
+
+    const analysts = await Analyst.findAll({
+      where: {
+        id: {
+          [Op.in]: Array.from(uniqueAnalysts)
+        },
+
+      },
+      attributes: ['id', "firstName", "lastName"],
+      raw: true
+    })
+
+    // Step 6 : Creating an Object of Analyst with the Analyst Id and Name 
+    analysts.forEach((analyst) => {
+      const analystObj = {}
+      if (uniqueAnalysts.has(analyst.id)) {
+        analystObj.analystId = analyst.id;
+        analystObj.analystName = `${analyst.firstName} ${analyst.lastName}`;
+        analystDetails.push(analystObj)
+      }
+    })
+
+    // Step 7 : Mapping the Dispute with the Name of the Analyst from Above Analyst Details Array 
+    const disputesData = disputes.map((dispute) => {
+      const disputeStaff = dispute?.analystId ? analystDetails?.find((analyst) => analyst?.analystId === dispute?.analystId) : null;
+      const staffName = disputeStaff ? `${disputeStaff?.analystName}` : '';
+      return {
+        disputeId: dispute?.customId,
+        paymentId: dispute?.paymentId,
+        analystId: dispute?.analystId,
+        staffName,
+        amount: dispute?.amount,
+        ChargeBackDate: dispute?.createdAt,
+        reason: dispute?.reason,
+        respondBy: dispute?.dueDate,
+        state: dispute?.state,
+        gateway: dispute?.gateway,
+        type: dispute?.type,
+        updatedAt: dispute?.updatedAt,
+        currentStage: dispute?.workflowStage
+      }
+    })
+
+
+    // Step 8 : Creating a Custom payload To generate the Response
+    const payload = {
+      totalDisputes,
+      totalPages: Math.ceil((totalDisputes || 0) / limit),
+      page,
+      limit,
+      disputes: disputesData
+    }
+
+
+    // Step 9 : Returning the Customized Payload 
+    return res.status(statusCodes.OK).json(
+      success_response(
+        statusCodes.OK,
+        "Dispute List Fetched Successfully!",
+        {
+          payload
+        },
+        true
+      )
+    )
+
+  } catch (error) {
+    console.log("Error in fetching disputes controller : ", error?.message);
+    return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR)
+      .json(
+        failed_response(
+          error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
+          "Failed To Fetch Disputes List",
+          {
+            message: error?.message || "Disputes List Fetching Failed",
+          },
+          false
+        )
+      );
+  }
 });
 
 // @desc 3. Fetch Merchant Disputes Reviews
 const getDisputesReviews = catchAsync(async (req, res) => {
   // @route GET /api/v2/merchant/disputes/reviews
   try {
-  // step-1 Destructuring currUser and userRole from request
-  const { currUser, userRole, businessId } = req;
-  const { fromDate, toDate, gateway, search } = req.query
+    // step-1 Destructuring currUser and userRole from request
+    const { currUser, userRole, businessId } = req;
+    const { fromDate, toDate, gateway, search } = req.query
 
     // step-2 Validate merchant selected active business account
     if (!businessId) {
@@ -426,9 +432,9 @@ const getDisputesReviews = catchAsync(async (req, res) => {
 const getDisputesSubmittedByManager = catchAsync(async (req, res) => {
   // @route GET /api/v2/merchant/disputes/manager/submitted
   try {
-  // step-1 Destructuring currUser and userRole from request
-  const { currUser, userRole, businessId } = req;
-  const { fromDate, toDate, gateway, search } = req.query
+    // step-1 Destructuring currUser and userRole from request
+    const { currUser, userRole, businessId } = req;
+    const { fromDate, toDate, gateway, search } = req.query
 
     // step-2 Validate merchant selected active business account
     if (!businessId) {
@@ -479,7 +485,7 @@ const getDisputesSubmittedByManager = catchAsync(async (req, res) => {
       };
     }
 
-     if (gateway && typeof gateway === "string") {
+    if (gateway && typeof gateway === "string") {
 
       // step-4 checking if the gateway includes in our GatewayNames
       const isExistingGateway = GatewayNames.includes(gateway?.toLowerCase());
@@ -563,10 +569,10 @@ const getDisputesSubmittedByManager = catchAsync(async (req, res) => {
 const updateDisputeSubmitToPaymentGateway = catchAsync(async (req, res) => {
   // @route PUT /api/v2/merchant/disputes/:disputeId/submit/payment-gateway
 
-   try {
+  try {
     const { currUser, userRole, businessId } = req;
     const { disputeId } = req.params;
-     
+
     // Step-1: Validate business and user
     if (!businessId) {
       throw new AppError(
@@ -578,8 +584,8 @@ const updateDisputeSubmitToPaymentGateway = catchAsync(async (req, res) => {
     // Step-1.1: Validate that the current user is authorized as a merchant
     if (!currUser && !userRole.merchant) {
       throw new AppError(
-      statusCodes.UNAUTHORIZED,
-      AppErrorCode.YouAreNotAuthorized
+        statusCodes.UNAUTHORIZED,
+        AppErrorCode.YouAreNotAuthorized
       );
     }
 
@@ -668,7 +674,7 @@ const getDisputesSubmittedAnalystByStage = catchAsync(async (req, res) => {
       businessId: businessId,
     };
 
-     // Step-6: Validate fromDate and toDate formats
+    // Step-6: Validate fromDate and toDate formats
     if (fromDate && !isValidDate(fromDate)) {
       throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("From Date"));
     }
@@ -706,7 +712,7 @@ const getDisputesSubmittedAnalystByStage = catchAsync(async (req, res) => {
       );
     }
 
-     // If analystId is valid, add it to the where condition for filters based on specific  id
+    // If analystId is valid, add it to the where condition for filters based on specific  id
     if (analystId) {
       whereCondition.analystId = analystId;
     }
@@ -732,7 +738,7 @@ const getDisputesSubmittedAnalystByStage = catchAsync(async (req, res) => {
       whereCondition.customId = { [Op.iLike]: `%${search}%` };
     }
 
-   // Step-3.1: Apply workflowStage filtering logic
+    // Step-3.1: Apply workflowStage filtering logic
     if (stage && stage.toLowerCase() !== "assigned") {
       // If stage is provided and not "assigned", use that stage
       whereCondition.workflowStage = stage.toUpperCase();
@@ -859,9 +865,9 @@ const getDisputesReviewedHistory = catchAsync(async (req, res) => {
     const statusArray = ["ACCEPTED", "REJECTED", "RESUBMITTED"]
     const whereCondition = {
       businessId: businessId,
-      workflowStage: {[Op.in]: statusArray}
+      workflowStage: { [Op.in]: statusArray }
     };
-  
+
     // Step-6: Validate fromDate and toDate formats
     if (fromDate && !isValidDate(fromDate)) {
       throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("From Date"));
@@ -906,16 +912,16 @@ const getDisputesReviewedHistory = catchAsync(async (req, res) => {
       }
     }
 
-     // Step-3.1: Apply workflowStage filtering logic
+    // Step-3.1: Apply workflowStage filtering logic
     if (status) {
       if (statusArray.includes(status?.toUpperCase())) {
-      whereCondition.workflowStage = status?.toUpperCase();
-    } else {
-      throw new AppError(
-        statusCodes.BAD_REQUEST,
-        AppErrorCode.fieldNotExist(status)
-      );
-    }
+        whereCondition.workflowStage = status?.toUpperCase();
+      } else {
+        throw new AppError(
+          statusCodes.BAD_REQUEST,
+          AppErrorCode.fieldNotExist(status)
+        );
+      }
     }
 
     // Step-5: Add search filter for dispute customId (if provided)
@@ -966,7 +972,7 @@ const getDisputesReviewedHistory = catchAsync(async (req, res) => {
             totalPages: Math.ceil(totalDisputesCount / limit),
             page,
             limit,
-            disputes, 
+            disputes,
           },
           true
         )

@@ -14,16 +14,21 @@ const isValidDate = (dateStr) => {
     return !isNaN(date.getTime());
 }
 
-// @desc  Get Submitted to Payment Gateway Disputes
-const getSubmittedToGatewayDisputes = catchAsync(async (req, res) => {
+const process = ["accepted", "submitted"];
 
-    // @route  : GET / /api/v2/disputes/submitted/gateway
+
+// @desc  Get Submitted to Payment Gateway Disputes
+const getProcessedDisputes = catchAsync(async (req, res) => {
+
+    // @route  : GET / /api/v2/disputes/processed/:status
     try {
         // Step 1 : Fetching the UserId ,userRole and business Id from the request 
 
         const { userId } = req.currUser;
         const user = req.userRole;
         const businessId = req.businessId;
+        const { status } = req.params;
+
 
         // Step 2 : For Filtering the Disputes we are taking the Date and gateway and custom DisputeId 
         const { fromDate, toDate, gateway, customDisputeId } = req.query;
@@ -71,6 +76,10 @@ const getSubmittedToGatewayDisputes = catchAsync(async (req, res) => {
             )
         }
 
+        if (status && !process.includes(status.toLowerCase())) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("Dispute Status"))
+        }
+
 
         // Step 5 : Validating the Filters
 
@@ -88,20 +97,30 @@ const getSubmittedToGatewayDisputes = catchAsync(async (req, res) => {
         }
 
         //  5.2 : validating the gateway 
-        if (gateway) {
-            if (!GatewayNames.includes(gateway.toLowerCase())) {
+        if (gateway && !GatewayNames.includes(gateway.toLowerCase())) {
                 throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField("Gateway"));
-            }
         }
 
 
         // Step 6: Creating a WhereClause To search for the Disputes based on the condition 
         const whereClause = {
             businessId,
-            isSubmitted: true,
+            isSubmitted: false,
             workflowStage: "ACCEPTED",
+        };
 
+        // 6.1 Updating isSubmitted true when the status is Submitted which means submitted to payment Gateway 
+        if (status.toLowerCase() === "submitted") {
+            whereClause.isSubmitted = true
         }
+
+        // 6.2 Based on the User Role we were attaching the userId 
+        if (user.merchant) {
+            whereClause.merchantId = userId;
+        } else if (user.analyst) {
+            whereClause.analystId = userId;
+        }
+
 
         // Step 7 : If there is Filters then based on the filters we are adding the filters to whereClause
         if (fromDate && toDate) {
@@ -119,49 +138,26 @@ const getSubmittedToGatewayDisputes = catchAsync(async (req, res) => {
         }
 
         if (gateway) {
-            whereClause[Op.or] = [
-                ...(whereClause[Op.or] || []),
-                { gateway: { [Op.iLike]: `%${gateway}%` } },
-            ];
+            whereClause.gateway = { [Op.iLike]: `%${gateway}%` };
         }
 
         if (customDisputeId) {
-            whereClause.customId = {
-                [Op.iLike]: `%${customDisputeId}%`
-            }
+            whereClause.customId = { [Op.iLike]: `%${customDisputeId}%` };
         }
+
 
         // Step 8 : Based on the Role Fetching the Disputes attached to the users which are submitted to Gateway 
-        let disputes;
-        let totalDisputes
-        if (user.merchant) {
-            ({ rows: disputes, count: totalDisputes } = await Dispute.findAndCountAll({
-                where: { ...whereClause, merchantId: userId },
-                attributes: ["id", "state", "customId", "paymentId", "amount", 'reason', "workflowStage", "dueDate", "gateway", "disputeId", "updatedAt"],
-                limit,
-                offset,
-                raw: true,
-            }));
-        } else if (user.analyst) {
-            ({ rows: disputes, count: totalDisputes } = await Dispute.findAll({
-                where: { ...whereClause, analystId: userId },
-                attributes: ["id", "state", "customId", "paymentId", "amount", 'reason', "workflowStage", "dueDate", "gateway", "disputeId", "updatedAt"],
-                limit,
-                offset,
-                raw: true,
-            }));
-        } else if (user.manager) {
-            ({ rows: disputes, count: totalDisputes } = await Dispute.findAll({
-                where: { ...whereClause, managerId: userId },
-                attributes: ["id", "state", "customId", "paymentId", "amount", 'reason', "workflowStage", "dueDate", "gateway", "disputeId", "updatedAt"],
-                limit,
-                offset,
-                raw: true,
-            }));
-        }
+        const { rows: processedDisputes, count: totalDisputes } = await Dispute.findAndCountAll({
+            where: whereClause,
+            attributes: ["id", "state", "customId", "paymentId", "amount", 'reason', "workflowStage", "dueDate", "gateway", "disputeId", "updatedAt"],
+            limit,
+            offset,
+            raw: true,
+        })
+
 
         // step 9 : Creating the Customized dispute Data To send in the payload
-        const customizedDispute = disputes.map((dispute) => {
+        const disputes = processedDisputes.map((dispute) => {
             return {
                 customId: dispute?.customId,
                 paymentGatewayStatus: dispute?.state,
@@ -181,7 +177,7 @@ const getSubmittedToGatewayDisputes = catchAsync(async (req, res) => {
             totalPages: Math.ceil(totalDisputes / limit),
             page,
             limit,
-            customizedDispute
+            disputes
         }
 
         // Step 11: Sending the response with created Payload 
@@ -207,12 +203,9 @@ const getSubmittedToGatewayDisputes = catchAsync(async (req, res) => {
 })
 
 
-
-
-
-const GatewaySubmittedDisputes = {
-    getSubmittedToGatewayDisputes
+const managedDisputeController = {
+    getProcessedDisputes
 };
 
 
-export default GatewaySubmittedDisputes;
+export default managedDisputeController;
