@@ -49,13 +49,17 @@ router.get(
 // @access : Private to Analyst Only
 router.get('/disputes/requested/status', verifyAnalyst, analystDashboardController.getAnalystDisputeStatusCards);
 
-
 // 2. Get Total Assigned Disputes Weekly Wise
 // @route  : GET /api/v2/analyst/disputes/analysis/assigned
 // @desc   : Fetching the Assigned Disputes Weekly wise
 // @access : Private to Analyst Only
 router.get("/disputes/analysis/assigned", verifyAnalyst, analystDashboardController.getWeeklyWiseAssignedDisputes);
 
+// 3. Get Money Lost in Last 6 Months
+// @route   : GET  /api/v2/analyst/disputes/money/lost
+// @desc    : Fetching the Money Lost in Last 6 Months
+// @access  : Private to analyst only
+router.get("/disputes/money/lost", verifyAnalyst, analystDashboardController.getLastSixMonthsMoneyLost);
 
 // 4. Analyst Dashboard Upcoming Deadline Disputes
 // @route   : GET /api/v2/analyst/disputes/deadline
@@ -64,4 +68,4 @@ router.get("/disputes/analysis/assigned", verifyAnalyst, analystDashboardControl
 router.get('/disputes/deadline', verifyAnalyst, analystDashboardController.getUpcomingDeadlineDisputes);
 
 
-export default router;
+export default router; 

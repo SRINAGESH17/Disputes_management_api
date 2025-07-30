@@ -454,7 +454,7 @@ const getUpcomingDeadlineDisputes = catchAsync(async (req, res) => {
 // @desc Fetching the Number of Disputes Accepted Weekly Wise in a Month 
 const getWeekWiseAcceptedDisputes = catchAsync(async (req, res) => {
 
-    // @route    : GET /api/v2/manager/disputes/analysis/accepted
+    // @route   : GET /api/v2/manager/disputes/analysis/accepted
     try {
 
         // Step 1 : Extracting the CurrentUser , userRole and BusinessId From the middleware request 
@@ -605,8 +605,6 @@ const getLastSixMonthsRevenueLost = catchAsync(async (req, res) => {
         // Step 3 : Checking the Current Month and Current Year 
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
-
-
 
         // Step 4 : Validating the Current User , is Manager and BusinessId from the req
         if (_.isEmpty(currUser)) {
