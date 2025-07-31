@@ -11,10 +11,10 @@ const getAnalystProfile = catchAsync(async (req, res) => {
   // @route GET /api/v2/analyst/profile
   try {
     // Step-1: Destructure current user and role from request
-    const { currUser, userRole } = req.userRole;
+    const { currUser, userRole } = req;
 
     // Step-2: Validate that the user is authenticated and authorized as a merchant
-    if (!currUser && !userRole.merchant) {
+    if (!currUser && !userRole.analyst) {
       throw new AppError(
         statusCodes.UNAUTHORIZED,
         AppErrorCode.YouAreNotAuthorized
