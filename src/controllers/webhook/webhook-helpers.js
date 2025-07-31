@@ -397,6 +397,11 @@ function generateDisputeNotificationTemplate(disputeId, status, staffName, optio
                 title: `New Dispute Assigned (#ID: ${disputeId})`,
                 message: `Dispute #ID:${disputeId} has been assigned to You '${staffName}'. Please review and take appropriate action.`
             };
+        case 'ASSIGNED_MERCHANT':
+            return {
+                title: `New Dispute Assigned (#ID: ${disputeId})`,
+                message: `Dispute #ID:${disputeId} has been assigned to You. Please review and take appropriate action.`
+            };
         case 'DISPUTE_RECEIVED_MERCHANT':
             return {
                 title: `New Dispute Received (#ID: ${disputeId})`,
@@ -421,7 +426,12 @@ function generateDisputeNotificationTemplate(disputeId, status, staffName, optio
         case 'EVENT_CHANGED':
             return {
                 title: `Dispute Status Changed (#ID: ${disputeId})`,
-                message: `The event of Dispute #ID:${disputeId} has been updated to "${options?.newStatus || 'New One'}". Review the case for more details.`
+                message: `The status of Dispute #ID:${disputeId} has been updated to "${options?.newStatus || 'New One'}". Review the case for more details.`
+            };
+        case 'EVENT_CHANGED_ASSIGNED':
+            return {
+                title: `Dispute Status Changed (#ID: ${disputeId})`,
+                message: `Dispute #ID:${disputeId} Assigned to ${staffName}, status of Dispute has been updated to "${options?.newStatus || 'New One'}". Review the case for more details.`
             };
 
         case 'DISPUTE_UPDATED':
