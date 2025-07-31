@@ -24,6 +24,9 @@
 const DisputeNotifyStatus = {
     // When a dispute is assigned to a staff member
     ASSIGNED: 'ASSIGNED',
+    
+    // When a dispute is assigned to a Merchant 
+    ASSIGNED_MERCHANT: 'ASSIGNED_MERCHANT',
 
     // Dispute received and assigned to a merchant
     DISPUTE_RECEIVED_MERCHANT: 'DISPUTE_RECEIVED_MERCHANT',
@@ -36,6 +39,8 @@ const DisputeNotifyStatus = {
 
     // Status of the dispute has changed
     STATUS_CHANGED: 'STATUS_CHANGED',
+
+    EVENT_CHANGED_ASSIGNED:"EVENT_CHANGED_ASSIGNED",
 
     // Generic event change related to the dispute
     EVENT_CHANGED: 'EVENT_CHANGED',
