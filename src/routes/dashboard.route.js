@@ -30,20 +30,20 @@ router.get(
     UserDashboardController.gatewayDisputesAnalytics
 );
 
-// 3. Fetch Merchant dashboard Gateway Dispute Financial Lost
+// 3. Fetch User dashboard Gateway Dispute Financial Lost
 // @route     : GET  /api/v2/user/dashboard/financial-loss
-// @desc      : Fetch Merchant Business Gateway Dispute Financial Loss
-// @access    : Private to Merchant And Analyst Only
+// @desc      : Fetch User Business Gateway Dispute Financial Loss
+// @access    : Private to User And Analyst Only
 router.get(
     '/dashboard/financial-loss',
     verifyMerchantOrAnalyst,
     UserDashboardController.fetchBusinessFinancialLost
 );
 
-// 4. Fetch Dashboard Dispute Common Reason Analytics
+// 4. Fetch User Dashboard Dispute Common Reason Analytics
 // @route     : GET  /api/v2/user/dashboard/reason-analytics
-// @desc      : Fetch Dashboard Dispute Common Reason Analytics based on filters
-// @access    : Private to Merchant And Analyst Only
+// @desc      : Fetch User Dashboard Dispute Common Reason Analytics based on filters
+// @access    : Private to User And Analyst Only
 router.get(
     '/dashboard/reason-analytics',
     verifyMerchantOrAnalyst,

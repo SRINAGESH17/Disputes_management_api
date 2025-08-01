@@ -69,7 +69,7 @@ const totalGatewayDisputes = catchAsync(async (req, res) => {
                 [
                     sequelize.fn(
                         'SUM',
-                        sequelize.literal(`CASE WHEN state = 'Won' THEN 1 ELSE 0 END`)
+                        sequelize.literal(`CASE WHEN state = 'won' THEN 1 ELSE 0 END`)
                     ),
                     'wonDisputes'
                 ]
@@ -89,7 +89,7 @@ const totalGatewayDisputes = catchAsync(async (req, res) => {
 
         const resolutionRate = +((totalWonDisputes / totalDisputes) * 100).toFixed(2);
 
-        // Sending Success Response
+        // Step 6 : Sending Success Response
         return res.status(statusCodes.OK).json(
             success_response(
                 statusCodes.OK,
@@ -99,7 +99,7 @@ const totalGatewayDisputes = catchAsync(async (req, res) => {
             )
         );
     } catch (error) {
-        // Sending Error Response
+        // Step 7 : Sending Error Response
         console.log("Error in Fetching User Business Gateway Disputes Count : ", error?.message);
         return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
@@ -113,7 +113,6 @@ const totalGatewayDisputes = catchAsync(async (req, res) => {
         )
     }
 });
-
 
 // Fetch User dashboard Gateway Dispute Analytics
 const gatewayDisputesAnalytics = catchAsync(async (req, res) => {
@@ -197,8 +196,8 @@ const gatewayDisputesAnalytics = catchAsync(async (req, res) => {
             attributes: [
                 'gateway',
                 [sequelize.fn('COUNT', sequelize.col('id')), 'totalDisputes'],
-                [sequelize.fn('SUM', sequelize.literal(`CASE WHEN state = 'Won' THEN 1 ELSE 0 END`)), 'wonDisputes'],
-                [sequelize.fn('SUM', sequelize.literal(`CASE WHEN state = 'Lost' THEN 1 ELSE 0 END`)), 'lostDisputes'],
+                [sequelize.fn('SUM', sequelize.literal(`CASE WHEN state = 'won' THEN 1 ELSE 0 END`)), 'wonDisputes'],
+                [sequelize.fn('SUM', sequelize.literal(`CASE WHEN state = 'lost' THEN 1 ELSE 0 END`)), 'lostDisputes'],
             ],
             group: ['gateway'],
             raw: true
@@ -217,7 +216,7 @@ const gatewayDisputesAnalytics = catchAsync(async (req, res) => {
         });
         gatewaysCount.sort((a, b) => b.totalDisputes - a.totalDisputes);
 
-        // Sending Success Response
+        // Step 6 : Sending Success Response
         return res.status(statusCodes.OK).json(
             success_response(
                 statusCodes.OK,
@@ -227,7 +226,7 @@ const gatewayDisputesAnalytics = catchAsync(async (req, res) => {
             )
         );
     } catch (error) {
-        // Sending Error Response
+        // Step 7 : Sending Error Response
         console.log("Error in Fetching User Business Gateway Disputes Analytics : ", error?.message);
         return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
@@ -242,29 +241,27 @@ const gatewayDisputesAnalytics = catchAsync(async (req, res) => {
     }
 });
 
-// Fetch Merchant Dashboard Business Lost Analytics
+// Fetch User Dashboard Business Lost Analytics
 const fetchBusinessFinancialLost = catchAsync(async (req, res) => {
-    // @route : GET  /api/v2/merchant/dashboard/financial-loss
+    // @route : GET  /api/v2/user/dashboard/financial-loss
     try {
         const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 
         // Step 1 : Extract The User Details From Request
         const { userRole, currUser } = req;
         const month = req.query.month || months[new Date().getMonth()];
-        console.log("month : ", month);
         const businessId = req.businessId;
 
-        // Step 2 : Validate The Merchant Details and BusinessId
+        // Step 2 : Validate The User Details and BusinessId
         if (_.isEmpty(userRole)) {
             throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User Role'));
         }
         if (_.isEmpty(currUser?.uid)) {
             throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User'));
         }
-        if (userRole?.userRef !== "MERCHANT") {
+        if (userRole?.userRef !== "MERCHANT" && userRole?.userRef !== "ANALYST") {
             throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User'));
         }
-
 
         // Validate Month is valid one
         if (month && !months.includes(month)) {
@@ -272,11 +269,8 @@ const fetchBusinessFinancialLost = catchAsync(async (req, res) => {
         }
 
         const monthNumber = months.findIndex((m) => m === month);
-
         const date = new Date(new Date().setMonth(monthNumber));
-
         const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-
         const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
 
         // Step 3 : Return payload if no business account linked
@@ -300,28 +294,26 @@ const fetchBusinessFinancialLost = catchAsync(async (req, res) => {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('BusinessId'));
         }
 
+         // where condition for fetching disputes
+        const whereCondition = {
+            businessId: businessId,
+            createdAt: { [Op.gte]: startOfMonth, [Op.lte]: endOfMonth }
+        }
+
+        // If User is Analyst, then filter by analystId
+        if (userRole?.userRef === "ANALYST") {
+            whereCondition.analystId = userRole?.userId;
+        }
 
         // Step 5: Fetch the Business gateway Dispute Counts
         console.time('Fetch Business Gateway Dispute Financial Loss Analytics');
         let gatewaysCount = await Dispute.findAll({
-            where: { createdAt: { [Op.gte]: startOfMonth, [Op.lte]: endOfMonth }, businessId },
+            where: whereCondition,
             attributes: [
                 'gateway',
                 [sequelize.fn('COUNT', sequelize.col('id')), 'totalDisputes'],
-                [
-                    sequelize.fn(
-                        'SUM',
-                        sequelize.literal(`CASE WHEN state = 'Lost' THEN 1 ELSE 0 END`)
-                    ),
-                    'lostDisputes'
-                ],
-                [
-                    sequelize.fn(
-                        'SUM',
-                        sequelize.literal(`CASE WHEN state = 'Lost' THEN amount ELSE 0 END`)
-                    ),
-                    'lostAmount'
-                ],
+                [sequelize.fn('SUM', sequelize.literal(`CASE WHEN state = 'lost' THEN 1 ELSE 0 END`)), 'lostDisputes'],
+                [sequelize.fn('SUM', sequelize.literal(`CASE WHEN state = 'lost' THEN amount ELSE 0 END`)),'lostAmount'],
             ],
             group: ['gateway'],
             raw: true
@@ -343,6 +335,7 @@ const fetchBusinessFinancialLost = catchAsync(async (req, res) => {
         });
         gatewaysCount.sort((a, b) => b.totalDisputes - a.totalDisputes);
 
+        // Step 6 : Sending Success Response
         return res.status(statusCodes.OK).json(
             success_response(
                 statusCodes.OK,
@@ -352,11 +345,12 @@ const fetchBusinessFinancialLost = catchAsync(async (req, res) => {
             )
         );
     } catch (error) {
-        console.log("Error in Fetching Merchant Business Gateway Disputes Financial Lost : ", error?.message);
+        // Step 7 : Sending Error Response
+        console.log("Error in Fetching User Business Gateway Disputes Financial Lost : ", error?.message);
         return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
                 error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
-                "Failed to Fetch Business Gateways Financial Lost",
+                "Failed to Fetch User Business Gateways Financial Lost",
                 {
                     message: error?.message
                 },
@@ -366,10 +360,9 @@ const fetchBusinessFinancialLost = catchAsync(async (req, res) => {
     }
 });
 
-
-// Fetch Dashboard Dispute Common Reason Analytics
+// Fetch User Dashboard Dispute Common Reason Analytics
 const fetchDisputeCommonReasonAnalytics = catchAsync(async (req, res) => {
-    // @route : GET  /api/v2/merchant/dashboard/reason-analytics
+    // @route : GET  /api/v2/user/dashboard/reason-analytics
     try {
         // Step 1 : Extract The User Details From Request
         const { userRole, currUser } = req;
@@ -377,14 +370,14 @@ const fetchDisputeCommonReasonAnalytics = catchAsync(async (req, res) => {
 
         const businessId = req.businessId;
 
-        // Step 2 : Validate The Merchant Details and BusinessId
+        // Step 2 : Validate The User Details and BusinessId
         if (_.isEmpty(userRole)) {
             throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User Role'));
         }
         if (_.isEmpty(currUser?.uid)) {
             throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User'));
         }
-        if (userRole?.userRef !== "MERCHANT") {
+        if (userRole?.userRef !== "MERCHANT" && userRole?.userRef !== "ANALYST") {
             throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User'));
         }
 
@@ -396,7 +389,7 @@ const fetchDisputeCommonReasonAnalytics = catchAsync(async (req, res) => {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidField1MustBeValidField2("toDate", 'Date String'));
         }
         if (fromDate && toDate) {
-            if (new Date(fromDate).getMilliseconds() > new Date(toDate).getMilliseconds()) {
+            if (new Date(fromDate) > new Date(toDate)) {
                 throw new AppError(statusCodes.BAD_REQUEST, "Invalid Dates. fromDate Must be Less Then toDate");
             }
         }
@@ -409,7 +402,6 @@ const fetchDisputeCommonReasonAnalytics = catchAsync(async (req, res) => {
 
         // Step 3 : Return payload if no business account linked
         if (_.isEmpty(businessId)) {
-
             return res.status(statusCodes.OK).json(
                 success_response(
                     statusCodes.OK,
@@ -427,31 +419,39 @@ const fetchDisputeCommonReasonAnalytics = catchAsync(async (req, res) => {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('BusinessId'));
         }
 
-        let filter = {};
+           // where condition for fetching disputes
+        const whereCondition = {
+            businessId: businessId,
+        }
 
-        if (fromDate || toDate) {
-            filter.createdAt = {};
-            if (fromDate) filter.createdAt[Op.gte] = new Date(fromDate);
-            if (toDate) filter.createdAt[Op.lte] = new Date(toDate);
+          // If User is Analyst, then filter by analystId
+        if (userRole?.userRef === "ANALYST") {
+            whereCondition.analystId = userRole?.userId;
         }
-        if (businessId) {
-            filter.businessId = businessId;
-        }
+
+          // Step 7: Apply date filter (if fromDate/toDate provided) on updatedAt field
+        if (fromDate && toDate) {
+            whereCondition.createdAt = {
+                [Op.between]: [new Date(fromDate), new Date(toDate).setHours(23, 59, 59, 999)]
+            };
+        } else if (fromDate) {
+            whereCondition.createdAt = {
+                [Op.gte]: new Date(fromDate)
+            };
+        } else if (toDate) {
+            whereCondition.createdAt = {
+                [Op.lte]: new Date(toDate).setHours(23, 59, 59, 999)
+            };
+        }      
 
         // Step 5: Fetch the Business gateway Dispute Counts
         console.time('Fetch Business Gateway Dispute Common Reason Analytics');
         let gatewaysCount = await Dispute.findAll({
-            where: filter,
+            where: whereCondition,
             attributes: [
                 'gateway',
                 [sequelize.fn('COUNT', sequelize.col('id')), 'totalDisputes'],
-                [
-                    sequelize.fn(
-                        'SUM',
-                        sequelize.literal(`CASE WHEN LOWER(reason) ~ '${reason.toLowerCase()}' THEN 1 ELSE 0 END`)
-                    ),
-                    'reasonDisputes'
-                ],
+                [sequelize.fn('SUM', sequelize.literal(`CASE WHEN LOWER(reason) ~ '${reason.toLowerCase()}' THEN 1 ELSE 0 END`)), 'reasonDisputes'],
             ],
             group: ['gateway'],
             raw: true
@@ -470,6 +470,7 @@ const fetchDisputeCommonReasonAnalytics = catchAsync(async (req, res) => {
 
         gatewaysCount.sort((a, b) => b.totalDisputes - a.totalDisputes);
 
+        // Step 6 : Sending Success Response
         return res.status(statusCodes.OK).json(
             success_response(
                 statusCodes.OK,
@@ -479,11 +480,12 @@ const fetchDisputeCommonReasonAnalytics = catchAsync(async (req, res) => {
             )
         );
     } catch (error) {
-        console.log("Error in Fetching Merchant Business Gateway Disputes Common reason Analytics : ", error?.message);
+        // Step 7 : Sending Error Response
+        console.log("Error in Fetching User Business Gateway Disputes Common reason Analytics : ", error?.message);
         return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
                 error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
-                "Failed to Fetch Business Common reason Analytics",
+                "Failed to Fetch User Business Common reason Analytics",
                 {
                     message: error?.message
                 },
