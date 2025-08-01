@@ -26,7 +26,7 @@ app.use('/', indexRoutes);
 const startServer = async () => {
     try {
         // Connect to DB and load all resources
-        await initializeDB();
+        // await initializeDB();
 
         // Listen Channel To Consume the letters From Queue
         // await webhookProcessor.start();
