@@ -16,12 +16,7 @@ const isValidDate = (dateStr) => {
     return !isNaN(date.getTime());
 }
 
-/**
- * @module staffController
- * @description Controller for managing merchant staff (Analyst and Manager).
- * Includes operations for fetching all staff, fetching a particular staff, 
- * getting staff status cards, and updating staff status.
- */
+
 
 /**
    * Fetches all staff (Analyst and Manager) under the current merchant.
@@ -64,12 +59,12 @@ const getAllStaff = catchAsync(async (req, res) => {
 
         // Step 3.1 : Validating the CurrentUser Exist or Not 
         if (_.isEmpty(currUser)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.YouAreNotAuthorized);
         }
 
         // Step 3.2 : Checking the UserId from the Request
-        if (!currUser.userId) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
+        if (currUser.userId) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("user"));
         }
 
         // Step 3.3 : Validating the Incoming UserId is UUIDV4 
@@ -79,7 +74,7 @@ const getAllStaff = catchAsync(async (req, res) => {
 
         // Step 3.4 : Validating the UserRole Exist or Not 
         if (!userRole.merchant) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotAuthorized("merchant"));
+            throw new AppError(statusCodes.FORBIDDEN, AppErrorCode.fieldNotAuthorized("user"));
         }
 
 
@@ -134,8 +129,19 @@ const getAllStaff = catchAsync(async (req, res) => {
 
         ]);
 
+
+
         // Step 7 :  Storing all the Staff in One variable from above Promise 
         const allStaff = [...manager, ...analyst];
+
+        if (_.isEmpty(allStaff)) {
+            return res.status(statusCodes.OK).json(
+                statusCodes.OK,
+                "Staff Fetched Successfully",
+                { message: "Added users to Fetch the Users" },
+                true
+            )
+        }
 
         const totalStaff = allStaff.length;
         // Step 8 : Adding Pagination to the Staff while Fetching
@@ -169,9 +175,9 @@ const getAllStaff = catchAsync(async (req, res) => {
         );
 
     } catch (error) {
-        return res.status(error?.statusCodes || statusCodes.INTERNAL_SERVER_ERROR).json(
+        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
-                statusCodes.INTERNAL_SERVER_ERROR,
+                error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
                 "Fetching Staff Details Failed",
                 { message: error?.message || "Failed Fetching Staff Details" },
                 false
@@ -216,12 +222,12 @@ const getStaff = catchAsync(async (req, res) => {
 
         // Step 2.1 : Validating the CurrentUser Exist or Not 
         if (_.isEmpty(currUser)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.YouAreNotAuthorized);
         };
 
         // Step 2.2 : Checking the UserId from the Request
         if (!currUser.userId) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("user"));
         };
 
         // Step 2.3 : Validating the Incoming User Id is UUIDV4
@@ -231,7 +237,7 @@ const getStaff = catchAsync(async (req, res) => {
 
         // Step 2.4 : Validating the UserRole Exist or Not 
         if (!userRole.merchant) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotAuthorized("merchant"));
+            throw new AppError(statusCodes.FORBIDDEN, AppErrorCode.fieldNotAuthorized("user"));
         };
 
         // Step 2.4 : Validating the Staff Id is Passing in Params or Not
@@ -290,9 +296,9 @@ const getStaff = catchAsync(async (req, res) => {
 
 
     } catch (error) {
-        return res.status(error?.statusCodes || statusCodes.INTERNAL_SERVER_ERROR).json(
+        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
-                statusCodes.INTERNAL_SERVER_ERROR,
+                error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
                 "Failed Fetching Staff Details",
                 { message: error?.message || "Fetching Staff Details Failed" },
                 false
@@ -328,19 +334,18 @@ const getStaffStatusCards = catchAsync(async (req, res) => {
     // @route  : GET / api/v2/merchant/staff/status
     try {
         // Step 1 : Extracting the CurrUser and userRole from the Middleware Request
-        const { currUser, userRole } = req;
-
+        let { currUser, userRole } = req;
 
         // Step 2 : Validating the Incoming Request Data
 
         // Step 2.1 : Validating the CurrentUser Exist or Not 
         if (_.isEmpty(currUser)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.fieldNotAuthorized("user"));
         }
 
         // Step 2.2 : Checking the UserId from the Request
         if (!currUser.userId) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("user"));
         }
 
         // step 2.3 : Validating the Incoming User Id is UUIDV4
@@ -350,7 +355,7 @@ const getStaffStatusCards = catchAsync(async (req, res) => {
 
         // Step 2.4 : Validating the UserRole Exist or Not 
         if (!userRole.merchant) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotAuthorized("merchant"));
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.fieldNotAuthorized("user"));
         }
 
         // Step 3 : Creating where clause to Fetch the Staff Based on merchant Id 
@@ -377,7 +382,7 @@ const getStaffStatusCards = catchAsync(async (req, res) => {
                 acc.inactive += 1;
             }
             return acc;
-        }, { active: 0, inactive: 0 })
+        }, { active: 0, inactive: 0 });
 
 
         // Step 7 : Returning the Total Response of the Staff Status
@@ -386,15 +391,15 @@ const getStaffStatusCards = catchAsync(async (req, res) => {
             "Staff Status Cards Fetched Successfully",
             {
                 totalStaff: allStaff.length,
-                ...staffStatusCards
+                statusCards: { ...staffStatusCards }
             },
             true
         ))
 
     } catch (error) {
-        return res.status(error?.statusCodes || statusCodes.INTERNAL_SERVER_ERROR).json(
+        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
-                statusCodes.INTERNAL_SERVER_ERROR,
+                error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
                 "Failed to Fetch Staff Status Cards Details",
                 { message: error?.message || "Fetching Staff Status Cards Details Failed" },
                 false
@@ -426,8 +431,6 @@ const getStaffStatusCards = catchAsync(async (req, res) => {
    * @param {Object} res - Express response object.
    * @returns {Object} JSON response with updated staffId.
    */
-
-
 // @desc Updating the Staff Status in Merchant Staff Management 
 const staffStatusUpdate = catchAsync(async (req, res) => {
 
@@ -443,7 +446,7 @@ const staffStatusUpdate = catchAsync(async (req, res) => {
 
         // Step 2.1 : Validating the CurrentUser Exist or Not 
         if (_.isEmpty(currUser)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.fieldNotAuthorized("merchant"));
         };
 
         // Step 2.2 : Checking the UserId from the Request
@@ -457,7 +460,7 @@ const staffStatusUpdate = catchAsync(async (req, res) => {
         }
         // Step 2.4 : Validating the UserRole Exist or Not 
         if (!userRole.merchant) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotAuthorized("merchant"));
+            throw new AppError(statusCodes.FORBIDDEN, AppErrorCode.fieldNotAuthorized("merchant"));
         };
 
         // Step 2.5 : Validating the Staff Id is Passing in Params or Not
@@ -489,7 +492,7 @@ const staffStatusUpdate = catchAsync(async (req, res) => {
         // Step 5 : Extracting the Prefix value from the Staff Id and assign the Outcome to the Model 
         const prefix = staffId.slice(0, 3);
         const Model = modelMap[prefix];
-        console.log(Model);
+
 
         // Step 6 : If Not Both the Model then Throwing the Error
         if (!Model) {
@@ -525,11 +528,11 @@ const staffStatusUpdate = catchAsync(async (req, res) => {
 
 
     } catch (error) {
-        return res.status(error?.statusCodes || statusCodes.INTERNAL_SERVER_ERROR).json(
+        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
-                statusCodes.INTERNAL_SERVER_ERROR,
-                "Fetching Staff Details Failed",
-                { message: error?.message || "Failed Fetching Staff Details" },
+                error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
+                "Updating Staff Status Failed",
+                { message: error?.message || "Failed Updating Staff Status" },
                 false
             )
         )
@@ -537,8 +540,37 @@ const staffStatusUpdate = catchAsync(async (req, res) => {
 })
 
 
-const getStaffDisputesData = catchAsync(async (req, res) => {
+/**
+ * Fetches disputes data for a specific staff member (Analyst or Manager).
+ * 
+ * Steps:
+ * 1. Extracts current user, user role, and businessId from the request.
+ * 2. Extracts staffId from request params and search, gateway, fromDate, toDate from query.
+ * 3. Initializes pagination variables (page, limit, offset).
+ * 4. Validates incoming request data:
+ *    - Checks if current user exists.
+ *    - Checks if userId exists and is a valid UUIDv4.
+ *    - Checks if user has merchant role.
+ *    - Checks if businessId exists and is a valid UUIDv4.
+ *    - Validates fromDate and toDate if provided.
+ *    - Validates gateway if provided.
+ *    - Checks if staffId is provided and valid.
+ * 5. Determines staff role by staffId prefix and fetches the staff.
+ * 6. Builds a where clause for disputes based on staff role, workflow stage, and filters.
+ * 7. Adds search, date range, and gateway filters to the where clause if provided.
+ * 8. Fetches and paginates disputes for the staff using the built where clause.
+ * 9. Returns paginated disputes data in the response.
+ * 
+ * @function getStaffDisputesData
+ * @async
+ * @param {Object} req - Express request object, expects currUser, userRole, businessId, staffId param, and query params.
+ * @param {Object} res - Express response object.
+ * @returns {Object} JSON response with paginated staff disputes data.
+ */
 
+// @desc Fetching the Dispute of Individual Staff
+const getStaffDisputesData = catchAsync(async (req, res) => {
+    // @route  : GET /api/v2/merchant/staff/dispute/:staffId
     try {
         // Step 1 : Extracting the CurrUser and userRole from the Middleware Request
         const { currUser, userRole, businessId } = req;
@@ -562,12 +594,12 @@ const getStaffDisputesData = catchAsync(async (req, res) => {
 
         // Step 6.1 : Validating the CurrentUser Exist or Not 
         if (_.isEmpty(currUser)) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.fieldNotAuthorized("user"));
         };
 
         // Step 6.2 : Checking the UserId from the Request
         if (!currUser?.userId) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("user"));
         };
 
         // Step 6.3 : validating the Incoming UserId is UUIDV4
@@ -577,7 +609,7 @@ const getStaffDisputesData = catchAsync(async (req, res) => {
 
         // Step 6.4 : Validating the UserRole Exist or Not 
         if (!userRole.merchant) {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotAuthorized("merchant"));
+            throw new AppError(statusCodes.FORBIDDEN, AppErrorCode.fieldNotAuthorized("user"));
         };
 
         // Step 6.5 Returning the Response instead of throwing if there is not any business Id Attached
@@ -714,9 +746,9 @@ const getStaffDisputesData = catchAsync(async (req, res) => {
 
     } catch (error) {
         console.log(error?.message || "Error while Fetching Get Staff Disputes Data");
-        return res.status(error?.statusCodes || statusCodes.INTERNAL_SERVER_ERROR).json(
+        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
-                statusCodes.INTERNAL_SERVER_ERROR,
+                error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
                 "Failed to Fetch the Staff Disputes Data",
                 { message: error?.message || "Fetching of Staff Disputes Data Failed" },
                 false,

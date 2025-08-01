@@ -83,7 +83,7 @@ const merchantProfile = catchAsync(async (req, res) => {
             businessName: null,
             GSTIN: null,
           },
-          false
+          true
         )
       )
     }

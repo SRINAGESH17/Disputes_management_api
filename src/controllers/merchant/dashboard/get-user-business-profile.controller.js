@@ -66,7 +66,7 @@ const getUserBusinessProfile = catchAsync(async (req, res) => {
 
         // Step 2.3 : Validating the Roles from the Request of UserRole 
         if (userRole != "MERCHANT" && userRole != "ANALYST" && userRole != "MANAGER") {
-            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("user"))
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("userRole"))
         }
 
         // Step 3 : Based on the Role Fetching the Individual user 
@@ -117,9 +117,9 @@ const getUserBusinessProfile = catchAsync(async (req, res) => {
 
     } catch (error) {
         console.log("Error in Fetching the User Business Profile !: ", error?.message);
-        return res.status(error?.statusCodes || statusCodes.INTERNAL_SERVER_ERROR).json(
+        return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
-                statusCodes.INTERNAL_SERVER_ERROR,
+                error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
                 "Fetching User Business profile Failed",
                 { message: error?.message || "Failed Fetching User Business Profile" },
                 false,

@@ -1,3 +1,29 @@
+/**
+ * Fetches the reviewed disputes history for a merchant or analyst with filtering, pagination, and search.
+ * 
+ * Steps:
+ * 1. Extracts current user, user role, and businessId from the request.
+ * 2. Validates incoming request data:
+ *    - Checks if current user exists and has merchant role.
+ *    - Validates userId and businessId formats.
+ *    - Validates fromDate and toDate formats and logical order.
+ *    - Validates gateway value.
+ * 3. Constructs the initial where condition for filtering disputes by businessId and workflowStage.
+ * 4. Adds merchantId or analystId to the filter based on user role.
+ * 5. Applies date filtering on updatedAt using fromDate and toDate.
+ * 6. Applies workflowStage filtering if status is provided.
+ * 7. Adds search filter for dispute customId if provided.
+ * 8. Fetches disputes with pagination, count, and sorts by latest updatedAt.
+ * 9. Returns a success response with total count, total pages, current page, limit, and disputes list.
+ * 10. Handles and returns errors if any validation or database operation fails.
+ * 
+ * @function getDisputesReviewedHistory
+ * @async
+ * @param {Object} req - Express request object, expects currUser, userRole, businessId, and query params (fromDate, toDate, gateway, status, search, page, limit).
+ * @param {Object} res - Express response object.
+ * @returns {Object} JSON response with disputes history, pagination info, and status.
+ */
+
 import _ from "lodash";
 import { Op } from "sequelize";
 import Dispute from "../../models/dispute.model.js";
@@ -24,7 +50,7 @@ const getDisputesReviewedHistory = catchAsync(async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const offset = (page - 1) * limit;
-        
+
         // Step-2.1: Validate that the current user is authorized as a merchant
         if (!currUser && !userRole.merchant) {
             throw new AppError(
@@ -32,14 +58,14 @@ const getDisputesReviewedHistory = catchAsync(async (req, res) => {
                 AppErrorCode.YouAreNotAuthorized
             );
         }
-        
+
         if (currUser?.userId && !helpers.isValidUUIDv4(currUser?.userId)) {
             throw new AppError(
                 statusCodes.BAD_REQUEST,
                 AppErrorCode.InvalidFieldFormat("userId")
             );
         };
-        
+
         // Step-2: Validate if merchant has selected an active business account
         if (_.isEmpty(businessId)) {
             return res.status(statusCodes.OK).json(
@@ -96,6 +122,7 @@ const getDisputesReviewedHistory = catchAsync(async (req, res) => {
 
         if (userRole.merchant) {
             whereCondition.merchantId = currUser?.userId;
+            // whereCondition.analystId = null;
         } else if (userRole.analyst) {
             whereCondition.analystId = currUser?.userId;
         }

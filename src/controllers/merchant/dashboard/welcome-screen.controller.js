@@ -47,12 +47,12 @@ const welcomeDashboard = catchAsync(async (req, res) => {
 
     // Step 2: validating the User  is Fetched
     if (_.isEmpty(currUser)) {
-      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("user"));
     }
 
     // Step 2.1 : Checking For the UserId
     if (!currUser?.userId) {
-      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("merchant"));
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotFound("user"));
     }
 
     // Step 2.2 : Validating the Incoming userId is UUIDV4
@@ -62,7 +62,7 @@ const welcomeDashboard = catchAsync(async (req, res) => {
 
     // step 3 : Validating the User is Merchant or Not
     if (!userRole?.merchant) {
-      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotAuthorized("merchant"));
+      throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.fieldNotAuthorized("user"));
     }
 
 
@@ -119,7 +119,7 @@ const welcomeDashboard = catchAsync(async (req, res) => {
       .json(
         failed_response(
           error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
-          "Failed to Fetch  Welcome Dashboard ",
+          "Failed to Fetch  Welcome Dashboard",
           { message: error?.message || "Fetching Welcome Dashboard Failed" },
           false
         )

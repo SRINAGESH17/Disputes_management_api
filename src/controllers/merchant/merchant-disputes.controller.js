@@ -52,11 +52,33 @@ const getDisputeStates = catchAsync(async (req, res) => {
 });
 
 
-
+/**
+ * Fetches the list of disputes for a particular business for the merchant.
+ *
+ * Steps:
+ * 1. Extracts current user, user role, and businessId from the request.
+ * 2. Validates incoming request data:
+ *    - Checks if current user exists.
+ *    - Checks if userId exists and is a valid UUIDv4.
+ *    - Checks if user has merchant role.
+ *    - Checks if businessId exists and is a valid UUIDv4.
+ *    - Validates optional filters: disputeId, paymentId, state, fromDate, toDate, assigned.
+ * 3. Constructs a filter object for querying disputes based on provided filters.
+ * 4. Fetches disputes from the database using the constructed filters with pagination.
+ * 5. Extracts unique analystIds from the disputes and fetches analyst details.
+ * 6. Maps analyst names to disputes.
+ * 7. Formats and returns the paginated list of disputes in the response.
+ *
+ * @function getDisputesList
+ * @async
+ * @param {Object} req - Express request object, expects currUser, userRole, businessId, and query filters.
+ * @param {Object} res - Express response object.
+ * @returns {Object} JSON response with paginated list of disputes.
+ */
 //2  @desc Fetching all the Dispute List of A Particular Business 
 const getDisputesList = catchAsync(async (req, res) => {
 
-  // route  : GET   /api/v2/merchant/list
+  // route  : GET   /api/v2/merchant/dispute/list
   try {
     // Step 1 : Extract the filter fields from query and user details from request
     const { currUser, userRole, businessId } = req;

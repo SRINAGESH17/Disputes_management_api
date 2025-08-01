@@ -1140,21 +1140,48 @@ const getUploadedDrive = catchAsync(async (req, res) => {
     }
 });
 
+/**
+ * Accepts a dispute process for a merchant or analyst.
+ *
+ * Steps:
+ * 1. Extracts userRef from req.userRole and userId from req.currUser.
+ * 2. Validates that the user has a MERCHANT or ANALYST role.
+ * 3. Validates the userId format if present.
+ * 4. Extracts disputeId from request params and validates its format.
+ * 5. Builds filters based on user role to ensure dispute ownership.
+ * 6. Fetches the dispute using the constructed filters.
+ * 7. Throws an error if the dispute is not found or is in an invalid workflow stage.
+ * 8. Prepares an update payload to set the dispute as ACCEPTED and updates relevant stage fields.
+ * 9. Updates the dispute in the database.
+ * 10. Returns a success response with the disputeId and new workflow stage.
+ *
+ * @function acceptDisputeProcess
+ * @async
+ * @param {Object} req - Express request object, expects currUser, userRole, and disputeId param.
+ * @param {Object} res - Express response object.
+ * @returns {Object} JSON response with disputeId and newStage.
+ */
 
 // @desc : Accepting the Dispute 
 const acceptDisputeProcess = catchAsync(async (req, res) => {
 
     // @route    : PATCH /api/v2/disputes/process/:disputeId/accept
     try {
+        // Step 1  : Destructuring the userRef and the UserId from the request 
         const { userRef } = req.userRole;
+        const { userId } = req.currUser;
 
-        console.log(req.params);
+        // Step 2 : Validating the Merchant and Analyst from the Request 
         if (!['MERCHANT', 'ANALYST'].includes(userRef)) {
             throw new AppError(statusCodes.FORBIDDEN, AppErrorCode.YouAreNotAuthorized);
         }
 
+        if (userId && !helpers.isValidUUIDv4(userId)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("userId"));
+        }
 
-        // Step 1 : Extract the dispute id and phase from request params
+
+        // Step 3 : Extract the dispute id and phase from request params
         const { disputeId } = req.params;
 
         // Validate Dispute Id
@@ -1162,13 +1189,34 @@ const acceptDisputeProcess = catchAsync(async (req, res) => {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('dispute Id'));
         }
 
+        //Step 4 : Initializing the Filters Object to Fetch the Dispute based on the Filter
+        const filters = {
+            customId: disputeId,
+        };
 
-        // Step 2 : Check Dispute is Exist Or not
+        // 4.1 Based on the UserRef adding the userIds based on the Role 
+        if (userRef === "MERCHANT") {
+            filters.merchantId = userId;
+            filters.analystId = {
+                [Op.eq]: null
+            };
+        } else if (userRef === "ANALYST") {
+            filters.analystId = userId;
+            filters.merchantId = {
+                [Op.ne]: null
+            }
+        }
+
+
+
+        // Step 5 : Check Dispute is Exist Or not
         const dispute = await Dispute.findOne({
-            where: { customId: disputeId },
+            where: filters,
             attributes: ['id', 'lastStage', 'lastStageAt', 'updatedStage', 'updatedStageAt', 'workflowStage'],
             raw: true
         });
+
+        // Step 6 : If the Empty Dispute then throwing the Not found Error
         if (_.isEmpty(dispute)) {
             throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.fieldNotFound('Dispute'));
         }
@@ -1179,7 +1227,7 @@ const acceptDisputeProcess = catchAsync(async (req, res) => {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.disputeCannotAccept)
         }
 
-        // Step 3 : Creating a Updating Dispute Payload for Accepting the Dispute
+        // Step 7 : Creating a Updating Dispute Payload for Accepting the Dispute
         const updateDisputePayload = {};
 
         updateDisputePayload.lastStage = dispute.updatedStage;
@@ -1191,13 +1239,13 @@ const acceptDisputeProcess = catchAsync(async (req, res) => {
         updateDisputePayload.state = "accepted";
 
 
-        // Step 4 : Updating the Dispute based on the updated payload object  
+        // Step 8 : Updating the Dispute based on the updated payload object  
         await Dispute.update(
             updateDisputePayload,
             { where: { customId: disputeId } }
         );
 
-        // Step 5 : Returning the Response with the new Stage and the Dispute Id 
+        // Step 9 : Returning the Response with the new Stage and the Dispute Id 
         return res.status(statusCodes.OK).json(
             success_response(
                 statusCodes.OK,
@@ -1214,7 +1262,7 @@ const acceptDisputeProcess = catchAsync(async (req, res) => {
         console.log(error?.message || "Error While Accepting the Dispute");
         return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
-                statusCodes.INTERNAL_SERVER_ERROR,
+                error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
                 "Failed to Accept the Dispute",
                 { message: error?.message || "Accepting process of Dispute Failed" },
                 false,
@@ -1223,19 +1271,54 @@ const acceptDisputeProcess = catchAsync(async (req, res) => {
     }
 })
 
+/**
+ * Contests a dispute process for a merchant or analyst.
+ *
+ * Steps:
+ * 1. Extracts userRef from req.userRole and userId from req.currUser.
+ * 2. Validates that the user has a MERCHANT or ANALYST role.
+ * 3. Ensures userId is present and in valid UUIDv4 format.
+ * 4. Extracts disputeId from request params and validates its format.
+ * 5. Builds filters based on user role to ensure dispute ownership.
+ * 6. Fetches the dispute using the constructed filters.
+ * 7. Throws an error if the dispute is not found or is in an invalid workflow stage.
+ * 8. Prepares an update payload to set the dispute as ACCEPTED and updates relevant stage fields.
+ * 9. Updates the dispute in the database.
+ * 10. Returns a success response with the disputeId and new workflow stage.
+ *
+ * @function contestDisputeProcess
+ * @async
+ * @param {Object} req - Express request object, expects currUser, userRole, and disputeId param.
+ * @param {Object} res - Express response object.
+ * @returns {Object} JSON response with disputeId and newStage.
+ */
 //  @desc: Contesting the Dispute 
 const contestDisputeProcess = (async (req, res) => {
 
     // @route    : PATCH /api/v2/disputes/process/:disputeId/accept
     try {
+        // Step 1 : Destructuring the Role and UserId from the request 
         const { userRef } = req.userRole;
+        const { userId } = req.currUser;
 
+        // Step 2 : validating the request 
+        // 2.1 Validating the User Role should be merchant or Analyst 
         if (!['MERCHANT', 'ANALYST'].includes(userRef)) {
             throw new AppError(statusCodes.FORBIDDEN, AppErrorCode.YouAreNotAuthorized);
         }
 
+        // Step 2.2 Validating the UserId 
+        if (_.isEmpty(userId)) {
+            throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.YouAreNotAuthorized);
+        }
 
-        // Step 1 : Extract the dispute id and phase from request params
+        // 2.3 If there is UserId then checking the UserId is UUID
+        if (userId && !helpers.isValidUUIDv4(userId)) {
+            throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat("userId"));
+        }
+
+
+        // Step 3 : Extract the dispute id and phase from request params
         const { disputeId } = req.params;
 
         // Validate Dispute Id
@@ -1243,12 +1326,33 @@ const contestDisputeProcess = (async (req, res) => {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('dispute Id'));
         }
 
-        // Step 2 : Check Dispute is Exist Or not
+        // Step 4 : Initializing the Filters Object to Fetch the Dispute based on the Filter
+        const filters = {
+            customId: disputeId
+        }
+
+
+        // 4.1 Based on the UserRole We are Adding the MerchantId and Analyst Id Scenarios 
+        if (userRef === "MERCHANT") {
+            filters.merchantId = userId;
+            filters.analystId = {
+                [Op.eq]: null
+            };
+        } else if (userRef === "ANALYST") {
+            filters.analystId = userId;
+            filters.merchantId = {
+                [Op.ne]: null
+            }
+        }
+
+        // Step 5 : Check Dispute is Exist Or not
         const dispute = await Dispute.findOne({
-            where: { customId: disputeId },
+            where: filters,
             attributes: ['id', 'lastStage', 'lastStageAt', 'updatedStage', 'updatedStageAt', 'workflowStage'],
             raw: true
         });
+
+        // Step 6 : If the Dispute is Empty Sending the Error Response as Not Found!
         if (_.isEmpty(dispute)) {
             throw new AppError(statusCodes.NOT_FOUND, AppErrorCode.fieldNotFound('Dispute'));
         }
@@ -1259,7 +1363,7 @@ const contestDisputeProcess = (async (req, res) => {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.disputeCannotAccept)
         }
 
-        // Step 3 : Creating a Updating Dispute Payload for Accepting the Dispute
+        // Step 7 : Creating a Updating Dispute Payload for Accepting the Dispute
         const updateDisputePayload = {};
 
         updateDisputePayload.lastStage = dispute.updatedStage;
@@ -1269,17 +1373,17 @@ const contestDisputeProcess = (async (req, res) => {
 
         updateDisputePayload.workflowStage = 'ACCEPTED';
 
-        // Step 4 : Updating the Dispute based on the updated payload object  
+        // Step 8 : Updating the Dispute based on the updated payload object  
         await Dispute.update(
             updateDisputePayload,
             { where: { customId: disputeId } }
         );
 
-        // Step 5 : Returning the Response with the new Stage and the Dispute Id 
+        // Step 9 : Returning the Response with the new Stage and the Dispute Id 
         return res.status(statusCodes.OK).json(
             success_response(
                 statusCodes.OK,
-                'Dispute accepted successfully',
+                'Dispute Contested successfully',
                 {
                     disputeId,
                     newStage: updateDisputePayload.workflowStage
@@ -1291,7 +1395,7 @@ const contestDisputeProcess = (async (req, res) => {
         console.log(error?.message || "Error While Contesting the Dispute");
         return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
-                statusCodes.INTERNAL_SERVER_ERROR,
+                error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
                 "Failed to Contest the Dispute",
                 { message: error?.message || "Contesting process of Dispute Failed" },
                 false,
