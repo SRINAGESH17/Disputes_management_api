@@ -22,11 +22,13 @@
  */
 export default {
     env: {
+        jest: true,
         node: true,
         commonjs: true,
         es2021: true,
     },
-    extends: ['eslint:recommended'],
+    plugins: ["jest"],
+    extends: ['eslint:recommended', "plugin:jest/recommended"],
     parserOptions: {
         ecmaVersion: 'latest',
     },
