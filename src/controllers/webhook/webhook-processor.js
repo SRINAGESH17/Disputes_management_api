@@ -85,37 +85,46 @@ const AssignedDisputeToStaff = async ({ ids, merchantId, disputeId, staffState, 
     try {
         const updates = [];
         let state = staffState;
-        let nextStaffId;
+        let nextUserId;
         let isFirst = false;
         if (!state) {
-            const firstStaffId = ids[0];
-            updates.push(
-                StaffAssignmentState.create({
-                    merchantId: merchantId,
-                    lastStaffAssigned: firstStaffId
-                }, { transaction: t })
-            )
-            isFirst = true;
-            nextStaffId = firstStaffId;
+            const firstUserId = ids[0];
+            if (firstUserId?.toString() !== merchantId?.toString()) {
+                console.log("inside update analyst", nextUserId,merchantId);
+                updates.push(
+                    StaffAssignmentState.create({
+                        merchantId: merchantId,
+                        lastStaffAssigned: firstUserId
+                    }, { transaction: t })
+                )
+                isFirst = true;
+                nextUserId = firstUserId;
+            } else {
+                isFirst = true;
+                nextUserId = firstUserId?.toString();
+            }
         } else {
-            const lastAssignedId = state.lastStaffAssigned;
+            const lastAssignedId = state?.lastStaffAssigned;
             const lastIndex = ids.indexOf(lastAssignedId);
             const nextIndex = (lastIndex + 1) % ids.length;
-            nextStaffId = ids[nextIndex];
+            nextUserId = ids[nextIndex];
         }
-        updates.push(
-            Dispute.update(
-                { analystId: nextStaffId },
-                {
-                    where: { id: disputeId },
-                    transaction: t
-                },
-            )
-        );
-        if (!isFirst) {
+        if (nextUserId?.toString() !== merchantId?.toString()) {
+            updates.push(
+                Dispute.update(
+                    { analystId: nextUserId },
+                    {
+                        where: { id: disputeId },
+                        transaction: t
+                    },
+                )
+            );
+        }
+        if (!isFirst && nextUserId?.toString() !== merchantId?.toString()) {
+            console.log("inside update analyst", nextUserId,merchantId);
             updates.push(
                 StaffAssignmentState.update(
-                    { lastStaffAssigned: nextStaffId },
+                    { lastStaffAssigned: nextUserId },
                     {
                         where: { merchantId: merchantId },
                         transaction: t
@@ -123,9 +132,20 @@ const AssignedDisputeToStaff = async ({ ids, merchantId, disputeId, staffState, 
                 )
             );
         }
-        await Promise.all(updates);
+        console.log("MerchantId : ",nextUserId);
+        if (updates.length > 0) {
+            await Promise.all(updates);
+        }
 
-        return nextStaffId;
+        if(nextUserId?.toString() === merchantId?.toString() && state)
+        {
+            await StaffAssignmentState.destroy({
+                where: { merchantId: merchantId },
+                transaction: t
+            });
+        }
+
+        return nextUserId;
     }
     catch (error) {
         throw new AppError(statusCodes.BAD_REQUEST, error?.message);
@@ -239,7 +259,7 @@ const ProcessWebhookPayload = async (msgPayload) => {
             statusUpdatedAt: parsePayload?.statusUpdatedAt,
             dueDate: parsePayload?.dueDate,
             type: parsePayload?.type,
-            state: parsePayload?.state,
+            state: parsePayload?.state?.toLowerCase(),
         }
 
         // 7 : validate payload format
@@ -273,7 +293,7 @@ const ProcessWebhookPayload = async (msgPayload) => {
 
             // 3. Fetch Merchant Analyst
             Analyst.findAll({
-                where: { merchantId: businessAccount.merchantId, status:"ACTIVE" },
+                where: { merchantId: businessAccount.merchantId, status: "ACTIVE" },
                 attributes: ['id', 'firstName', 'lastName', 'createdAt'],
                 transaction: t,
                 raw: true,
@@ -334,102 +354,104 @@ const ProcessWebhookPayload = async (msgPayload) => {
                 throw new AppError(statusCodes.BAD_REQUEST, 'Failed to Update Dispute History Status');
             }
 
-            if (!_.isEmpty(staffMembers) && !dispute?.analystId) {
-                // Assign Dispute to Staff Using Round Robbin Algorithm
+            // if (!_.isEmpty(staffMembers) && !dispute?.analystId) {
+            //     // Assign Dispute to Staff Using Round Robbin Algorithm
 
-                // Round Robbin with race condition prevention 
-                const analysts = staffMembers.sort((analyst1, analyst2) => new Date(analyst1?.createdAt) - new Date(analyst2?.createdAt));
-                let ids = analysts?.map((staff) => staff?.id);
-                // ids.sort((a, b) => a - b);
-                if (ids.length > 0) {
+            //     // Round Robbin with race condition prevention 
+            //     const analysts = staffMembers.sort((analyst1, analyst2) => new Date(analyst1?.createdAt) - new Date(analyst2?.createdAt));
+            //     let ids = analysts?.map((staff) => staff?.id);
+            //     // ids.sort((a, b) => a - b);
+            //     if (ids.length > 0) {
 
-                    // Payload to Assigned Staff
-                    const assignedPayload = {
-                        ids,
-                        merchantId: businessAccount.merchantId,
-                        disputeId: dispute?.id,
-                        staffState: staffAssignmentState,
-                        t: t
-                    }
+            //         // Payload to Assigned Staff
+            //         const assignedPayload = {
+            //             ids,
+            //             merchantId: businessAccount.merchantId,
+            //             disputeId: dispute?.id,
+            //             staffState: staffAssignmentState,
+            //             t: t
+            //         }
 
-                    // Service to Assign Staff In Order using Round Robbin Algorithm
-                    const nextStaffId = await AssignedDisputeToStaff(assignedPayload);
+            //         // Service to Assign Staff In Order using Round Robbin Algorithm
+            //         const nextStaffId = await AssignedDisputeToStaff(assignedPayload);
 
-                    const nextStaff = staffMembers.find((staff) => staff?.id === nextStaffId);
-                    const staffName = `${nextStaff?.firstName} ${nextStaff?.lastName}`;
-                    dispute.analystId = nextStaffId;
+            //         const nextStaff = staffMembers.find((staff) => staff?.id === nextStaffId);
+            //         const staffName = `${nextStaff?.firstName} ${nextStaff?.lastName}`;
+            //         dispute.analystId = nextStaffId;
 
-                    // Generate Notification Templates For Users
-                    const { title, message } = generateDisputeNotificationTemplate(customId, DisputeNotifyStatus.ASSIGNED, staffName, {});
-                    notify.push({
-                        recipientId: nextStaffId,
-                        recipientType: 'ANALYST',
-                        businessId: businessAccount.id,
-                        type: 'DISPUTE',
-                        title,
-                        message,
-                        disputeId: dispute.id,
-                        isRead: false,
-                        channel: 'WEB'
-                    });
+            //         // Generate Notification Templates For Users
+            //         const { title, message } = generateDisputeNotificationTemplate(customId, DisputeNotifyStatus.ASSIGNED, staffName, {});
+            //         notify.push({
+            //             recipientId: nextStaffId,
+            //             recipientType: 'ANALYST',
+            //             businessId: businessAccount.id,
+            //             type: 'DISPUTE',
+            //             title,
+            //             message,
+            //             disputeId: dispute.id,
+            //             isRead: false,
+            //             channel: 'WEB'
+            //         });
 
-                    const { title: title2, message: message2 } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED_ASSIGNED_STAFF, staffName, { newStatus: dispute.status });
-                    notify.push({
-                        recipientId: businessAccount.merchantId,
-                        recipientType: 'MERCHANT',
-                        businessId: businessAccount.id,
-                        type: 'DISPUTE',
-                        title: title2,
-                        message: message2,
-                        disputeId: dispute.id,
-                        isRead: false,
-                        channel: 'WEB'
-                    });
-                }
-            }
-            else {
-                // If Staff Is Attached to Dispute
-                if (dispute?.analystId) {
-                    const { title, message } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED, '', { newStatus: dispute.status });
-                    notify.push({
-                        recipientId: dispute?.analystId,
-                        recipientType: 'ANALYST',
-                        businessId: businessAccount.id,
-                        type: 'DISPUTE',
-                        title,
-                        message,
-                        disputeId: dispute.id,
-                        isRead: false,
-                        channel: 'WEB'
-                    });
-                    const { title: title2, message: message2 } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED, '', { newStatus: dispute.status });
-                    notify.push({
-                        recipientId: businessAccount.merchantId,
-                        recipientType: 'MERCHANT',
-                        businessId: businessAccount.id,
-                        type: 'DISPUTE',
-                        title: title2,
-                        message: message2,
-                        disputeId: dispute.id,
-                        isRead: false,
-                        channel: 'WEB'
-                    });
-                } else {
+            //         const { title: title2, message: message2 } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED_ASSIGNED_STAFF, staffName, { newStatus: dispute.status });
+            //         notify.push({
+            //             recipientId: businessAccount.merchantId,
+            //             recipientType: 'MERCHANT',
+            //             businessId: businessAccount.id,
+            //             type: 'DISPUTE',
+            //             title: title2,
+            //             message: message2,
+            //             disputeId: dispute.id,
+            //             isRead: false,
+            //             channel: 'WEB'
+            //         });
+            //     }
+            // }
+            // else {
+            // }
+            // If Staff Is Attached to Dispute
+            if (dispute?.analystId) {
+                const { title, message } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED, '', { newStatus: dispute.state });
+                notify.push({
+                    recipientId: dispute?.analystId,
+                    recipientType: 'ANALYST',
+                    businessId: businessAccount.id,
+                    type: 'DISPUTE',
+                    title,
+                    message,
+                    disputeId: dispute.id,
+                    isRead: false,
+                    channel: 'WEB'
+                });
+                const staff = staffMembers.find((staff) => staff?.id?.toString() === dispute?.analystId?.toString());
+                const staffName = staff ? `${staff?.firstName} ${staff?.lastName}` : "Analyst";
+                const { title: title2, message: message2 } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED_ASSIGNED, staffName, { newStatus: dispute.state });
+                notify.push({
+                    recipientId: businessAccount.merchantId,
+                    recipientType: 'MERCHANT',
+                    businessId: businessAccount.id,
+                    type: 'DISPUTE',
+                    title: title2,
+                    message: message2,
+                    disputeId: dispute.id,
+                    isRead: false,
+                    channel: 'WEB'
+                });
+            } else {
 
-                    // Notify Merchant For Update Dispute Status With no Staff Assigned to it
-                    const { title, message } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.DISPUTE_RECEIVED_UNASSIGNED, '', {});
-                    notify.push({
-                        recipientId: businessAccount.merchantId,
-                        recipientType: 'MERCHANT',
-                        businessId: businessAccount.id,
-                        type: 'DISPUTE',
-                        title,
-                        message,
-                        disputeId: dispute.id,
-                        isRead: false,
-                        channel: 'WEB'
-                    });
-                }
+                // Notify Merchant For Update Dispute Status With no Staff Assigned to it
+                const { title, message } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.EVENT_CHANGED, '', { newStatus: dispute.state });
+                notify.push({
+                    recipientId: businessAccount.merchantId,
+                    recipientType: 'MERCHANT',
+                    businessId: businessAccount.id,
+                    type: 'DISPUTE',
+                    title,
+                    message,
+                    disputeId: dispute.id,
+                    isRead: false,
+                    channel: 'WEB'
+                });
             }
         }
         else {
@@ -512,7 +534,8 @@ const ProcessWebhookPayload = async (msgPayload) => {
 
                 // Round Robbin with race condition prevention 
                 const analysts = staffMembers.sort((analyst1, analyst2) => new Date(analyst1?.createdAt) - new Date(analyst2?.createdAt));
-                let ids = analysts?.map((staff) => staff?.id);;
+                let ids = analysts?.map((staff) => staff?.id?.toString());
+                ids.push(businessAccount?.merchantId?.toString());
                 if (ids.length > 0) {
                     // Staff Assign Payload
                     const assignedPayload = {
@@ -523,41 +546,58 @@ const ProcessWebhookPayload = async (msgPayload) => {
                         t: t
                     }
                     // Assign Staff to Dispute in order of Round Robbin 
-                    const nextStaffId = await AssignedDisputeToStaff(assignedPayload);
-                    const nextStaff = staffMembers.find((staff) => staff?.id === nextStaffId);
-                    const staffName = `${nextStaff?.firstName} ${nextStaff?.lastName}`;
-                    dispute.analystId = nextStaffId;
+                    const nextUserId = await AssignedDisputeToStaff(assignedPayload);
+                    if (nextUserId?.toString() !== businessAccount?.merchantId?.toString()) {
+                        // If the Next User Id is Staff Or Analyst Id 
+                        const nextStaff = staffMembers.find((staff) => staff?.id === nextUserId);
+                        const staffName = `${nextStaff?.firstName} ${nextStaff?.lastName}`;
+                        dispute.analystId = nextUserId;
 
-                    // Generate Notification Template for Users
-                    const { title, message } = generateDisputeNotificationTemplate(customId, DisputeNotifyStatus.ASSIGNED, staffName, {});
-                    notify.push({
-                        recipientId: nextStaffId,
-                        recipientType: 'ANALYST',
-                        businessId: businessAccount?.id,
-                        type: 'DISPUTE',
-                        title,
-                        message,
-                        disputeId: dispute.id,
-                        isRead: false,
-                        channel: 'WEB'
-                    });
+                        // Generate Notification Template for Users
+                        const { title, message } = generateDisputeNotificationTemplate(customId, DisputeNotifyStatus.ASSIGNED, staffName, {});
+                        notify.push({
+                            recipientId: nextUserId,
+                            recipientType: 'ANALYST',
+                            businessId: businessAccount?.id,
+                            type: 'DISPUTE',
+                            title,
+                            message,
+                            disputeId: dispute.id,
+                            isRead: false,
+                            channel: 'WEB'
+                        });
 
-                    const { title: title2, message: message2 } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.DISPUTE_RECEIVED_MERCHANT, staffName, {});
-                    notify.push({
-                        recipientId: businessAccount?.merchantId,
-                        recipientType: 'MERCHANT',
-                        businessId: businessAccount?.id,
-                        type: 'DISPUTE',
-                        title: title2,
-                        message: message2,
-                        disputeId: dispute.id,
-                        isRead: false,
-                        channel: 'WEB'
-                    });
+                        const { title: title2, message: message2 } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.DISPUTE_RECEIVED_MERCHANT, staffName, {});
+                        notify.push({
+                            recipientId: businessAccount?.merchantId,
+                            recipientType: 'MERCHANT',
+                            businessId: businessAccount?.id,
+                            type: 'DISPUTE',
+                            title: title2,
+                            message: message2,
+                            disputeId: dispute.id,
+                            isRead: false,
+                            channel: 'WEB'
+                        });
+                    } else {
+                        // Notify Merchant about new dispute and Assign Dispute To Merchant
+                        const { title, message } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.ASSIGNED_MERCHANT, '', {});
+                        notify.push({
+                            recipientId: businessAccount?.merchantId,
+                            recipientType: 'MERCHANT',
+                            businessId: businessAccount?.id,
+                            type: 'DISPUTE',
+                            title,
+                            message,
+                            disputeId: dispute.id,
+                            isRead: false,
+                            channel: 'WEB'
+                        });
+                    }
                 }
             } else {
                 // Notify Merchant about new dispute and no Staff Available to Assign Dispute
-                const { title, message } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.DISPUTE_RECEIVED_UNASSIGNED, '', {});
+                const { title, message } = generateDisputeNotificationTemplate(dispute.customId, DisputeNotifyStatus.ASSIGNED_MERCHANT, '', {});
                 notify.push({
                     recipientId: businessAccount?.merchantId,
                     recipientType: 'MERCHANT',

@@ -344,4 +344,9 @@ Indexes
     3. createdAt,businessId, gateway = > for Specific gateway dashboard
 */
 
+/*
+    Fields
+    1.state - must be internal state enums
+*/
+
 export default Dispute;

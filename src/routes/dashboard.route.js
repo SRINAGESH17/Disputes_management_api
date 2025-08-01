@@ -20,10 +20,10 @@ router.get(
     UserDashboardController.totalGatewayDisputes
 );
 
-// 2. Fetch Merchant dashboard Gateway Dispute Analytics
+// 2. Fetch User dashboard Gateway Dispute Analytics
 // @route     : GET  /api/v2/user/dashboard/gateway-analytics
-// @desc      : Fetch Merchant Business Gateway Dispute Analytics
-// @access    : Private to Merchant And Analyst Only
+// @desc      : Fetch User Business Gateway Dispute Analytics
+// @access    : Private to User And Analyst Only
 router.get(
     '/dashboard/gateway-analytics',
     verifyMerchantOrAnalyst,

@@ -10,23 +10,23 @@ import sequelize from "../../config/database.config.js";
 import { Op } from "sequelize";
 
 
-// Fetch Merchant Business Gateways Dispute Count
+// Fetch User Business Gateways Dispute Count
 const totalGatewayDisputes = catchAsync(async (req, res) => {
-    // @route : GET  /api/v2/merchant/dashboard/gateway-disputes
+    // @route : GET  /api/v2/user/dashboard/gateway-disputes
     try {
 
         // Step 1 : Extract The User Details From Request
         const { userRole, currUser } = req;
         const businessId = req.businessId;
 
-        // Step 2 : Validate The Merchant Details and BusinessId
+        // Step 2 : Validate The user Details and BusinessId
         if (_.isEmpty(userRole)) {
             throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User Role'));
         }
         if (_.isEmpty(currUser?.uid)) {
             throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User'));
         }
-        if (userRole?.userRef !== "MERCHANT") {
+        if (userRole?.userRef !== "MERCHANT" && userRole?.userRef !== "ANALYST") {
             throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User'));
         }
 
@@ -49,10 +49,20 @@ const totalGatewayDisputes = catchAsync(async (req, res) => {
             throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldFormat('BusinessId'));
         }
 
+         // where condition for fetching disputes
+        const whereCondition = {
+            businessId: businessId,
+        }
+
+        // If User is Analyst, then filter by analystId
+        if (userRole?.userRef === "ANALYST") {
+            whereCondition.analystId = userRole?.userId;
+        }
+
         // Step 5: Fetch the Business gateway Dispute Counts
         console.time('Fetch Business Gateway Dispute Counts');
         let gatewaysCount = await Dispute.findAll({
-            where: { businessId },
+            where: whereCondition,
             attributes: [
                 'gateway',
                 [sequelize.fn('COUNT', sequelize.col('id')), 'totalDisputes'],
@@ -68,32 +78,33 @@ const totalGatewayDisputes = catchAsync(async (req, res) => {
             raw: true
         });
         console.timeEnd('Fetch Business Gateway Dispute Counts');
+        console.log({gatewaysCount})
 
         // Format The Payload
         gatewaysCount = gatewaysCount?.map((gateway) => ({ gateway: gateway?.gateway, totalDisputes: +gateway?.totalDisputes, wonDisputes: +gateway?.wonDisputes })) || [];
         gatewaysCount.sort((a, b) => b.totalDisputes - a.totalDisputes);
-
 
         let totalWonDisputes = gatewaysCount?.reduce((sum, gateway) => sum += (+gateway?.wonDisputes || 0), 0) || 0;;
         let totalDisputes = gatewaysCount?.reduce((sum, gateway) => sum += (+gateway?.totalDisputes || 0), 0) || 0;;
 
         const resolutionRate = +((totalWonDisputes / totalDisputes) * 100).toFixed(2);
 
-
+        // Sending Success Response
         return res.status(statusCodes.OK).json(
             success_response(
                 statusCodes.OK,
                 "Gateway Disputes Count Fetched Successfully",
-                { totalDisputes, totalWonDisputes, resolutionRate, gateways: gatewaysCount, },
+                { totalDisputes, totalWonDisputes, resolutionRate, gateways: gatewaysCount },
                 true
             )
         );
     } catch (error) {
-        console.log("Error in Fetching Merchant Business Gateway Disputes Count : ", error?.message);
+        // Sending Error Response
+        console.log("Error in Fetching User Business Gateway Disputes Count : ", error?.message);
         return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
                 error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
-                "Failed to Fetch Business Gateways Disputes",
+                "Failed to Fetch User Business Gateways Disputes",
                 {
                     message: error?.message
                 },
@@ -104,24 +115,23 @@ const totalGatewayDisputes = catchAsync(async (req, res) => {
 });
 
 
-// Fetch Merchant dashboard Gateway Dispute Analytics
+// Fetch User dashboard Gateway Dispute Analytics
 const gatewayDisputesAnalytics = catchAsync(async (req, res) => {
-    // @route : GET  /api/v2/merchant/dashboard/gateway-analytics
+    // @route : GET  /api/v2/user/dashboard/gateway-analytics
     try {
-
         // Step 1 : Extract The User Details From Request
         const { userRole, currUser } = req;
         const range = req.query.range || "1m"; // "1m", "6m", "1y"
         const businessId = req.businessId;
 
-        // Step 2 : Validate The Merchant Details and BusinessId
+        // Step 2 : Validate The User Details and BusinessId
         if (_.isEmpty(userRole)) {
             throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User Role'));
         }
         if (_.isEmpty(currUser?.uid)) {
             throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User'));
         }
-        if (userRole?.userRef !== "MERCHANT") {
+        if (userRole?.userRef !== "MERCHANT" && userRole?.userRef !== "ANALYST") {
             throw new AppError(statusCodes.UNAUTHORIZED, AppErrorCode.UnAuthorizedField('User'));
         }
 
@@ -133,7 +143,6 @@ const gatewayDisputesAnalytics = catchAsync(async (req, res) => {
 
         // Step 3 : Return payload if no business account linked
         if (_.isEmpty(businessId)) {
-
             return res.status(statusCodes.OK).json(
                 success_response(
                     statusCodes.OK,
@@ -168,33 +177,32 @@ const gatewayDisputesAnalytics = catchAsync(async (req, res) => {
                 throw new AppError(statusCodes.BAD_REQUEST, AppErrorCode.InvalidFieldValue('Range'));
         }
 
+        
+        // where condition for fetching disputes
+        const whereCondition = {
+            businessId: businessId,
+            createdAt: { [Op.gte]: new Date(startDate) }
+        }
+
+        // If User is Analyst, then filter by analystId
+        if (userRole?.userRef === "ANALYST") {
+            whereCondition.analystId = userRole?.userId;
+        }
+
 
         // Step 5: Fetch the Business gateway Dispute Counts
         console.time('Fetch Business Gateway Dispute Analytics');
         let gatewaysCount = await Dispute.findAll({
-            where: { createdAt: { [Op.gte]: new Date(startDate) }, businessId },
+            where: whereCondition,
             attributes: [
                 'gateway',
                 [sequelize.fn('COUNT', sequelize.col('id')), 'totalDisputes'],
-                [
-                    sequelize.fn(
-                        'SUM',
-                        sequelize.literal(`CASE WHEN state = 'Won' THEN 1 ELSE 0 END`)
-                    ),
-                    'wonDisputes'
-                ],
-                [
-                    sequelize.fn(
-                        'SUM',
-                        sequelize.literal(`CASE WHEN state = 'Lost' THEN 1 ELSE 0 END`)
-                    ),
-                    'lostDisputes'
-                ],
+                [sequelize.fn('SUM', sequelize.literal(`CASE WHEN state = 'Won' THEN 1 ELSE 0 END`)), 'wonDisputes'],
+                [sequelize.fn('SUM', sequelize.literal(`CASE WHEN state = 'Lost' THEN 1 ELSE 0 END`)), 'lostDisputes'],
             ],
             group: ['gateway'],
             raw: true
         });
-        console.log("test : ", gatewaysCount);
         console.timeEnd('Fetch Business Gateway Dispute Analytics');
 
         // Format The Payload
@@ -209,6 +217,7 @@ const gatewayDisputesAnalytics = catchAsync(async (req, res) => {
         });
         gatewaysCount.sort((a, b) => b.totalDisputes - a.totalDisputes);
 
+        // Sending Success Response
         return res.status(statusCodes.OK).json(
             success_response(
                 statusCodes.OK,
@@ -218,11 +227,12 @@ const gatewayDisputesAnalytics = catchAsync(async (req, res) => {
             )
         );
     } catch (error) {
-        console.log("Error in Fetching Merchant Business Gateway Disputes Analytics : ", error?.message);
+        // Sending Error Response
+        console.log("Error in Fetching User Business Gateway Disputes Analytics : ", error?.message);
         return res.status(error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR).json(
             failed_response(
                 error?.statusCode || statusCodes.INTERNAL_SERVER_ERROR,
-                "Failed to Fetch Business Gateways analytics",
+                "Failed to Fetch User Business Gateways analytics",
                 {
                     message: error?.message
                 },

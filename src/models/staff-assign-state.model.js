@@ -90,4 +90,10 @@ StaffAssignmentState.init({
 });
 
 
+// Requirements
+
+// fields
+// 1. lastStaffAssigned -> optional , 
+// DESC : when we assign to merchant then we can make this to null , so after merchant if null then other analyst will be assigned
+
 export default StaffAssignmentState;
